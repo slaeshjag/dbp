@@ -1,0 +1,7 @@
+*.o
+*.elf
+*.so
+*.po
+*.swp
+*.swo
+*.bin
