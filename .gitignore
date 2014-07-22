@@ -1,6 +1,7 @@
 *.o
 *.elf
 *.so
+*.a
 *.po
 *.swp
 *.swo

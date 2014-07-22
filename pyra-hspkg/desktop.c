@@ -34,7 +34,7 @@ struct desktop_file_s *desktop_parse(char *str) {
 	/* TODO: Make these dynamically reallocable */
 	char key[4096], value[4096], buff[4096], buff2[4096], *tmp;
 
-	int sz, brk, csec;
+	int sz, brk;
 	struct desktop_file_s *df;
 
 	df = malloc(sizeof(*df));
