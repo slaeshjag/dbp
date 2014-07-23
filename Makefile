@@ -14,6 +14,8 @@ all:
 	@$(MKDIR) build/bin/
 	@echo " [ CD ] pyra-hspkg/"
 	+@make -C pyra-hspkg/
+	@echo " [ CD ] pyra-hspkgd/"
+	+@make -C pyra-hspkgd/
 	
 	
 	@echo "Build complete."
@@ -24,6 +26,8 @@ clean:
 	+@$(RM) build/
 	@echo " [ CD ] pyra-hspkg/"
 	+@make -C pyra-hspkg/ clean
+	@echo " [ CD ] pyra-hspkgd/"
+	+@make -C pyra-hspkgd/ clean
 	@echo
 	@echo "Source tree cleaned."
 	@echo
