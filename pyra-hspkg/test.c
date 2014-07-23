@@ -1,4 +1,5 @@
 #include "desktop.h"
+#include "package.h"
 
 
 int main(int argc, char **argv) {
@@ -15,9 +16,11 @@ int main(int argc, char **argv) {
 	fread(buff, sz, 1, fp);
 	buff[sz] = 0;
 
-	df = desktop_parse(buff);
-	desktop_dump(df);
+/*	df = desktop_parse(buff);
+	desktop_write(df, "/tmp/test.desktop");
 	desktop_free(df);
+	free(buff);
+	fclose(fp);*/
 
 	return 0;
 }

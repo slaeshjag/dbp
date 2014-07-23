@@ -20,3 +20,6 @@ Structure of a pyra package:
 	- Optionally some extra data to define default program when running the
 	  package file directly. Keep outside of the .desktop files
 
+
+Dependencies:
+libarchive >= 3.1.2

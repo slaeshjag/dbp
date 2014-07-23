@@ -28,7 +28,9 @@ struct desktop_file_s {
 
 struct desktop_file_s *desktop_parse(char *str);
 void *desktop_free(struct desktop_file_s *df);
-void desktop_dump(struct desktop_file_s *df);
-
+void desktop_write(struct desktop_file_s *df, const char *path);
+char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *locale, const char *section);
+int desktop_lookup_section(struct desktop_file_s *df, const char *section);
+int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char *locale, int section);
 
 #endif

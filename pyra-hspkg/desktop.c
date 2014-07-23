@@ -30,6 +30,56 @@ static int desktop_entry_new(struct desktop_file_s *df, const char *key, const c
 }
 
 
+int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
+	int s, i;
+
+	if (!section)
+		s = 0;
+	else
+		for (i = 0; i < df->sections; i++)
+			if (!strcmp(df->section[i].name, section)) {
+				s = i;
+				break;
+			}
+	return (i == df->sections) ? -1 : s;
+}
+
+
+int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char *locale, int section) {
+	int i;
+
+	if (section < 0) return -1;
+
+	for (i = 0; i < df->section[section].entries; i++)
+		if (!strcmp(df->section[section].entry[i].key, key))
+			if (!strcmp(df->section[section].entry[i].locale, locale))
+				return i;
+	return -1;
+}
+
+
+char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *locale, const char *section) {
+	char *locbuff;
+	int s, i;
+
+	locbuff = strdup(locale);
+	/* Strip out variant */
+	if (strchr(locbuff, '@'))
+		*strchr(locbuff, '@') = 0;
+	if ((s = desktop_lookup_section(df, section)) < 0)
+		return NULL;
+	if ((i = desktop_lookup_entry(df, key, locale, s)) >= 0);
+	else if ((i = desktop_lookup_entry(df, key, locbuff, s)) >= 0);
+	else if ((i = desktop_lookup_entry(df, key, "", s)) >= 0);
+	else {
+		free(locbuff);
+		return NULL;
+	}
+
+	return df->section[s].entry[i].value;
+}
+
+
 struct desktop_file_s *desktop_parse(char *str) {
 	/* TODO: Make these dynamically reallocable */
 	char key[4096], value[4096], buff[4096], buff2[4096], *tmp;
@@ -39,14 +89,17 @@ struct desktop_file_s *desktop_parse(char *str) {
 
 	df = malloc(sizeof(*df));
 	df->sections = 0, df->section = NULL;
-	csec = desktop_section_new(df, NULL);
+	desktop_section_new(df, NULL);
 
 	for (brk = 0; !brk; str = strchr(str, '\n') + 1) {
 		if (!(tmp = strchr(str, '\n')))
 			sz = strlen(str), brk = 1;
 		else
 			sz = tmp - str;
-		/* TODO: Use sz to determine if key, value is big enough */
+
+		/* TODO: Handle too long strings */
+		if (sz >= 4096)
+			continue;
 	
 		*value = 0, *key = 0;
 		sscanf(str, "%[^\n=] = %[^\n]\n", key, value);
@@ -55,7 +108,7 @@ struct desktop_file_s *desktop_parse(char *str) {
 				continue;
 			*strchr(key, ']') = 0;
 			sscanf(key + 1, "%[^\n]", buff);
-			csec = desktop_section_new(df, buff);
+			desktop_section_new(df, buff);
 		} else if (*key == ';' || *key == '#') {
 		} else {
 			if (strchr(key, '[')) {	/* locale string */
@@ -73,9 +126,34 @@ struct desktop_file_s *desktop_parse(char *str) {
 }
 
 
+void desktop_write(struct desktop_file_s *df, const char *path) {
+	FILE *fp;
+	int i, j;
+
+	if (!(fp = fopen(path, "w")))
+		return;
+	for (i = 0; i < df->sections; i++) {
+		if (df->section[i].name)
+			fprintf(fp, "[%s]\n", df->section[i].name);
+		for (j = 0; j < df->section[i].entries; j++)
+			if (!*df->section[i].entry[j].key)
+				continue;
+			else if (*df->section[i].entry[j].locale)
+				fprintf(fp, "%s[%s]=%s\n", df->section[i].entry[j].key, df->section[i].entry[j].locale, df->section[i].entry[j].value);
+			else
+				fprintf(fp, "%s=%s\n", df->section[i].entry[j].key, df->section[i].entry[j].value);
+	}
+
+	fclose(fp);
+
+	return;
+}
+				
+
 void *desktop_free(struct desktop_file_s *df) {
 	int i, j;
 
+	if (!df) return NULL;
 	for (i = 0; i < df->sections; i++) {
 		free(df->section[i].name);
 		for (j = 0; j < df->section[i].entries; j++) {
@@ -91,16 +169,4 @@ void *desktop_free(struct desktop_file_s *df) {
 	free(df);
 
 	return NULL;
-}
-
-void desktop_dump(struct desktop_file_s *df) {
-	int i, j;
-
-	for (i = 0; i < df->sections; i++) {
-		fprintf(stdout, "SECTION %s\n", df->section[i].name);
-		for (j = 0; j < df->section[i].entries; j++)
-			fprintf(stdout, "%s [%s] = %s\n", df->section[i].entry[j].key, df->section[i].entry[j].locale, df->section[i].entry[j].value);
-	}
-
-	return;
 }
