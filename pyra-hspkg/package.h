@@ -18,5 +18,8 @@ struct package_s {
 	int			entries;
 };
 
+void package_crawl(struct package_s *p, const char *device, const char *path);
+void package_crawl_mount(struct package_s *p, const char *device, const char *path);
+
 
 #endif

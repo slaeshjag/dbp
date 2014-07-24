@@ -36,7 +36,7 @@ int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
 	if (!section)
 		s = 0;
 	else
-		for (i = 0; i < df->sections; i++)
+		for (i = 1; i < df->sections; i++)
 			if (!strcmp(df->section[i].name, section)) {
 				s = i;
 				break;
@@ -76,6 +76,7 @@ char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *loc
 		return NULL;
 	}
 
+	free(locbuff);
 	return df->section[s].entry[i].value;
 }
 
@@ -122,6 +123,26 @@ struct desktop_file_s *desktop_parse(char *str) {
 		}
 	}
 	
+	return df;
+}
+
+
+struct desktop_file_s *desktop_parse_file(const char *path) {
+	FILE *fp;
+	char *buff;
+	long file_sz;
+	struct desktop_file_s *df;
+
+	if (!(fp = fopen(path, "r")))
+		return NULL;
+	fseek(fp, 0, SEEK_END);
+	file_sz = ftell(fp);
+	rewind(fp);
+	buff = malloc(file_sz + 1);
+	buff[fread(buff, 1, file_sz, fp)] = 0;
+	fclose(fp);
+	df = desktop_parse(buff);
+	free(buff);
 	return df;
 }
 

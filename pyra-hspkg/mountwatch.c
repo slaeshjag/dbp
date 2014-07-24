@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "mountwatch.h"
 
+/* I keep almost typing mouthwash.. <.< */
 struct mountwatch_s mountwatch_struct;
 
 void *mountwatch_loop(void *null) {
@@ -22,7 +23,6 @@ void *mountwatch_loop(void *null) {
 		FD_SET(mountfd, &watch);
 		select(mountfd + 1, NULL, NULL, &watch, NULL);
 		sem_post(&mountwatch_struct.changed);
-		fprintf(stderr, "Mounts changed\n");
 	}
 }
 
@@ -137,5 +137,6 @@ void mountwatch_change_free(struct mountwatch_change_s change) {
 	int i;
 	for (i = 0; i < change.entries; i++)
 		free(change.entry[i].device), free(change.entry[i].mount);
+	free(change.entry);
 	return;
 }
