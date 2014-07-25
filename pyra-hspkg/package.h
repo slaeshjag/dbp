@@ -7,19 +7,30 @@
 #include <archive.h>
 
 struct package_entry_s {
-	char			*path;
-	char			*id;
-	char			*device;
+	char				*path;
+	char				*id;
+	char				*device;
+};
+
+
+struct package_instance_s {
+	char				*package_id;
+	unsigned int			run_id;
 };
 
 
 struct package_s {
-	struct package_entry_s	*entry;
-	int			entries;
+	pthread_mutex_t			mutex;
+	struct package_entry_s		*entry;
+	int				entries;
+	int				run_cnt;
+	struct package_instance_s	*instance;
+	int				instances;
 };
 
-void package_crawl(struct package_s *p, const char *device, const char *path);
+struct package_s package_init();
 void package_crawl_mount(struct package_s *p, const char *device, const char *path);
+void package_release_mount(struct package_s *p, const char *device);
 
 
 #endif

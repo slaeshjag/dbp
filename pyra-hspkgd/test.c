@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 	struct package_s p;
 	int i;
 
-	p.entry = NULL, p.entries = 0;
+	p = package_init();
 
 	if (!mountwatch_init())
 		exit(-1);
@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
 		for (i = 0; i < change.entries; i++) {
 			switch (change.entry[i].tag) {
 				case MOUNTWATCH_TAG_REMOVED:
+					package_release_mount(&p, change.entry[i].device);
 					fprintf(stderr, "%s umounted from %s\n", change.entry[i].device, change.entry[i].mount);
 					break;
 				case MOUNTWATCH_TAG_ADDED:

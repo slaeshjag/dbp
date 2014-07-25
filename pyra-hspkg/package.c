@@ -6,8 +6,22 @@
 #include <archive_entry.h>
 
 #include <dirent.h>
+#include <pthread.h>
 
-int package_find(struct package_s *p, const char *id) {
+struct package_s package_init() {
+	struct package_s p;
+
+	pthread_mutex_init(&p.mutex, NULL);
+	p.entry = NULL;
+	p.entries = 0;
+	p.instance = NULL;
+	p.instances = 0;
+	p.run_cnt = 0;
+	return p;
+}
+
+
+static int package_find(struct package_s *p, const char *id) {
 	int i;
 
 	for (i = 0; i < p->entries; i++)
@@ -17,7 +31,7 @@ int package_find(struct package_s *p, const char *id) {
 }
 
 
-int package_add(struct package_s *p, char *path, char *id, char *device) {
+static int package_add(struct package_s *p, char *path, char *id, char *device) {
 	int nid, i;
 
 	for (i = 0; i < p->entries; i++)
@@ -29,12 +43,13 @@ int package_add(struct package_s *p, char *path, char *id, char *device) {
 	p->entry = realloc(p->entry, sizeof(*p->entry) * p->entries);
 	p->entry[nid].path = path;
 	p->entry[nid].id = id;
+	p->entry[nid].device = device;
 
 	return nid;
 }
 
 
-int package_register(struct package_s *p, const char *path, const char *device) {
+static int package_register(struct package_s *p, const char *path, const char *device) {
 	struct archive *a;
 	struct archive_entry *ae;
 	struct desktop_file_s *df;
@@ -92,7 +107,7 @@ int package_register(struct package_s *p, const char *path, const char *device) 
 }
 
 
-void package_crawl(struct package_s *p, const char *device, const char *path) {
+static void package_crawl(struct package_s *p, const char *device, const char *path) {
 	DIR *d;
 	struct dirent dir, *res;
 	int i;
@@ -127,6 +142,8 @@ void package_crawl(struct package_s *p, const char *device, const char *path) {
 void package_crawl_mount(struct package_s *p, const char *device, const char *path) {
 	int i;
 	char *new_path = NULL;
+	
+	pthread_mutex_lock(&p->mutex);
 
 	for (i = 0; i < config_struct.search_dirs; i++) {
 		new_path = realloc(new_path, strlen(path) + 2 + strlen(config_struct.search_dir[i]));
@@ -135,5 +152,99 @@ void package_crawl_mount(struct package_s *p, const char *device, const char *pa
 	}
 	
 	free(new_path);
+	pthread_mutex_unlock(&p->mutex);
+
 	return;
+}
+
+
+void package_release_mount(struct package_s *p, const char *device) {
+	int i;
+
+	pthread_mutex_lock(&p->mutex);
+	for (i = 0; i < p->entries; i++) {
+		if (strcmp(p->entry[i].device, device))
+			continue;
+		/* TODO: Clean up exported binaries, .desktop, icons */
+		fprintf(stderr, "Unregistering package %s\n", p->entry[i].id);
+		free(p->entry[i].device);
+		free(p->entry[i].id);
+		free(p->entry[i].path);
+		p->entries--;
+		memmove(&p->entry[i], &p->entry[i + 1], (p->entries - i) * sizeof(*p->entry));
+	}
+
+	pthread_mutex_unlock(&p->mutex);
+	return;
+}
+
+
+int package_run(struct package_s *p, const char *id) {
+	int i;
+	void *instance;
+
+	pthread_mutex_lock(&p->mutex);
+	/* Find out if the package is already in use, in that case we don't
+	** need to mount it again */
+
+	for (i = 0; i < p->instances; i++)
+		if (!strcmp(p->instance[i].package_id, id))
+			goto mounted;
+	/* TODO: Mount the package */
+	
+	mounted:
+	i = p->instances++;
+	if (!(instance = realloc(p->instance, sizeof(*p->instance) * p->instances))) {
+		pthread_mutex_unlock(&p->mutex);
+		return -1;
+	}
+
+	p->instance = instance;
+	p->instance[i].package_id = strdup(id);
+	p->instance[i].run_id = p->run_cnt++;
+	if (p->run_cnt < 0) {
+		fprintf(stderr, "Run count wrapped around. A bumpy road might await\n");
+		p->run_cnt = 0;
+	}
+
+	return p->instance[i].run_id;
+}
+
+
+int package_stop(struct package_s *p, int run_id) {
+	int i;
+	const char *id = NULL;
+	
+	pthread_mutex_lock(&p->mutex);
+
+	/* Find out if this is the last instance in this package */
+	for (i = 0; i < p->instances; i++) {
+		if (p->instance[i].run_id == run_id) {
+			id = p->instance[i].package_id;
+			break;
+		}
+	}
+
+	if (!id) {
+		fprintf(stderr, "Requested to stop instance with invalid id %i\n", run_id);
+		goto done;
+	}
+
+	for (i = 0; i < p->instances; i++) {
+		if (!strcmp(p->instance[i].package_id, id) && p->instance[i].run_id != run_id)
+			/* Other instances are using the package, do not umount */
+			goto umount_done;
+	}
+	
+	/* TODO: Umount the filesystem */
+
+	umount_done:
+	
+	free(p->instance[i].package_id);
+	p->instances--;
+	memmove(&p->instance[i], &p->instance[i + 1], sizeof(*p->instance) * (p->instances - i));
+
+	done:
+	pthread_mutex_unlock(&p->mutex);
+	return 1;
 }
