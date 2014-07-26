@@ -66,8 +66,11 @@ char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *loc
 	/* Strip out variant */
 	if (strchr(locbuff, '@'))
 		*strchr(locbuff, '@') = 0;
-	if ((s = desktop_lookup_section(df, section)) < 0)
+	if ((s = desktop_lookup_section(df, section)) < 0) {
+		free(locbuff);
 		return NULL;
+	}
+
 	if ((i = desktop_lookup_entry(df, key, locale, s)) >= 0);
 	else if ((i = desktop_lookup_entry(df, key, locbuff, s)) >= 0);
 	else if ((i = desktop_lookup_entry(df, key, "", s)) >= 0);

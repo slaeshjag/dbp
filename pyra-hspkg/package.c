@@ -86,6 +86,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	data[size] = 0;
 
 	df = desktop_parse(data);
+	free(data);
 	if (!(pkg_id = desktop_lookup(df, "Id", "", "Package Entry")))
 		goto error;
 	pkg_id = strdup(pkg_id);
@@ -139,6 +140,9 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 }
 
 
+/* crawl mount/release are only called from the main thread, in the mountpoint
+** watch handler */
+
 void package_crawl_mount(struct package_s *p, const char *device, const char *path) {
 	int i;
 	char *new_path = NULL;
@@ -179,6 +183,7 @@ void package_release_mount(struct package_s *p, const char *device) {
 }
 
 
+/* run/stop is called in the dbus thread, nowhere else */
 int package_run(struct package_s *p, const char *id) {
 	int i;
 	void *instance;
@@ -207,12 +212,13 @@ int package_run(struct package_s *p, const char *id) {
 		p->run_cnt = 0;
 	}
 
+	pthread_mutex_unlock(&p->mutex);
 	return p->instance[i].run_id;
 }
 
 
 int package_stop(struct package_s *p, int run_id) {
-	int i;
+	int i, rid;
 	const char *id = NULL;
 	
 	pthread_mutex_lock(&p->mutex);
@@ -221,6 +227,7 @@ int package_stop(struct package_s *p, int run_id) {
 	for (i = 0; i < p->instances; i++) {
 		if (p->instance[i].run_id == run_id) {
 			id = p->instance[i].package_id;
+			rid = i;
 			break;
 		}
 	}
@@ -240,9 +247,9 @@ int package_stop(struct package_s *p, int run_id) {
 
 	umount_done:
 	
-	free(p->instance[i].package_id);
+	free(p->instance[rid].package_id);
 	p->instances--;
-	memmove(&p->instance[i], &p->instance[i + 1], sizeof(*p->instance) * (p->instances - i));
+	memmove(&p->instance[rid], &p->instance[rid + 1], sizeof(*p->instance) * (p->instances - rid));
 
 	done:
 	pthread_mutex_unlock(&p->mutex);

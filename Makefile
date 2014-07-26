@@ -16,6 +16,8 @@ all:
 	+@make -C pyra-hspkg/
 	@echo " [ CD ] pyra-hspkgd/"
 	+@make -C pyra-hspkgd/
+	@echo " [ CD ] pyra-hspkg-run/"
+	+@make -C pyra-hspkg-run/
 	
 	
 	@echo "Build complete."
@@ -28,6 +30,8 @@ clean:
 	+@make -C pyra-hspkg/ clean
 	@echo " [ CD ] pyra-hspkgd/"
 	+@make -C pyra-hspkgd/ clean
+	@echo " [ CD ] pyra-hspkg-run/"
+	+@make -C pyra-hspkg-run/ clean
 	@echo
 	@echo "Source tree cleaned."
 	@echo

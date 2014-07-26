@@ -31,6 +31,8 @@ struct package_s {
 struct package_s package_init();
 void package_crawl_mount(struct package_s *p, const char *device, const char *path);
 void package_release_mount(struct package_s *p, const char *device);
+int package_run(struct package_s *p, const char *id);
+int package_stop(struct package_s *p, int run_id); 
 
 
 #endif
