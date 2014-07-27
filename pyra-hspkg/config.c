@@ -42,6 +42,13 @@ void config_init() {
 	tmp = desktop_lookup(df, "search_directories", "", "Package Daemon Config");
 	config_expand_token(&c.search_dir, &c.search_dirs, tmp);
 
+	c.img_mount = strdup(desktop_lookup(df, "image_mount_dir", "", "Package Daemon Config"));
+	c.union_mount = strdup(desktop_lookup(df, "union_mount_dir", "", "Package Daemon Config"));
+
+	c.data_directory = strdup(desktop_lookup(df, "data_directory", "", "Package Daemon Config"));
+
+	c.per_user_appdata = (!strcmp(desktop_lookup(df, "per_user_appdata", "", "Package Daemon Config"), "yes"));
+
 	desktop_free(df);
 	config_struct = c;
 	return;

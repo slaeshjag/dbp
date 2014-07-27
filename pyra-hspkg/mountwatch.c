@@ -80,7 +80,7 @@ struct mountwatch_change_s mountwatch_diff() {
 			** probably a good thing 			*/
 			continue;
 
-		if (strstr(mount, "/dev/loop") == mount)
+		if (strstr(device, "/dev/loop") == device)
 			/* Loop-back devices should probably not be	*
 			** watched..					*/
 			continue;

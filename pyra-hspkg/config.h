@@ -8,6 +8,12 @@ struct config_s {
 	int			file_extensions;
 	char			**search_dir;
 	int			search_dirs;
+	char			*img_mount;
+	char			*union_mount;
+
+	char			*data_directory;
+
+	int			per_user_appdata;
 };
 
 

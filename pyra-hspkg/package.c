@@ -1,6 +1,8 @@
 #include "desktop.h"
 #include "package.h"
 #include "config.h"
+#include "loop.h"
+#include "dbp.h"
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -26,17 +28,18 @@ static int package_find(struct package_s *p, const char *id) {
 
 	for (i = 0; i < p->entries; i++)
 		if (!strcmp(id, p->entry[i].id))
-			return 1;
-	return 0;
+			return i;
+	return -1;
 }
 
 
-static int package_add(struct package_s *p, char *path, char *id, char *device) {
+static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount) {
 	int nid, i;
 
 	for (i = 0; i < p->entries; i++)
 		if (!strcmp(p->entry[i].id, id)) {
 			fprintf(stderr, "Package %s is already registered at %s\n", id, p->entry[i].path);
+			free(path), free(id), free(device), free(mount);
 			return -1;
 		}
 	nid = p->entries++;
@@ -44,12 +47,13 @@ static int package_add(struct package_s *p, char *path, char *id, char *device) 
 	p->entry[nid].path = path;
 	p->entry[nid].id = id;
 	p->entry[nid].device = device;
+	p->entry[nid].mount = mount;
 
 	return nid;
 }
 
 
-static int package_register(struct package_s *p, const char *path, const char *device) {
+static int package_register(struct package_s *p, const char *path, const char *device, const char *mount) {
 	struct archive *a;
 	struct archive_entry *ae;
 	struct desktop_file_s *df;
@@ -90,7 +94,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	if (!(pkg_id = desktop_lookup(df, "Id", "", "Package Entry")))
 		goto error;
 	pkg_id = strdup(pkg_id);
-	if ((id = package_add(p, strdup(path), pkg_id, strdup(device))) < 0) {
+	if ((id = package_add(p, strdup(path), pkg_id, strdup(device), strdup(mount))) < 0) {
 		free(pkg_id);
 		goto error;
 	}
@@ -108,7 +112,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 }
 
 
-static void package_crawl(struct package_s *p, const char *device, const char *path) {
+static void package_crawl(struct package_s *p, const char *device, const char *path, const char *mount) {
 	DIR *d;
 	struct dirent dir, *res;
 	int i;
@@ -127,7 +131,7 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 			    config_struct.file_extension[i])) {
 				name_buff = malloc(strlen(path) + 2 + strlen(dir.d_name));
 				sprintf(name_buff, "%s/%s", path, dir.d_name);
-				package_register(p, name_buff, device);
+				package_register(p, name_buff, device, mount);
 				free(name_buff);
 				break;
 			}
@@ -152,7 +156,7 @@ void package_crawl_mount(struct package_s *p, const char *device, const char *pa
 	for (i = 0; i < config_struct.search_dirs; i++) {
 		new_path = realloc(new_path, strlen(path) + 2 + strlen(config_struct.search_dir[i]));
 		sprintf(new_path, "%s/%s", path, config_struct.search_dir[i]);
-		package_crawl(p, device, new_path);
+		package_crawl(p, device, new_path, path);
 	}
 	
 	free(new_path);
@@ -174,6 +178,7 @@ void package_release_mount(struct package_s *p, const char *device) {
 		free(p->entry[i].device);
 		free(p->entry[i].id);
 		free(p->entry[i].path);
+		free(p->entry[i].mount);
 		p->entries--;
 		memmove(&p->entry[i], &p->entry[i + 1], (p->entries - i) * sizeof(*p->entry));
 	}
@@ -184,8 +189,8 @@ void package_release_mount(struct package_s *p, const char *device) {
 
 
 /* run/stop is called in the dbus thread, nowhere else */
-int package_run(struct package_s *p, const char *id) {
-	int i;
+int package_run(struct package_s *p, const char *id, const char *user) {
+	int i, loop, pkg_n;
 	void *instance;
 
 	pthread_mutex_lock(&p->mutex);
@@ -193,20 +198,31 @@ int package_run(struct package_s *p, const char *id) {
 	** need to mount it again */
 
 	for (i = 0; i < p->instances; i++)
-		if (!strcmp(p->instance[i].package_id, id))
+		if (!strcmp(p->instance[i].package_id, id)) {
+			loop = p->instance[i].loop;
 			goto mounted;
-	/* TODO: Mount the package */
+		}
+	if ((pkg_n = package_find(p, id) < 0)) {
+		pthread_mutex_unlock(&p->mutex);
+		return DBP_ERROR_BAD_PKG_ID;
+	}
+
+	if ((loop = loop_mount(p->entry[pkg_n].path, id, user, p->entry[pkg_n].mount)) < 0) {
+		pthread_mutex_unlock(&p->mutex);
+		return loop;
+	}
 	
 	mounted:
 	i = p->instances++;
 	if (!(instance = realloc(p->instance, sizeof(*p->instance) * p->instances))) {
 		pthread_mutex_unlock(&p->mutex);
-		return -1;
+		return DBP_ERROR_NO_MEMORY;
 	}
 
 	p->instance = instance;
 	p->instance[i].package_id = strdup(id);
 	p->instance[i].run_id = p->run_cnt++;
+	p->instance[i].loop = loop;
 	if (p->run_cnt < 0) {
 		fprintf(stderr, "Run count wrapped around. A bumpy road might await\n");
 		p->run_cnt = 0;
