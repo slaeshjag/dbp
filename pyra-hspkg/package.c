@@ -259,7 +259,8 @@ int package_stop(struct package_s *p, int run_id) {
 			goto umount_done;
 	}
 	
-	/* TODO: Umount the filesystem */
+	/* TODO: Send the actual user instead of NULL */
+	loop_umount(p->instance[rid].package_id, p->instance[rid].loop, NULL);
 
 	umount_done:
 	

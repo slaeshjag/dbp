@@ -159,7 +159,6 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	sprintf(loop, "/dev/loop%i", loop_n);
 
 	/* It'll mount read-only, as it's an image */
-	fprintf(stderr, "Trying to create %s\n", img_dir);
 	loop_directory_setup(img_dir, 0555);
 	if (mount(loop, img_dir, DBP_FS_NAME, 0, "")) {
 		loop_reset(loop_n);
@@ -198,4 +197,18 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	free(mount_opt);
 	
 	return loop_n;
+}
+
+
+void loop_umount(const char *pkg_id, int loop, const char *user) {
+	char mount_path[PATH_MAX], img_path[PATH_MAX];
+
+	sprintf(mount_path, "%s/%s", config_struct.union_mount, pkg_id);
+	sprintf(img_path, "%s/%s", config_struct.img_mount, pkg_id);
+
+	umount(mount_path);
+	umount(img_path);
+	loop_reset(loop);
+
+	return;
 }
