@@ -1,13 +1,13 @@
 # Project: pyra-hspkg
 # Makefile configurations
 
-NAME		=	pyra-hspkg
+NAME		=	dbp
 VERSION		=	0.1
 
 DAEMONBIN	=	"$(TOPDIR)/build/bin/$(NAME)d"
-RUNNERBIN	=	"$(TOPDIR)/build/bin/$(NAME)-run"
-LIB		=	"$(TOPDIR)/pyra-hspkg/pyra-hspkg.a"
-LIBINC		=	"-I$(TOPDIR)/pyra-hspkg"
+RUNNERBIN	=	"$(TOPDIR)/build/bin/run-$(NAME)"
+LIB		=	"$(TOPDIR)/dbp-common/dbp-common.a"
+LIBINC		=	"-I$(TOPDIR)/dbp-common"
 PREFIX		+=	/usr/local
 
 DBGFLAGS	=	-O0 -g -D__DEBUG__

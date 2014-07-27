@@ -19,7 +19,7 @@ clean:
 	@echo 
 
 %.o: %.c %.h
-	@echo " [ CC ] pyra-hspkg/$<"
+	@echo " [ CC ] dbp-common/$<"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 	
 

@@ -19,7 +19,7 @@ clean:
 	@echo 
 
 %.o: %.c %.h
-	@echo " [ CC ] pyra-hspkg-run/$<"
+	@echo " [ CC ] run-dbp/$<"
 	@$(CC) $(LIBINC) $(CFLAGS) -c -o $@ $<
 	
 

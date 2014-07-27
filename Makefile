@@ -12,12 +12,12 @@ all:
 	@$(MKDIR) build/
 	@echo " [INIT] build/bin"
 	@$(MKDIR) build/bin/
-	@echo " [ CD ] pyra-hspkg/"
-	+@make -C pyra-hspkg/
-	@echo " [ CD ] pyra-hspkgd/"
-	+@make -C pyra-hspkgd/
-	@echo " [ CD ] pyra-hspkg-run/"
-	+@make -C pyra-hspkg-run/
+	@echo " [ CD ] dbp-common/"
+	+@make -C dbp-common/
+	@echo " [ CD ] dbpd/"
+	+@make -C dbpd/
+	@echo " [ CD ] run-dbp/"
+	+@make -C run-dbp/
 	
 	
 	@echo "Build complete."
@@ -26,12 +26,12 @@ all:
 clean:
 	@echo " [ RM ] build/"
 	+@$(RM) build/
-	@echo " [ CD ] pyra-hspkg/"
-	+@make -C pyra-hspkg/ clean
-	@echo " [ CD ] pyra-hspkgd/"
-	+@make -C pyra-hspkgd/ clean
-	@echo " [ CD ] pyra-hspkg-run/"
-	+@make -C pyra-hspkg-run/ clean
+	@echo " [ CD ] dbp-common/"
+	+@make -C dbp-common/ clean
+	@echo " [ CD ] dbpd/"
+	+@make -C dbpd/ clean
+	@echo " [ CD ] run-dbp/"
+	+@make -C run-dbp/ clean
 	@echo
 	@echo "Source tree cleaned."
 	@echo

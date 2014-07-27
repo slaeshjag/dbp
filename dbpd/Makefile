@@ -19,7 +19,7 @@ clean:
 	@echo 
 
 %.o: %.c %.h
-	@echo " [ CC ] pyra-hspkgd/$<"
+	@echo " [ CC ] dbpd/$<"
 	@$(CC) $(LIBINC) $(CFLAGS) -c -o $@ $<
 	
 
