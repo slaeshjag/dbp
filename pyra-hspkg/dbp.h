@@ -23,5 +23,6 @@
 #define	DBP_ERROR_BAD_FSIMG	-1008	/* Package doesn't have a valid FS */
 #define	DBP_ERROR_ILL_DIRNAME	-1009	/* A mountpoint contained an illegal char */
 #define	DBP_ERROR_UNION_FAILED	-1010	/* UnionFS mount failed */
+#define	SBP_ERROR_APPD_NOPERM	-1011	/* Unable to create appdata directory */
 
 #endif

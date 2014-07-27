@@ -176,8 +176,12 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 			sprintf(user_dir, "%s/%s_%s/%s", src_mount, config_struct.data_directory, user, id);
 		else
 			sprintf(user_dir, "/%s_%s/%s", config_struct.data_directory, user, id);
-	} else
-		sprintf(user_dir, "%s/%s/%s", src_mount, config_struct.data_directory, id);
+	} else {
+		if (src_mount[1])
+			sprintf(user_dir, "%s/%s/%s", src_mount, config_struct.data_directory, id);
+		else
+			sprintf(user_dir, "/%s/%s", config_struct.data_directory, id);
+	}
 	if (strchr(user_dir, ':') || strchr(img_dir, ':')) {
 		umount(img_dir);
 		loop_reset(loop_n);
@@ -208,6 +212,9 @@ void loop_umount(const char *pkg_id, int loop, const char *user) {
 
 	umount(mount_path);
 	umount(img_path);
+
+	rmdir(mount_path);
+	rmdir(img_path);
 	loop_reset(loop);
 
 	return;

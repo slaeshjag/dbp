@@ -18,7 +18,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	DBusMessage *ndm;
 	DBusMessageIter iter;
 	const char *arg, *name;
-	char *ret;
+	char *ret, *ret2;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
 		fprintf(stderr, "Message has no arguments\n");
@@ -40,20 +40,27 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 
 	ret = malloc(11);
 
+	ret2 = NULL;
 	/* Process message */
 	if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "Mount")) {
 		sprintf(ret, "%i", package_run(p, arg, name));
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "UMount")) {
 		sprintf(ret, "%i", package_stop(p, atoi(arg)));
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "MountP")) {
+		ret2 = package_mount_get(p, arg);
 	} else
 		fprintf(stderr, "Bad method call\n");
 
 	ndm = dbus_message_new_method_return(dm);
-	dbus_message_append_args(ndm, DBUS_TYPE_STRING, &ret, DBUS_TYPE_INVALID);
+	if (!ret2)
+		dbus_message_append_args(ndm, DBUS_TYPE_STRING, &ret, DBUS_TYPE_INVALID);
+	else
+		dbus_message_append_args(ndm, DBUS_TYPE_STRING, &ret2, DBUS_TYPE_INVALID);
 	dbus_connection_send(dc, ndm, NULL);
 	dbus_connection_flush(dc);
 	dbus_message_unref(ndm);
 	free(ret);
+	free(ret2);
 
 	return DBUS_HANDLER_RESULT_HANDLED;
 }

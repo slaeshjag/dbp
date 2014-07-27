@@ -272,3 +272,20 @@ int package_stop(struct package_s *p, int run_id) {
 	pthread_mutex_unlock(&p->mutex);
 	return 1;
 }
+
+
+char *package_mount_get(struct package_s *p, const char *pkg_id) {
+	int i;
+	char *path;
+
+	pthread_mutex_lock(&p->mutex);
+
+	if ((i = package_find(p, pkg_id)) < 0) {
+		pthread_mutex_unlock(&p->mutex);
+		return strdup("NULL");
+	}
+
+	path = strdup(p->entry[i].mount);
+	pthread_mutex_unlock(&p->mutex);
+	return path;
+}
