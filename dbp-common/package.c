@@ -53,6 +53,99 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 }
 
 
+/* If basename(3) didn't suck, this function wouldn't be needed */
+static const char *find_filename(const char *path) {
+	char *tmp = (char *) path;
+	while (strchr(tmp, '/') && (tmp = strchr(path, '/') + 1));
+	return tmp;
+}
+
+
+static void package_desktop_write(const char *pkg_id, const char *fname, char *data) {
+	char writename[PATH_MAX];
+	struct desktop_file_s *df;
+	int sec, ent;
+	FILE *fp;
+
+	df = desktop_parse(data);
+
+	if ((sec = desktop_lookup_section(df, "Desktop Entry")) < 0)
+		goto desktop_free;
+	if ((ent = desktop_lookup_entry(df, "Icon", "", sec)) < 0)
+		goto write;
+	
+	sprintf(writename, "%s/%s%s_%s", config_struct.icon_directory, DBP_META_PREFIX, pkg_id, df->section[sec].entry[ent].value);
+	free(df->section[sec].entry[ent].value);
+	df->section[sec].entry[ent].value = strdup(writename);
+
+	write:
+	sprintf(writename, "%s/%s%s_%s", config_struct.desktop_directory, DBP_META_PREFIX, pkg_id, fname);
+	if (!(fp = fopen(writename, "w")))
+		goto desktop_free;
+	desktop_write(df, writename);
+	chmod(writename, 0755);
+
+	desktop_free:
+	desktop_free(df);
+	return;
+}
+
+
+static void package_meta_extract(const char *path, const char *pkg_id) {
+	struct archive *a;
+	struct archive_entry *ae;
+	char *pathname, writename[PATH_MAX];
+	char *data;
+	int size;
+	FILE *fp;
+
+	if (!(a = archive_read_new()))
+		return;
+	archive_read_support_format_zip(a);
+	if (archive_read_open_filename(a, path, 512) != ARCHIVE_OK)
+		return;
+	while (archive_read_next_header(a, &ae) == ARCHIVE_OK) {
+		pathname = (char *) archive_entry_pathname(ae);
+		if (strlen(pathname) > 256) /* Don't be over-doing it.. */
+			continue;
+
+		/* ".desktop" = 8 */
+		if (strlen(pathname) < 8)	/* Not a .desktop */
+			if (strstr(pathname, "icons/") != pathname)	/* Not icon */
+				continue;
+		if (strstr(pathname, "icons/") == pathname || !strcmp(&pathname[strlen(pathname) - 8], ".desktop")) {
+			data = malloc((size = archive_entry_size(ae)) + 1);
+			if (!data)
+				continue;
+			archive_read_data(a, data, size);
+			data[size] = 0;
+			if (strstr(pathname, "icons/") == pathname) {
+				sprintf(writename, "%s/%s%s_%s", 
+				    config_struct.icon_directory, DBP_META_PREFIX, pkg_id,
+				    find_filename(pathname));
+				
+				if (!(fp = fopen(writename, "w"))) {
+					free(data);
+					continue;
+				}
+
+				fwrite(data, 1, size, fp);
+				fclose(fp);
+				chmod(writename, 0755);
+			} else {
+				package_desktop_write(pkg_id, find_filename(pathname), data);
+				/* TODO: Extract executables */
+			} 
+			free(data);
+		} else
+			fprintf(stderr, "Not counting %s\n", pathname);
+	}
+	
+	archive_read_free(a);
+	return;
+}
+
+
 static int package_register(struct package_s *p, const char *path, const char *device, const char *mount) {
 	struct archive *a;
 	struct archive_entry *ae;
@@ -101,6 +194,8 @@ static int package_register(struct package_s *p, const char *path, const char *d
 
 	df = desktop_free(df);
 	archive_read_free(a);
+
+	package_meta_extract(path, pkg_id);
 	fprintf(stderr, "Registered package %s\n", pkg_id);
 	return 1;
 
@@ -166,6 +261,31 @@ void package_crawl_mount(struct package_s *p, const char *device, const char *pa
 }
 
 
+static void package_kill_prefix(const char *dir, const char *prefix) {
+	char full[PATH_MAX];
+	DIR *d;
+	struct dirent de, *result;
+
+	if (!(d = opendir(dir)))
+		return;
+	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result))
+		if (strstr(de.d_name, prefix) == de.d_name)
+			sprintf(full, "%s/%s", dir, de.d_name), unlink(full);
+	closedir(d);
+	return;
+}
+
+static void package_meta_remove(const char *pkg_id) {
+	char prefix[PATH_MAX];
+
+	sprintf(prefix, "%s%s_", DBP_META_PREFIX, pkg_id);
+	package_kill_prefix(config_struct.icon_directory, prefix);
+	package_kill_prefix(config_struct.desktop_directory, prefix);
+
+	return;
+}
+
+
 void package_release_mount(struct package_s *p, const char *device) {
 	int i;
 
@@ -173,7 +293,8 @@ void package_release_mount(struct package_s *p, const char *device) {
 	for (i = 0; i < p->entries; i++) {
 		if (strcmp(p->entry[i].device, device))
 			continue;
-		/* TODO: Clean up exported binaries, .desktop, icons */
+		package_meta_remove(p->entry[i].id);
+		/* TODO: Clean up exported executables */
 		fprintf(stderr, "Unregistering package %s\n", p->entry[i].id);
 		free(p->entry[i].device);
 		free(p->entry[i].id);

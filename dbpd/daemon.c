@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <limits.h>
+#include <dirent.h>
+#include <string.h>
 #include "mountwatch.h"
 #include "config.h"
 #include "package.h"
@@ -8,9 +12,36 @@
 #include "loop.h"
 
 
+static int daemon_nuke_dir(char *dir) {
+	DIR *d;
+	struct dirent de, *result;
+	char path[PATH_MAX];
+	
+	if (!(d = opendir(dir)))
+		return 0;
+	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result))
+		if (strstr(de.d_name, DBP_META_PREFIX) == de.d_name)
+			sprintf(path, "%s/%s", dir, de.d_name), unlink(path);
+	closedir(d);
+	return 1;
+}
+
+static int daemon_nuke() {
+	if (!daemon_nuke_dir(config_struct.desktop_directory));
+	else if (!daemon_nuke_dir(config_struct.icon_directory));
+	else
+		return 1;
+	return 0;
+}
+
+
 static int daemon_init() {
 	if (!loop_directory_setup(config_struct.img_mount, 0755));
 	else if (!loop_directory_setup(config_struct.union_mount, 0777));
+	else if (!loop_directory_setup(config_struct.icon_directory, 0755));
+	else if (!loop_directory_setup(config_struct.exec_directory, 0755));
+	else if (!loop_directory_setup(config_struct.desktop_directory, 0755));
+	else if (!daemon_nuke());
 	else
 		return 1;
 	return 0;

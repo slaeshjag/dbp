@@ -12,6 +12,9 @@ struct config_s {
 	char			*union_mount;
 
 	char			*data_directory;
+	char			*icon_directory;
+	char			*exec_directory;
+	char			*desktop_directory;
 
 	int			per_user_appdata;
 };

@@ -46,6 +46,9 @@ void config_init() {
 	c.union_mount = strdup(desktop_lookup(df, "union_mount_dir", "", "Package Daemon Config"));
 
 	c.data_directory = strdup(desktop_lookup(df, "data_directory", "", "Package Daemon Config"));
+	c.icon_directory = strdup(desktop_lookup(df, "icon_directory", "", "Package Daemon Config"));
+	c.exec_directory = strdup(desktop_lookup(df, "exec_directory", "", "Package Daemon Config"));
+	c.desktop_directory = strdup(desktop_lookup(df, "desktop_directory", "", "Package Daemon Config"));
 
 	c.per_user_appdata = (!strcmp(desktop_lookup(df, "per_user_appdata", "", "Package Daemon Config"), "yes"));
 
