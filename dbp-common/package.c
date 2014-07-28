@@ -10,6 +10,9 @@
 #include <dirent.h>
 #include <pthread.h>
 
+/* The line-count in this file is too damn high! */
+static void package_meta_exec_export(const char *exec, int env, struct package_s *p, int id);
+
 struct package_s package_init() {
 	struct package_s p;
 
@@ -48,6 +51,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].id = id;
 	p->entry[nid].device = device;
 	p->entry[nid].mount = mount;
+	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
 
 	return nid;
 }
@@ -61,8 +65,9 @@ static const char *find_filename(const char *path) {
 }
 
 
-static void package_desktop_write(const char *pkg_id, const char *fname, char *data) {
+static void package_desktop_write(struct package_s *p, int id, const char *fname, char *data) {
 	char writename[PATH_MAX];
+	const char *pkg_id = p->entry[id].id;
 	struct desktop_file_s *df;
 	int sec, ent;
 	FILE *fp;
@@ -84,6 +89,8 @@ static void package_desktop_write(const char *pkg_id, const char *fname, char *d
 		goto desktop_free;
 	desktop_write(df, writename);
 	chmod(writename, 0755);
+	package_meta_exec_export(desktop_lookup(df, "Exec", "", "Package Entry"), 1, p, id);
+	package_meta_exec_export(desktop_lookup(df, "NoEnvExec", "", "Package Entry"), 0, p, id);
 
 	desktop_free:
 	desktop_free(df);
@@ -91,11 +98,96 @@ static void package_desktop_write(const char *pkg_id, const char *fname, char *d
 }
 
 
-static void package_meta_extract(const char *path, const char *pkg_id) {
+static void package_emit_exec(const char *path, const char *bin, int env, const char *id) {
+	FILE *fp, *out;
+	int sz, tok_var;
+	char *script, *saveptr, *tok;
+
+	if (!(fp = fopen(config_struct.exec_template, "r"))) {
+		fprintf(stderr, "Unable to open exec template %s\n", config_struct.exec_template);
+		return;
+	}
+
+	if (!(out = fopen(path, "w"))) {
+		fprintf(stderr, "Unable to open exec '%s' for writing\n", path);
+		fclose(fp);
+		return;
+	}
+	
+	fseek(fp, 0, SEEK_END);
+	sz = ftell(fp);
+	rewind(fp);
+
+	if (!(script = malloc(sz + 1)))
+		goto done;
+
+	fread(script, 1, sz, fp);
+	script[sz] = 0;
+
+	for (tok_var = 0, tok = strtok_r(script, "!", &saveptr); tok; tok = strtok_r(NULL, "!", &saveptr)) {
+		if (!tok_var) {
+			fprintf(out, "%s", tok);
+		} else {
+			if (tok[0] != '%') {
+				tok_var = 0, fprintf(out, "!%s", tok);
+				continue;
+			}
+
+			tok++;
+			/* Not the most efficient wat to do it, but I	*
+			** dunno yet if speed's going to be an issue 	*/
+			if (!strcmp(tok, "package_id"))
+				fprintf(out, "%s", id);
+			else if (!strcmp(tok, "package_binary"))
+				fprintf(out, "%s", bin);
+			else if (!strcmp(tok, "package_enviroment"))
+				fprintf(out, "%i", env);
+			else
+				fprintf(stderr, "Unhandled sequence %s\n", tok);
+		}
+		
+		tok_var = !tok_var;
+	}
+
+	chmod(path, 0755);
+	
+	done:
+	fclose(fp);
+	fclose(out);
+	free(script);
+	return;
+}
+
+
+static void package_meta_exec_export(const char *exec, int env, struct package_s *p, int id) {
+	char path[PATH_MAX], *exec_tok, *saveptr, *tok;
+	int exec_id;
+
+	if (!exec)
+		return;
+	exec_tok = strdup(exec);
+	for (tok = strtok_r(exec_tok, ";", &saveptr); tok; tok = strtok_r(NULL, ";", &saveptr)) {
+		sprintf(path, "%s/%s", config_struct.exec_directory, find_filename(tok));
+		if (!access(path, F_OK)) {
+			fprintf(stderr, "Executable collision! %s already exists\n", path);
+			continue;
+		}
+
+		package_emit_exec(path, tok, env, p->entry[id].id);
+		exec_id = p->entry[id].execs++;
+		p->entry[id].exec = realloc(p->entry[id].exec, sizeof(*p->entry[id].exec) * p->entry[id].execs);
+		p->entry[id].exec[exec_id] = strdup(find_filename(tok));
+	}
+
+	return;
+}
+
+
+static void package_meta_extract(const char *path, struct package_s *p, int id) {
 	struct archive *a;
 	struct archive_entry *ae;
-	char *pathname, writename[PATH_MAX];
-	char *data;
+	const char *pkg_id = p->entry[id].id;
+	char *pathname, writename[PATH_MAX], *data;
 	int size;
 	FILE *fp;
 
@@ -133,7 +225,7 @@ static void package_meta_extract(const char *path, const char *pkg_id) {
 				fclose(fp);
 				chmod(writename, 0755);
 			} else {
-				package_desktop_write(pkg_id, find_filename(pathname), data);
+				package_desktop_write(p, id, find_filename(pathname), data);
 				/* TODO: Extract executables */
 			} 
 			free(data);
@@ -195,7 +287,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	df = desktop_free(df);
 	archive_read_free(a);
 
-	package_meta_extract(path, pkg_id);
+	package_meta_extract(path, p, id);
 	fprintf(stderr, "Registered package %s\n", pkg_id);
 	return 1;
 
@@ -287,15 +379,20 @@ static void package_meta_remove(const char *pkg_id) {
 
 
 void package_release_mount(struct package_s *p, const char *device) {
-	int i;
+	int i, j;
 
 	pthread_mutex_lock(&p->mutex);
 	for (i = 0; i < p->entries; i++) {
 		if (strcmp(p->entry[i].device, device))
 			continue;
 		package_meta_remove(p->entry[i].id);
-		/* TODO: Clean up exported executables */
+		for (j = 0; j < p->entry[i].execs; j++) {
+			unlink(p->entry[i].exec[j]);
+			free(p->entry[i].exec[j]);
+		}
+
 		fprintf(stderr, "Unregistering package %s\n", p->entry[i].id);
+		free(p->entry[i].exec);
 		free(p->entry[i].device);
 		free(p->entry[i].id);
 		free(p->entry[i].path);

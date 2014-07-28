@@ -8,7 +8,7 @@
 # Wrapper script that simulates a binary of the desired program inside $PATH
 # For use with the dbp system
 
-# anything surrounded by !! is replaced by actual values by dbpd when
-# the special folder is populated
+# anything surrounded by an ! followed by % is replaced with
+# actual values by dbpd when the special folder is populated
 
-pyra-hspkg-run !!package_path!! !!package_binary!! --args "$@"
+pyra-hspkg-run !%package_id! !%package_binary! --args "$@"

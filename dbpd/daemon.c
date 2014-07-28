@@ -26,9 +26,36 @@ static int daemon_nuke_dir(char *dir) {
 	return 1;
 }
 
+
+static int daemon_nuke_execs() {
+	DIR *d;
+	struct dirent de, *result;
+	FILE *fp;
+	char buff[512], path[PATH_MAX];
+
+	if (!(d = opendir(config_struct.exec_directory)))
+		return 0;
+	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result)) {
+		sprintf(path, "%s/%s", config_struct.exec_directory, de.d_name);
+		if (!(fp = fopen(path, "r")))
+			continue;
+		fgets(buff, 512, fp);
+		fgets(buff, 512, fp);
+		fclose(fp);
+		buff[511] = 0;
+		if (strcmp(buff, "#dbp-template\n"))
+			continue;
+		unlink(path);
+	}
+
+	return 1;
+}
+
+
 static int daemon_nuke() {
 	if (!daemon_nuke_dir(config_struct.desktop_directory));
 	else if (!daemon_nuke_dir(config_struct.icon_directory));
+	else if (!daemon_nuke_execs());
 	else
 		return 1;
 	return 0;

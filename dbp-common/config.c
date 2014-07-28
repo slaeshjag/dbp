@@ -6,7 +6,7 @@
 struct config_s config_struct;
 
 
-static void config_expand_token(char ***target, int *targets, char *token) {
+void config_expand_token(char ***target, int *targets, char *token) {
 	char *saveptr;
 	int i;
 
@@ -49,6 +49,7 @@ void config_init() {
 	c.icon_directory = strdup(desktop_lookup(df, "icon_directory", "", "Package Daemon Config"));
 	c.exec_directory = strdup(desktop_lookup(df, "exec_directory", "", "Package Daemon Config"));
 	c.desktop_directory = strdup(desktop_lookup(df, "desktop_directory", "", "Package Daemon Config"));
+	c.exec_template = strdup(desktop_lookup(df, "exec_template", "", "Package Daemon Config"));
 
 	c.per_user_appdata = (!strcmp(desktop_lookup(df, "per_user_appdata", "", "Package Daemon Config"), "yes"));
 

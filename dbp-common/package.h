@@ -6,11 +6,14 @@
 
 #include <archive.h>
 
+
 struct package_entry_s {
 	char				*path;
 	char				*id;
 	char				*device;
 	char				*mount;
+	char				**exec;
+	int				execs;
 };
 
 
