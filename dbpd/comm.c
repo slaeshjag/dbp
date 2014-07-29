@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "dbp.h"
+#include "util.h"
 #include "package.h"
 
 void comm_dbus_unregister(DBusConnection *dc, void *n) {
@@ -18,7 +19,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	DBusMessage *ndm;
 	DBusMessageIter iter;
 	const char *arg, *name;
-	char *ret, *ret2;
+	char *ret, *ret2, *mount, *dev;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
 		fprintf(stderr, "Message has no arguments\n");
@@ -48,6 +49,15 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		sprintf(ret, "%i", package_stop(p, atoi(arg)));
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "MountP")) {
 		ret2 = package_mount_get(p, arg);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "RegisterPath")) {
+		util_lookup_mount(name, &mount, &dev);
+		sprintf(ret, "%i", package_register_path(p, dev, name, mount));
+		free(dev), free(mount);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "UnregisterPath")) {
+		sprintf(ret, "1");
+		package_release_path(p, name);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "IdFromPath")) {
+		ret2 = package_id_from_path(p, name);
 	} else
 		fprintf(stderr, "Bad method call\n");
 

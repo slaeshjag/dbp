@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 
 #include "loop.h"
@@ -11,6 +12,7 @@
 struct {
 	char			*exec;
 	char			*pkg_id;
+	int			use_path;
 } run_opt;
 
 
@@ -51,6 +53,7 @@ void run_parse_args(int argc, char **argv) {
 
 	run_opt.pkg_id = argv[1];
 	run_opt.exec = argv[2];
+	run_opt.use_path = (!strstr(argv[0], "run-dbp-path"));
 
 	return;
 }
@@ -66,19 +69,53 @@ void run_exec() {
 }
 
 
+void run_id(char *id, char *user) {
+	int run_id;
+
+	run_appdata_create(run_opt.pkg_id, user);
+	run_id = comm_dbus_request_mount(id, user);
+	run_exec();
+	comm_dbus_request_umount(run_id);
+	
+	return;
+}
+
+
+void run_path() {
+	int ret;
+	char *rets;
+
+	ret = comm_dbus_register_path(run_opt.pkg_id);
+	if (ret < 0) {
+		if (ret != DBP_ERROR_PKG_REG) {
+			fprintf(stderr, "package registration failed %i\n", ret);
+			exit(-1);
+		}
+	}
+
+	comm_dbus_get_id_from_path(run_opt.pkg_id, &rets);
+	fprintf(stderr, "Id is %s\n", rets);
+
+	if (ret == 1)
+		comm_dbus_unregister_path(run_opt.pkg_id);
+
+	return;
+}
+
+
 int main(int argc, char **argv) {
 	char *user;
-	int run_id;
 
 	run_parse_args(argc, argv);
 	config_init();
 	comm_dbus_init();
 
 	user = run_user_get();
-	run_appdata_create(run_opt.pkg_id, user);
-	run_id = comm_dbus_request_mount(run_opt.pkg_id, user);
-	run_exec();
-	comm_dbus_request_umount(run_id);
+	if (run_opt.use_path)
+		run_id(run_opt.pkg_id, user);
+	else
+		run_path();
+
 	free(user);
 	return 0;
 }

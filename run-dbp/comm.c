@@ -10,6 +10,33 @@
 DBusConnection *dc;
 
 
+#define	COMM_DBUS_MSG_EMIT(cmd, arg1, arg2)				\
+	dm = dbus_message_new_method_call(DBP_DBUS_DAEMON_PREFIX,	\
+	    DBP_DBUS_DAEMON_OBJECT, DBP_DBUS_DAEMON_PREFIX, cmd);	\
+	if (!dm)							\
+		fprintf(stderr, "unable to create message\n");		\
+	dbus_message_append_args(dm, DBUS_TYPE_STRING, &arg1, DBUS_TYPE_STRING, &arg2, DBUS_TYPE_INVALID);	\
+	dbus_connection_send_with_reply(dc, dm, &pending, -1);		\
+	if (!pending)							\
+		fprintf(stderr, "unable to send message\n");		\
+	dbus_connection_flush(dc);					\
+	dbus_pending_call_block(pending);				\
+	dbus_message_unref(dm);						\
+									\
+	if (!(dm = dbus_pending_call_steal_reply(pending))) {		\
+		dbus_pending_call_unref(pending);			\
+		return DBP_ERROR_NO_REPLY;				\
+	}								\
+									\
+	dbus_pending_call_unref(pending);				\
+	if (!dbus_message_iter_init(dm, &iter))				\
+		return DBP_ERROR_INTERNAL_MSG;				\
+	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {	\
+		dbus_message_unref(dm);					\
+		return DBP_ERROR_INTERNAL_MSG;				\
+	}
+
+
 void comm_dbus_init() {
 	DBusError err;
 	
@@ -32,31 +59,7 @@ int comm_dbus_request_mountp(const char *pkg_id, char **reply) {
 	const char *retc;
 	
 	*reply = NULL;
-	dm = dbus_message_new_method_call(DBP_DBUS_DAEMON_PREFIX,
-	    DBP_DBUS_DAEMON_OBJECT, DBP_DBUS_DAEMON_PREFIX, "MountP");
-
-	if (!dm)
-		fprintf(stderr, "unable to create message\n");
-	dbus_message_append_args(dm, DBUS_TYPE_STRING, &pkg_id, DBUS_TYPE_STRING, &pkg_id, DBUS_TYPE_INVALID);
-	dbus_connection_send_with_reply(dc, dm, &pending, -1);
-	if (!pending)
-		fprintf(stderr, "unable to send message\n");
-	dbus_connection_flush(dc);
-	dbus_pending_call_block(pending);
-	dbus_message_unref(dm);
-
-	if (!(dm = dbus_pending_call_steal_reply(pending))) {
-		dbus_pending_call_unref(pending);
-		return DBP_ERROR_NO_REPLY;
-	}
-
-	dbus_pending_call_unref(pending);
-	if (!dbus_message_iter_init(dm, &iter))
-		return DBP_ERROR_INTERNAL_MSG;
-	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-		dbus_message_unref(dm);
-		return DBP_ERROR_INTERNAL_MSG;
-	}
+	COMM_DBUS_MSG_EMIT("MountP", pkg_id, pkg_id);
 
 	dbus_message_iter_get_basic(&iter, &retc);
 	*reply = strdup(retc);
@@ -69,6 +72,42 @@ int comm_dbus_request_mountp(const char *pkg_id, char **reply) {
 }
 
 
+int comm_dbus_register_path(const char *path) {
+	DBusMessage *dm;
+	DBusPendingCall *pending;
+	DBusMessageIter iter;
+	const char *retc;
+	int ret;
+
+	COMM_DBUS_MSG_EMIT("RegisterPath", path, path);
+
+	dbus_message_iter_get_basic(&iter, &retc);
+	ret = atoi(retc);
+	dbus_message_unref(dm);
+
+	return ret;
+}
+
+
+
+int comm_dbus_unregister_path(const char *path) {
+	DBusMessage *dm;
+	DBusPendingCall *pending;
+	DBusMessageIter iter;
+	const char *retc;
+	int ret;
+
+	COMM_DBUS_MSG_EMIT("UnregisterPath", path, path);
+
+	dbus_message_iter_get_basic(&iter, &retc);
+	ret = atoi(retc);
+	dbus_message_unref(dm);
+
+	return ret;
+}
+	
+
+
 int comm_dbus_request_mount(const char *pkg_id, const char *user) {
 	DBusMessage *dm;
 	DBusPendingCall *pending;
@@ -76,30 +115,7 @@ int comm_dbus_request_mount(const char *pkg_id, const char *user) {
 	const char *retc;
 	int ret;
 
-	dm = dbus_message_new_method_call(DBP_DBUS_DAEMON_PREFIX,
-	    DBP_DBUS_DAEMON_OBJECT, DBP_DBUS_DAEMON_PREFIX, "Mount");
-	if (!dm)
-		fprintf(stderr, "unable to create message\n");
-	dbus_message_append_args(dm, DBUS_TYPE_STRING, &pkg_id, DBUS_TYPE_STRING, &user, DBUS_TYPE_INVALID);
-	dbus_connection_send_with_reply(dc, dm, &pending, -1);
-	if (!pending)
-		fprintf(stderr, "unable to send message\n");
-	dbus_connection_flush(dc);
-	dbus_pending_call_block(pending);
-	dbus_message_unref(dm);
-
-	if (!(dm = dbus_pending_call_steal_reply(pending))) {
-		dbus_pending_call_unref(pending);
-		return DBP_ERROR_NO_REPLY;
-	}
-
-	dbus_pending_call_unref(pending);
-	if (!dbus_message_iter_init(dm, &iter))
-		return DBP_ERROR_INTERNAL_MSG;
-	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-		dbus_message_unref(dm);
-		return DBP_ERROR_INTERNAL_MSG;
-	}
+	COMM_DBUS_MSG_EMIT("Mount", pkg_id, user);
 
 	dbus_message_iter_get_basic(&iter, &retc);
 	ret = atoi(retc);
@@ -108,6 +124,23 @@ int comm_dbus_request_mount(const char *pkg_id, const char *user) {
 	return ret;
 }
 	   
+
+int comm_dbus_get_id_from_path(const char *path, char **rets) {
+	DBusMessage *dm;
+	DBusPendingCall *pending;
+	DBusMessageIter iter;
+	const char *retc;
+	int ret;
+
+	COMM_DBUS_MSG_EMIT("IdFromPath", path, path);
+
+	dbus_message_iter_get_basic(&iter, &retc);
+	*rets = strdup(retc);
+	dbus_message_unref(dm);
+
+	return 1;
+}
+
 
 void comm_dbus_request_umount(int run_id) {
 	DBusMessage *dm;

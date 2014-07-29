@@ -39,6 +39,7 @@ static int daemon_nuke_execs() {
 		sprintf(path, "%s/%s", config_struct.exec_directory, de.d_name);
 		if (!(fp = fopen(path, "r")))
 			continue;
+		*buff = 0;
 		fgets(buff, 512, fp);
 		fgets(buff, 512, fp);
 		fclose(fp);

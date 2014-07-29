@@ -69,12 +69,12 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 		if (!package_id_validate(id)) {
 			fprintf(stderr, "Package at '%s' has illegal package ID %s\n", path, id);
 			free(path), free(id), free(device), free(mount);
-			return -1;
+			return DBP_ERROR_BAD_PKG_ID;
 		}
 		if (!strcmp(p->entry[i].id, id)) {
 			fprintf(stderr, "Package %s is already registered at %s\n", id, p->entry[i].path);
 			free(path), free(id), free(device), free(mount);
-			return -1;
+			return DBP_ERROR_PKG_REG;
 		}
 	}
 	nid = p->entries++;
@@ -277,9 +277,10 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	struct archive_entry *ae;
 	struct desktop_file_s *df;
 	char *data, *pkg_id = "none";
-	int found, size, id;
+	int found, size, id, errid;
 
 	df = NULL;
+	errid = 0;
 	if (!(a = archive_read_new()))
 		return 0;
 	archive_read_support_format_zip(a);
@@ -299,21 +300,27 @@ static int package_register(struct package_s *p, const char *path, const char *d
 
 	if (!found) {
 		fprintf(stderr, "Package has no default.desktop\n");
+		errid = DBP_ERROR_NO_DEFAULTD;
 		goto error;
 	}
 
 	size = archive_entry_size(ae);
-	if (!(data = malloc(size + 1)))
+	if (!(data = malloc(size + 1))) {
+		errid = DBP_ERROR_NO_MEMORY;
 		goto error;
+	}
 	archive_read_data(a, data, size);
 	data[size] = 0;
 
 	df = desktop_parse(data);
 	free(data);
-	if (!(pkg_id = desktop_lookup(df, "Id", "", "Package Entry")))
+	if (!(pkg_id = desktop_lookup(df, "Id", "", "Package Entry"))) {
+		errid = DBP_ERROR_BAD_PKG_ID;
 		goto error;
+	}
 	pkg_id = strdup(pkg_id);
 	if ((id = package_add(p, strdup(path), pkg_id, strdup(device), strdup(mount))) < 0) {
+		errid = id;
 		pkg_id = NULL;
 		goto error;
 	}
@@ -329,7 +336,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	fprintf(stderr, "An error occured while registering a package %s\n", pkg_id);
 	df = desktop_free(df);
 	archive_read_free(a);
-	return 0;
+	return errid;
 }
 
 
@@ -570,4 +577,19 @@ char *package_mount_get(struct package_s *p, const char *pkg_id) {
 	path = strdup(p->entry[i].mount);
 	pthread_mutex_unlock(&p->mutex);
 	return path;
+}
+
+
+char *package_id_from_path(struct package_s *p, const char *path) {
+	int i;
+	char *id;
+
+	pthread_mutex_lock(&p->mutex);
+
+	for (i = 0; i < p->entries; i++)
+		if (!strcmp(p->entry[i].path, path))
+			break;
+	id = strdup(i == p->entries ? "!" : p->entry[i].id);
+	pthread_mutex_unlock(&p->mutex);
+	return id;
 }

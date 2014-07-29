@@ -41,6 +41,7 @@ void package_release_path(struct package_s *p, const char *path);
 int package_run(struct package_s *p, const char *id, const char *user);
 int package_stop(struct package_s *p, int run_id); 
 char *package_mount_get(struct package_s *p, const char *pkg_id);
+char *package_id_from_path(struct package_s *p, const char *path);
 
 
 #endif
