@@ -13,6 +13,7 @@
 /* The line-count in this file is too damn high! */
 static void package_meta_exec_export(const char *exec, int env, struct package_s *p, int id);
 
+
 struct package_s package_init() {
 	struct package_s p;
 
@@ -26,6 +27,20 @@ struct package_s package_init() {
 }
 
 
+static int package_filename_interesting(const char *path) {
+	int i;
+	
+	for (i = 0; i < config_struct.file_extensions; i++) {
+		if (strlen(path) < strlen(config_struct.file_extension[i]))
+			continue;
+		if (!strcmp(&path[strlen(path) - strlen(config_struct.file_extension[i])],
+		    config_struct.file_extension[i]))
+			return 1;
+	}
+	return 0;
+}
+
+
 static int package_find(struct package_s *p, const char *id) {
 	int i;
 
@@ -36,15 +51,32 @@ static int package_find(struct package_s *p, const char *id) {
 }
 
 
+static int package_id_validate(const char *pkg_id) {
+	int i;
+
+	for (i = 0; pkg_id[i]; i++)
+		if ((pkg_id[i] < 'a' || pkg_id[i] > 'z') && (pkg_id[i] < 'A' || pkg_id[i] > 'Z')
+		    && (pkg_id[i] < 0 || pkg_id[i] > 9) && pkg_id[i] != '-' && pkg_id[i] != '_' && pkg_id[i] != '.')
+			return 0;
+	return 1;
+}
+
+
 static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount) {
 	int nid, i;
 
-	for (i = 0; i < p->entries; i++)
+	for (i = 0; i < p->entries; i++) {
+		if (!package_id_validate(id)) {
+			fprintf(stderr, "Package at '%s' has illegal package ID %s\n", path, id);
+			free(path), free(id), free(device), free(mount);
+			return -1;
+		}
 		if (!strcmp(p->entry[i].id, id)) {
 			fprintf(stderr, "Package %s is already registered at %s\n", id, p->entry[i].path);
 			free(path), free(id), free(device), free(mount);
 			return -1;
 		}
+	}
 	nid = p->entries++;
 	p->entry = realloc(p->entry, sizeof(*p->entry) * p->entries);
 	p->entry[nid].path = path;
@@ -179,6 +211,8 @@ static void package_meta_exec_export(const char *exec, int env, struct package_s
 		p->entry[id].exec[exec_id] = strdup(find_filename(tok));
 	}
 
+	free(exec_tok);
+
 	return;
 }
 
@@ -280,7 +314,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		goto error;
 	pkg_id = strdup(pkg_id);
 	if ((id = package_add(p, strdup(path), pkg_id, strdup(device), strdup(mount))) < 0) {
-		free(pkg_id);
+		pkg_id = NULL;
 		goto error;
 	}
 
@@ -299,10 +333,23 @@ static int package_register(struct package_s *p, const char *path, const char *d
 }
 
 
+int package_register_path(struct package_s *p, const char *device, const char *path, const char *mount) {
+	int i;
+
+	if (!package_filename_interesting(path))
+		return 0;
+
+	pthread_mutex_lock(&p->mutex);
+	i = package_register(p, path, device, mount);
+	pthread_mutex_unlock(&p->mutex);
+	return i;
+}
+	
+
+
 static void package_crawl(struct package_s *p, const char *device, const char *path, const char *mount) {
 	DIR *d;
 	struct dirent dir, *res;
-	int i;
 	char *name_buff;
 
 	if (!(d = opendir(path))) {
@@ -311,18 +358,12 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 	}
 
 	for (readdir_r(d, &dir, &res); res; readdir_r(d, &dir, &res)) {
-		for (i = 0; i < config_struct.file_extensions; i++) {
-			if (strlen(dir.d_name) < strlen(config_struct.file_extension[i]))
-				continue;
-			if (!strcmp(&dir.d_name[strlen(dir.d_name) - strlen(config_struct.file_extension[i])],
-			    config_struct.file_extension[i])) {
-				name_buff = malloc(strlen(path) + 2 + strlen(dir.d_name));
-				sprintf(name_buff, "%s/%s", path, dir.d_name);
-				package_register(p, name_buff, device, mount);
-				free(name_buff);
-				break;
-			}
-		}
+		if (!package_filename_interesting(dir.d_name))
+			continue;
+		name_buff = malloc(strlen(path) + 2 + strlen(dir.d_name));
+		sprintf(name_buff, "%s/%s", path, dir.d_name);
+		package_register(p, name_buff, device, mount);
+		free(name_buff);
 	}
 
 	closedir(d);
@@ -367,6 +408,7 @@ static void package_kill_prefix(const char *dir, const char *prefix) {
 	return;
 }
 
+
 static void package_meta_remove(const char *pkg_id) {
 	char prefix[PATH_MAX];
 
@@ -378,27 +420,49 @@ static void package_meta_remove(const char *pkg_id) {
 }
 
 
+static void package_kill(struct package_s *p, int entry) {
+	int i;
+
+	package_meta_remove(p->entry[entry].id);
+	for (i = 0; i < p->entry[entry].execs; i++) {
+		unlink(p->entry[entry].exec[i]);
+		free(p->entry[entry].exec[i]);
+	}
+
+	fprintf(stderr, "Unregistering package %s\n", p->entry[entry].id);
+	free(p->entry[entry].exec);
+	free(p->entry[entry].device);
+	free(p->entry[entry].id);
+	free(p->entry[entry].path);
+	free(p->entry[entry].mount);
+	p->entries--;
+	memmove(&p->entry[entry], &p->entry[entry + 1], (p->entries - entry) * sizeof(*p->entry));
+	return;
+}
+
+
+void package_release_path(struct package_s *p, const char *path) {
+	int i;
+	pthread_mutex_lock(&p->mutex);
+	for (i = 0; i < p->entries; i++)
+		if (!strcmp(p->entry[i].path, path)) {
+			package_kill(p, i);
+			break;
+		}
+	pthread_mutex_unlock(&p->mutex);
+	
+	return;
+}
+
+
 void package_release_mount(struct package_s *p, const char *device) {
-	int i, j;
+	int i;
 
 	pthread_mutex_lock(&p->mutex);
 	for (i = 0; i < p->entries; i++) {
 		if (strcmp(p->entry[i].device, device))
 			continue;
-		package_meta_remove(p->entry[i].id);
-		for (j = 0; j < p->entry[i].execs; j++) {
-			unlink(p->entry[i].exec[j]);
-			free(p->entry[i].exec[j]);
-		}
-
-		fprintf(stderr, "Unregistering package %s\n", p->entry[i].id);
-		free(p->entry[i].exec);
-		free(p->entry[i].device);
-		free(p->entry[i].id);
-		free(p->entry[i].path);
-		free(p->entry[i].mount);
-		p->entries--;
-		memmove(&p->entry[i], &p->entry[i + 1], (p->entries - i) * sizeof(*p->entry));
+		package_kill(p, i);
 	}
 
 	pthread_mutex_unlock(&p->mutex);

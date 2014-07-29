@@ -48,6 +48,8 @@ static int daemon_nuke_execs() {
 		unlink(path);
 	}
 
+	closedir(d);
+
 	return 1;
 }
 
@@ -100,6 +102,14 @@ int main(int argc, char **argv) {
 				case MOUNTWATCH_TAG_ADDED:
 					package_crawl_mount(&p, change.entry[i].device, change.entry[i].mount);
 					fprintf(stderr, "%s mounted at %s\n", change.entry[i].device, change.entry[i].mount);
+					break;
+				case MOUNTWATCH_TAG_PKG_ADDED:
+					fprintf(stderr, "New pkg\n");
+					package_register_path(&p, change.entry[i].device, change.entry[i].path, change.entry[i].mount);
+					break;
+				case MOUNTWATCH_TAG_PKG_REMOVED:
+					fprintf(stderr, "Removed pkg\n");
+					package_release_path(&p, change.entry[i].path);
 					break;
 				default:
 					break;
