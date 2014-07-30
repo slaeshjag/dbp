@@ -30,5 +30,6 @@
 #define	DBP_ERROR_PKG_REG	-1013	/* Package is already registered */
 #define	DBP_ERROR_UNHANDLED	-1014	/* An unhandled error occured */
 #define	DBP_ERROR_BAD_META	-1015	/* Unable to access package metadata */
+#define	DBP_ERROR_NO_DEFAULTH	-1016	/* No default handler in package */
 
 #endif

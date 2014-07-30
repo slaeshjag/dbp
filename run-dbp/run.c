@@ -8,6 +8,7 @@
 #include "comm.h"
 #include "dbp.h"
 #include "config.h"
+#include "desktop.h"
 
 struct {
 	char			*exec;
@@ -81,24 +82,51 @@ void run_id(char *id, char *user) {
 }
 
 
-void run_path() {
-	int ret;
-	char *id;
+char *run_locate_default_exec(const char *pkg_id) {
+	char path[PATH_MAX], *exec;
+	struct desktop_file_s *df;
+
+	snprintf(path, PATH_MAX, "%s/%s%s_default.desktop", config_struct.desktop_directory,
+	    DBP_META_PREFIX, pkg_id);
+	if (!(df = desktop_parse_file(path)))
+		return strdup("");
+	if ((exec = desktop_lookup(df, "Exec", "", "Desktop Entry")))
+		exec = strdup(exec);
+	else
+		exec = strdup("");
+	desktop_free(df);
+	return exec;
+}
+
+
+int run_path() {
+	int ret, retret;
+	char *id, *exec;
 
 	ret = comm_dbus_register_path(run_opt.pkg_id, &id);
 	if (ret < 0) {
 		if (ret != DBP_ERROR_PKG_REG) {
 			fprintf(stderr, "package registration failed %i\n", ret);
-			exit(-1);
+			return ret;
 		}
 	}
 
 	fprintf(stderr, "Id is %s\n", id);
+	retret = 0;
+	exec = run_locate_default_exec(id);
+	if (!strlen(exec)) {
+		retret = DBP_ERROR_NO_DEFAULTH;
+		goto cleanup;
+	}
 
+	fprintf(stderr, "Default exec is %s\n", exec);
+
+	cleanup:
+	free(exec);
 	if (ret >= 0)
 		comm_dbus_unregister_path(run_opt.pkg_id);
 
-	return;
+	return retret;
 }
 
 
