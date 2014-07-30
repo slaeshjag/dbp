@@ -72,7 +72,7 @@ int comm_dbus_request_mountp(const char *pkg_id, char **reply) {
 }
 
 
-int comm_dbus_register_path(const char *path) {
+int comm_dbus_register_path(const char *path, char **id) {
 	DBusMessage *dm;
 	DBusPendingCall *pending;
 	DBusMessageIter iter;
@@ -83,11 +83,19 @@ int comm_dbus_register_path(const char *path) {
 
 	dbus_message_iter_get_basic(&iter, &retc);
 	ret = atoi(retc);
+	dbus_message_iter_next(&iter);
+	
+	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
+		dbus_message_unref(dm);
+		return DBP_ERROR_INTERNAL_MSG;
+	}
+
+	dbus_message_iter_get_basic(&iter, &retc);
+	*id = strdup(retc);
 	dbus_message_unref(dm);
 
 	return ret;
 }
-
 
 
 int comm_dbus_unregister_path(const char *path) {
@@ -130,7 +138,6 @@ int comm_dbus_get_id_from_path(const char *path, char **rets) {
 	DBusPendingCall *pending;
 	DBusMessageIter iter;
 	const char *retc;
-	int ret;
 
 	COMM_DBUS_MSG_EMIT("IdFromPath", path, path);
 

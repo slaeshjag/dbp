@@ -28,5 +28,7 @@
 #define	DBP_ERROR_APPD_NOPERM	-1011	/* Unable to create appdata directory */
 #define	DBP_ERROR_NO_DEFAULTD	-1012	/* No default.desktop in the package */
 #define	DBP_ERROR_PKG_REG	-1013	/* Package is already registered */
+#define	DBP_ERROR_UNHANDLED	-1014	/* An unhandled error occured */
+#define	DBP_ERROR_BAD_META	-1015	/* Unable to access package metadata */
 
 #endif

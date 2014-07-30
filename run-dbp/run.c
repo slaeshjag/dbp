@@ -83,9 +83,9 @@ void run_id(char *id, char *user) {
 
 void run_path() {
 	int ret;
-	char *rets;
+	char *id;
 
-	ret = comm_dbus_register_path(run_opt.pkg_id);
+	ret = comm_dbus_register_path(run_opt.pkg_id, &id);
 	if (ret < 0) {
 		if (ret != DBP_ERROR_PKG_REG) {
 			fprintf(stderr, "package registration failed %i\n", ret);
@@ -93,10 +93,9 @@ void run_path() {
 		}
 	}
 
-	comm_dbus_get_id_from_path(run_opt.pkg_id, &rets);
-	fprintf(stderr, "Id is %s\n", rets);
+	fprintf(stderr, "Id is %s\n", id);
 
-	if (ret == 1)
+	if (ret >= 0)
 		comm_dbus_unregister_path(run_opt.pkg_id);
 
 	return;

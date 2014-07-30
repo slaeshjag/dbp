@@ -82,6 +82,7 @@ int main(int argc, char **argv) {
 	struct mountwatch_change_s change;
 	struct package_s p;
 	int i;
+	char *n;
 
 	p = package_init();
 	comm_dbus_register(&p);
@@ -105,8 +106,9 @@ int main(int argc, char **argv) {
 					fprintf(stderr, "%s mounted at %s\n", change.entry[i].device, change.entry[i].mount);
 					break;
 				case MOUNTWATCH_TAG_PKG_ADDED:
-					fprintf(stderr, "New pkg\n");
-					package_register_path(&p, change.entry[i].device, change.entry[i].path, change.entry[i].mount);
+					package_register_path(&p, change.entry[i].device, change.entry[i].path, change.entry[i].mount, &n);
+					fprintf(stderr, "New pkg %s\n", n);
+					free(n);
 					break;
 				case MOUNTWATCH_TAG_PKG_REMOVED:
 					fprintf(stderr, "Removed pkg\n");

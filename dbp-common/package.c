@@ -89,6 +89,16 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 }
 
 
+static int package_id_lookup(struct package_s *p, const char *pkg_id) {
+	int i;
+
+	for (i = 0; i < p->entries; i++)
+		if (!strcmp(p->entry[i].id, pkg_id))
+			return i;
+	return -1;
+}
+
+
 /* If basename(3) didn't suck, this function wouldn't be needed */
 static const char *find_filename(const char *path) {
 	char *tmp = (char *) path;
@@ -272,7 +282,7 @@ static void package_meta_extract(const char *path, struct package_s *p, int id) 
 }
 
 
-static int package_register(struct package_s *p, const char *path, const char *device, const char *mount) {
+static int package_register(struct package_s *p, const char *path, const char *device, const char *mount, int *coll_id) {
 	struct archive *a;
 	struct archive_entry *ae;
 	struct desktop_file_s *df;
@@ -280,12 +290,14 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	int found, size, id, errid;
 
 	df = NULL;
-	errid = 0;
+	*coll_id = -1;
+	errid = DBP_ERROR_UNHANDLED;
 	if (!(a = archive_read_new()))
-		return 0;
+		return DBP_ERROR_NO_MEMORY;
 	archive_read_support_format_zip(a);
 	if (archive_read_open_filename(a, path, 512) != ARCHIVE_OK) {
 		fprintf(stderr, "Bad archive %s\n", path);
+		errid = DBP_ERROR_BAD_META;
 		goto error;
 	}
 	
@@ -318,8 +330,9 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		errid = DBP_ERROR_BAD_PKG_ID;
 		goto error;
 	}
-	pkg_id = strdup(pkg_id);
-	if ((id = package_add(p, strdup(path), pkg_id, strdup(device), strdup(mount))) < 0) {
+	
+	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount))) < 0) {
+		*coll_id = package_id_lookup(p, pkg_id);
 		errid = id;
 		pkg_id = NULL;
 		goto error;
@@ -330,7 +343,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 
 	package_meta_extract(path, p, id);
 	fprintf(stderr, "Registered package %s\n", pkg_id);
-	return 1;
+	return id;
 
 	error:
 	fprintf(stderr, "An error occured while registering a package %s\n", pkg_id);
@@ -340,14 +353,20 @@ static int package_register(struct package_s *p, const char *path, const char *d
 }
 
 
-int package_register_path(struct package_s *p, const char *device, const char *path, const char *mount) {
-	int i;
+int package_register_path(struct package_s *p, const char *device, const char *path, const char *mount, char **pkg_id) {
+	int i, n;
 
-	if (!package_filename_interesting(path))
+	if (!package_filename_interesting(path)) {
+		*pkg_id = strdup("!");
 		return 0;
+	}
 
 	pthread_mutex_lock(&p->mutex);
-	i = package_register(p, path, device, mount);
+	i = package_register(p, path, device, mount, &n);
+	if ((i < 0 || i >= p->entries) && n < 0)
+		*pkg_id = strdup("!");
+	else
+		*pkg_id = strdup(p->entry[n >= 0 ? n : i].id);
 	pthread_mutex_unlock(&p->mutex);
 	return i;
 }
@@ -358,6 +377,7 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 	DIR *d;
 	struct dirent dir, *res;
 	char *name_buff;
+	int n;
 
 	if (!(d = opendir(path))) {
 		fprintf(stderr, "Unable to open %s for directory list\n", path);
@@ -369,7 +389,7 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 			continue;
 		name_buff = malloc(strlen(path) + 2 + strlen(dir.d_name));
 		sprintf(name_buff, "%s/%s", path, dir.d_name);
-		package_register(p, name_buff, device, mount);
+		package_register(p, name_buff, device, mount, &n);
 		free(name_buff);
 	}
 
@@ -429,10 +449,12 @@ static void package_meta_remove(const char *pkg_id) {
 
 static void package_kill(struct package_s *p, int entry) {
 	int i;
+	char ulinkpath[PATH_MAX];
 
 	package_meta_remove(p->entry[entry].id);
 	for (i = 0; i < p->entry[entry].execs; i++) {
-		unlink(p->entry[entry].exec[i]);
+		snprintf(ulinkpath, PATH_MAX, "%s/%s", config_struct.exec_directory, p->entry[entry].exec[i]);
+		unlink(ulinkpath);
 		free(p->entry[entry].exec[i]);
 	}
 
