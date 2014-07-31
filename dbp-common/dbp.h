@@ -31,5 +31,8 @@
 #define	DBP_ERROR_UNHANDLED	-1014	/* An unhandled error occured */
 #define	DBP_ERROR_BAD_META	-1015	/* Unable to access package metadata */
 #define	DBP_ERROR_NO_DEFAULTH	-1016	/* No default handler in package */
+#define	DBP_ERROR_SIGEXIT	-1017	/* Program problably died from a signal */
+#define	DBP_ERROR_SIGSEGV	-1018	/* Program died from segfault */
+#define	DBP_ERROR_MYSTKILL	-1019	/* Program died from unhandled reason */
 
 #endif

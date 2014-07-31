@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
 #include "loop.h"
 #include "comm.h"
@@ -10,9 +12,12 @@
 #include "config.h"
 #include "desktop.h"
 
+#define	FD_SET_NO_BLOCK(fd) 	(fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK))
+
 struct {
 	char			*exec;
 	char			*pkg_id;
+	char			**argv;
 	int			use_path;
 } run_opt;
 
@@ -47,11 +52,20 @@ int run_appdata_create(const char *pkg_id, const char *user) {
 
 
 void run_parse_args(int argc, char **argv) {
+	int i;
+
 	if (argc < 3) {
 		fprintf(stderr, "Usage: %s <package-id> <executable> [--args]", argv[0]);
 		exit(-1);
 	}
 
+	for (i = 0; i < argc; i++)
+		if (!strcmp(argv[i], "--args")) {
+			i++;
+			break;
+		}
+			
+	run_opt.argv = &argv[i];
 	run_opt.pkg_id = argv[1];
 	run_opt.exec = argv[2];
 	run_opt.use_path = (!strstr(argv[0], "run-dbp-path"));
@@ -60,7 +74,73 @@ void run_parse_args(int argc, char **argv) {
 }
 
 
-void run_exec() {
+int run_exec(const char *exec, char **argv, int env) {
+	int pipeout[2], pipeerr[2];
+	int pid, sz, outa, erra, max;
+	siginfo_t info;
+	char buff[512];
+	fd_set set;
+
+	if (env)
+		pipe(pipeout), pipe(pipeerr);
+		
+	pid = fork();
+	
+	if (!pid) {
+		if (env) {
+			dup2(pipeout[1], STDOUT_FILENO), dup2(pipeerr[1], STDERR_FILENO);
+			close(pipeout[0]), close(pipeerr[0]);
+		}
+		
+		execv(exec, argv);
+		exit(-1);
+	} else {
+		if (env) {
+			close(pipeout[1]), close(pipeerr[1]);
+			FD_SET_NO_BLOCK(pipeout[0]), FD_SET_NO_BLOCK(pipeerr[0]);
+			outa = erra = 1;
+			max = ((pipeout[1] > pipeerr[1]) ? pipeout[1] : pipeerr[1]) + 1;
+		} else
+			outa = erra = 0;
+
+		while (outa || erra) {
+			FD_ZERO(&set);
+			if (outa) FD_SET(pipeout[0], &set);
+			if (erra) FD_SET(pipeerr[0], &set);
+			select(max, &set, NULL, NULL, NULL);
+
+			if (FD_ISSET(pipeout[0], &set)) {
+				sz = read(pipeout[0], buff, 512);
+				write(STDOUT_FILENO, buff, sz);
+				if (sz <= 0) outa = 0;
+			} if (FD_ISSET(pipeerr[0], &set)) {
+				sz = read(pipeerr[0], buff, 512);
+				write(STDERR_FILENO, buff, sz);
+				if (sz <= 0) erra = 0;
+			}
+		}
+
+		/* Wait for process to die */
+		waitid(P_PID, pid, &info, WEXITED);
+		if (info.si_code != CLD_EXITED) {
+			if (info.si_code == CLD_KILLED && info.si_status == SIGINT)
+				return -1;
+			fprintf(stderr, "===== Abnormal termination =====\n");
+			if (info.si_code == CLD_KILLED) {
+				fprintf(stderr, "Process was killed by signal %i (%s)\n", info.si_status, strsignal(info.si_status));
+				if (info.si_status == SIGSEGV)
+					return DBP_ERROR_SIGSEGV;
+				return DBP_ERROR_SIGEXIT;
+			}
+			return DBP_ERROR_MYSTKILL;
+		}
+	}
+
+	return info.si_status;
+}
+
+
+void run_exec_prep() {
 	char exec[PATH_MAX];
 
 	sprintf(exec, "%s/%s/%s", config_struct.union_mount, run_opt.pkg_id, run_opt.exec);
@@ -75,9 +155,46 @@ void run_id(char *id, char *user) {
 
 	run_appdata_create(run_opt.pkg_id, user);
 	run_id = comm_dbus_request_mount(id, user);
-	run_exec();
+	run_exec_prep();
 	comm_dbus_request_umount(run_id);
 	
+	return;
+}
+
+
+void run_expand_arguments(const char *args) {
+	char **newarg = NULL;
+	int newargs, quote1, quote2, i, pos, skip;
+
+	newargs = 1;
+	newarg[newargs - 1] = malloc(strlen(args) + 1);
+	for (i = pos = quote1 = quote2 = 0; args[i]; i++) {
+		skip = 0;
+		if (args[i] == '\'')
+			quote1 = !quote1, skip = 1;
+		if (args[i] == '\"')
+			quote2 = !quote2, skip = 1;
+		if (!quote1 && !quote2 && (args[i] == ' ' || args[i] == '\t')) {
+			newarg[i][pos] = 0;
+			newargs++;
+			newarg = realloc(newarg, sizeof(*newarg) * newargs);
+
+			/* Wasting RAM like an Emacs! */
+			newarg[newargs - 1] = malloc(strlen(&args[i]) + 1);
+			pos = 0;
+			continue;
+		} else if (!skip)
+			newarg[i][pos++] = args[i];
+	}
+
+	newarg[i][pos] = 0;
+
+	for (i = 0; run_opt.argv[i]; i++);
+	newarg = realloc(newarg, sizeof(*newarg) * (newargs + i));
+	for (i = 0; run_opt.argv[i]; i++)
+		newarg[newargs + i] = strdup(run_opt.argv[i]);
+	run_opt.argv = newarg;
+
 	return;
 }
 
@@ -94,6 +211,7 @@ char *run_locate_default_exec(const char *pkg_id) {
 		exec = strdup(exec);
 	else
 		exec = strdup("");
+	run_expand_arguments(exec);
 	desktop_free(df);
 	return exec;
 }
