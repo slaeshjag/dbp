@@ -21,6 +21,7 @@ struct {
 	char			*pkg_id;
 	char			**argv;
 	int			use_path;
+	int			env;
 } run_opt;
 
 
@@ -57,15 +58,18 @@ void run_parse_args(int argc, char **argv) {
 	int i;
 
 	if (argc < 3) {
-		fprintf(stderr, "Usage: %s <package-id> <executable> [--args]", argv[0]);
+		fprintf(stderr, "Usage: %s <package-id> <executable> [--env] [--args]", argv[0]);
 		exit(-1);
 	}
+
+	run_opt.env = 0;
 
 	for (i = 0; i < argc; i++)
 		if (!strcmp(argv[i], "--args")) {
 			i++;
 			break;
-		}
+		} else if (!strcmp(argv[i], "--env"))
+			run_opt.env = 1;
 			
 	run_opt.argv = &argv[i];
 	run_opt.pkg_id = argv[1];
@@ -76,15 +80,15 @@ void run_parse_args(int argc, char **argv) {
 }
 
 
-int run_exec(const char *exec, char **argv, int env) {
+int run_exec(const char *exec, char **argv, int env, const char *log_file) {
 	int pipeout[2], pipeerr[2];
-	int pid, sz, outa, erra, max;
+	int pid, sz, outa, erra, max, log_fd;
 	siginfo_t info;
 	char buff[512];
 	fd_set set;
 
 	if (env)
-		pipe(pipeout), pipe(pipeerr);
+		pipe(pipeout), pipe(pipeerr), log_fd = open(log_file, O_RDWR);
 		
 	pid = fork();
 	
@@ -115,13 +119,16 @@ int run_exec(const char *exec, char **argv, int env) {
 				sz = read(pipeout[0], buff, 512);
 				write(STDOUT_FILENO, buff, sz);
 				if (sz <= 0) outa = 0;
+				write(log_fd, buff, sz);
 			} if (FD_ISSET(pipeerr[0], &set)) {
 				sz = read(pipeerr[0], buff, 512);
 				write(STDERR_FILENO, buff, sz);
 				if (sz <= 0) erra = 0;
+				write(log_fd, buff, sz);
 			}
 		}
 
+		if (env) close(log_fd);
 		/* Wait for process to die */
 		waitid(P_PID, pid, &info, WEXITED);
 		if (info.si_code != CLD_EXITED) {
@@ -143,11 +150,13 @@ int run_exec(const char *exec, char **argv, int env) {
 
 
 void run_exec_prep() {
-	char exec[PATH_MAX];
+	char exec[PATH_MAX], path[PATH_MAX];
 
-	sprintf(exec, "%s/%s/%s", config_struct.union_mount, run_opt.pkg_id, run_opt.exec);
+	snprintf(exec, PATH_MAX, "%s/%s/%s", config_struct.union_mount, run_opt.pkg_id, run_opt.exec);
+	snprintf(path, PATH_MAX, "%s/%s%s%s", config_struct.dbpout_directory, config_struct.dbpout_prefix,
+	    run_opt.pkg_id, config_struct.dbpout_suffix);
 	/* FIXME: Remove this hack and put something real here */
-	system(exec);
+	run_exec(exec, run_opt.argv, run_opt.env, path);
 	return;
 }
 
@@ -241,7 +250,7 @@ int run_path() {
 	}
 
 	fprintf(stderr, "Default exec is %s\n", run_opt.exec);
-	run_exec(run_opt.exec, run_opt.argv, 0);
+	run_exec(run_opt.exec, run_opt.argv, 0, NULL);
 
 	cleanup:
 	free(exec);

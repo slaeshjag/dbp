@@ -95,6 +95,10 @@ struct desktop_file_s *desktop_parse(char *str) {
 	df->sections = 0, df->section = NULL;
 	desktop_section_new(df, NULL);
 
+	/* Hack to make the parser work with retarded line endings */
+	while (strchr(str, '\r'))
+		*strchr(str, '\r') = '\n';
+
 	for (brk = 0; !brk; str = strchr(str, '\n') + 1) {
 		if (!(tmp = strchr(str, '\n')))
 			sz = strlen(str), brk = 1;

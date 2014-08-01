@@ -87,12 +87,17 @@ int main(int argc, char **argv) {
 	char *n;
 
 	dbp_error_log = stderr;
+	config_init();
+	if (!(dbp_error_log = fopen(config_struct.daemon_log, "w"))) {
+		dbp_error_log = stderr;
+		fprintf(stderr, "Unable to open %s\n", config_struct.daemon_log);
+	} else
+		setbuf(dbp_error_log, NULL);
 	p = package_init();
 	comm_dbus_register(&p);
 
 	if (!mountwatch_init())
 		exit(-1);
-	config_init();
 	if (!daemon_init())
 		exit(-1);
 	

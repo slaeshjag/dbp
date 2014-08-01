@@ -64,6 +64,7 @@ void config_init() {
 	c.dbpout_directory = config_request_entry(df, "dbpout_directory");
 	c.dbpout_prefix = config_request_entry(df, "dbpout_prefix");
 	c.dbpout_suffix = config_request_entry(df, "dbpout_suffix");
+	c.daemon_log = config_request_entry(df, "daemon_log");
 
 	c.exec_template = config_request_entry(df, "exec_template");
 

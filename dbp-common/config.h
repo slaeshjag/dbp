@@ -20,6 +20,8 @@ struct config_s {
 	char			*dbpout_prefix;
 	char			*dbpout_suffix;
 
+	char			*daemon_log;
+
 	char			*exec_template;
 
 	int			per_user_appdata;
