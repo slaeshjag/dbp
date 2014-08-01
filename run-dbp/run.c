@@ -194,6 +194,7 @@ void run_expand_arguments(const char *args) {
 	for (i = 0; run_opt.argv[i]; i++)
 		newarg[newargs + i] = strdup(run_opt.argv[i]);
 	run_opt.argv = newarg;
+	run_opt.exec = newarg[0];
 
 	return;
 }
@@ -237,7 +238,8 @@ int run_path() {
 		goto cleanup;
 	}
 
-	fprintf(stderr, "Default exec is %s\n", exec);
+	fprintf(stderr, "Default exec is %s\n", run_opt.exec);
+	run_exec(run_opt.exec, run_opt.argv, 0);
 
 	cleanup:
 	free(exec);
@@ -245,6 +247,20 @@ int run_path() {
 		comm_dbus_unregister_path(run_opt.pkg_id);
 
 	return retret;
+}
+
+
+void run_inject_exec() {
+	int i;
+	char **tmp;
+
+	for (i = 0; run_opt.argv[i]; i++);
+	tmp = malloc(sizeof(*tmp) * (i + 1));
+	tmp[0] = run_opt.exec;
+	for (i = 0; run_opt.argv[i]; i++)
+		tmp[i + 1] = run_opt.argv[i];
+	run_opt.argv = tmp;
+	return;
 }
 
 
@@ -257,7 +273,7 @@ int main(int argc, char **argv) {
 
 	user = run_user_get();
 	if (run_opt.use_path)
-		run_id(run_opt.pkg_id, user);
+		run_inject_exec(), run_id(run_opt.pkg_id, user);
 	else
 		run_path();
 

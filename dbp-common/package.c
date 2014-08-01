@@ -62,7 +62,7 @@ static int package_id_validate(const char *pkg_id) {
 }
 
 
-static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount) {
+static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount, char *appdata) {
 	int nid, i;
 
 	for (i = 0; i < p->entries; i++) {
@@ -83,6 +83,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].id = id;
 	p->entry[nid].device = device;
 	p->entry[nid].mount = mount;
+	p->entry[nid].appdata = appdata;
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
 
 	return nid;
@@ -286,7 +287,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	struct archive *a;
 	struct archive_entry *ae;
 	struct desktop_file_s *df;
-	char *data, *pkg_id = "none";
+	char *data, *pkg_id = "none", *appdata;
 	int found, size, id, errid;
 
 	df = NULL;
@@ -330,8 +331,13 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		errid = DBP_ERROR_BAD_PKG_ID;
 		goto error;
 	}
+
+	if (!(appdata = desktop_lookup(df, "Appdata", "", "Package Entry")))
+		appdata = pkg_id;
+	else if (!package_id_validate(appdata))
+		appdata = pkg_id;
 	
-	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount))) < 0) {
+	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata))) < 0) {
 		*coll_id = package_id_lookup(p, pkg_id);
 		errid = id;
 		pkg_id = NULL;
@@ -464,6 +470,7 @@ static void package_kill(struct package_s *p, int entry) {
 	free(p->entry[entry].id);
 	free(p->entry[entry].path);
 	free(p->entry[entry].mount);
+	free(p->entry[entry].appdata);
 	p->entries--;
 	memmove(&p->entry[entry], &p->entry[entry + 1], (p->entries - entry) * sizeof(*p->entry));
 	return;
@@ -518,7 +525,7 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 		return DBP_ERROR_BAD_PKG_ID;
 	}
 
-	if ((loop = loop_mount(p->entry[pkg_n].path, id, user, p->entry[pkg_n].mount)) < 0) {
+	if ((loop = loop_mount(p->entry[pkg_n].path, id, user, p->entry[pkg_n].mount, p->entry[pkg_n].appdata)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
 		return loop;
 	}
@@ -615,3 +622,18 @@ char *package_id_from_path(struct package_s *p, const char *path) {
 	pthread_mutex_unlock(&p->mutex);
 	return id;
 }
+
+
+char *package_appdata_from_id(struct package_s *p, const char *id) {
+	char *ad;
+	int i;
+
+	pthread_mutex_lock(&p->mutex);
+	if ((i = package_find(p, id)) < 0)
+		ad = strdup("!");
+	else
+		ad = strdup(p->entry[i].appdata);
+	pthread_mutex_unlock(&p->mutex);
+	return ad;
+}
+

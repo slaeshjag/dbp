@@ -12,6 +12,7 @@ struct package_entry_s {
 	char				*id;
 	char				*device;
 	char				*mount;
+	char				*appdata;
 	char				**exec;
 	int				execs;
 };
@@ -42,6 +43,7 @@ int package_run(struct package_s *p, const char *id, const char *user);
 int package_stop(struct package_s *p, int run_id); 
 char *package_mount_get(struct package_s *p, const char *pkg_id);
 char *package_id_from_path(struct package_s *p, const char *path);
+char *package_appdata_from_id(struct package_s *p, const char *id);
 
 
 #endif

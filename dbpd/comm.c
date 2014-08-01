@@ -58,8 +58,12 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		package_release_path(p, name);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "IdFromPath")) {
 		ret2 = package_id_from_path(p, name);
-	} else
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetAppdata")) {
+		ret2 = package_appdata_from_id(p, name);
+	} else {
 		fprintf(stderr, "Bad method call\n");
+		goto done;
+	}
 
 	ndm = dbus_message_new_method_return(dm);
 	if (!ret2)
@@ -70,7 +74,9 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		dbus_message_append_args(ndm, DBUS_TYPE_STRING, &ret3, DBUS_TYPE_INVALID);
 	dbus_connection_send(dc, ndm, NULL);
 	dbus_connection_flush(dc);
+
 	dbus_message_unref(ndm);
+	done:
 	free(ret);
 	free(ret2);
 	free(ret3);

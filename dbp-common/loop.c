@@ -141,7 +141,7 @@ static void loop_reset(int loop) {
 }
 
 	
-int loop_mount(const char *image, const char *id, const char *user, const char *src_mount) {
+int loop_mount(const char *image, const char *id, const char *appdata, const char *user, const char *src_mount) {
 	int loop_n, ret;
 	char mount_path[PATH_MAX], loop[32], user_dir[PATH_MAX], img_dir[PATH_MAX];
 	char *mount_opt;
@@ -173,14 +173,14 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 		** There will be no privilegie escelation, and it's up	*
 		** to the user package runner to create it		*/
 		if (src_mount[1])
-			sprintf(user_dir, "%s/%s_%s/%s", src_mount, config_struct.data_directory, user, id);
+			sprintf(user_dir, "%s/%s_%s/%s", src_mount, config_struct.data_directory, user, appdata);
 		else
-			sprintf(user_dir, "/%s_%s/%s", config_struct.data_directory, user, id);
+			sprintf(user_dir, "/%s_%s/%s", config_struct.data_directory, user, appdata);
 	} else {
 		if (src_mount[1])
-			sprintf(user_dir, "%s/%s/%s", src_mount, config_struct.data_directory, id);
+			sprintf(user_dir, "%s/%s/%s", src_mount, config_struct.data_directory, appdata);
 		else
-			sprintf(user_dir, "/%s/%s", config_struct.data_directory, id);
+			sprintf(user_dir, "/%s/%s", config_struct.data_directory, appdata);
 	}
 	if (strchr(user_dir, ':') || strchr(img_dir, ':')) {
 		umount(img_dir);
