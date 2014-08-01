@@ -169,8 +169,10 @@ void run_exec_prep() {
 
 void run_id(char *id, char *user) {
 	int run_id;
+	char *appdata;
 
-	run_appdata_create(run_opt.pkg_id, user);
+	comm_dbus_get_appdata(run_opt.pkg_id, &appdata);
+	run_appdata_create(appdata, user);
 	run_id = comm_dbus_request_mount(id, user);
 	run_exec_prep();
 	comm_dbus_request_umount(run_id);
