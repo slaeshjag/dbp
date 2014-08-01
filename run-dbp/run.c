@@ -4,6 +4,7 @@
 #include <string.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <sys/wait.h>
 
 #include "loop.h"
@@ -55,16 +56,21 @@ int run_appdata_create(const char *pkg_id, const char *user) {
 
 
 void run_parse_args(int argc, char **argv) {
-	int i;
+	int i, path = 0;
 
-	if (argc < 3) {
-		fprintf(stderr, "Usage: %s <package-id> <executable> [--env] [--args]", argv[0]);
+	if (!strstr(argv[0], "run-dbp-path") && argc < 3) {
+		fprintf(stderr, "Usage: %s <package-id> <executable> [--env] [--args]\n", argv[0]);
+		exit(-1);
+	} else if (strstr(argv[0], "run-dbp-path") && argc < 2) {
+		fprintf(stderr, "Usage: %s <path to package> [arguments to exec]\n", argv[0]);
 		exit(-1);
 	}
 
 	run_opt.env = 0;
+	if (strstr(argv[0], "run-dbp-path"))
+		path = 1, run_opt.env = 1;
 
-	for (i = 0; i < argc; i++)
+	for (i = 2; i < argc && !path; i++)
 		if (!strcmp(argv[i], "--args")) {
 			i++;
 			break;
@@ -97,8 +103,8 @@ int run_exec(const char *exec, char **argv, int env, const char *log_file) {
 			dup2(pipeout[1], STDOUT_FILENO), dup2(pipeerr[1], STDERR_FILENO);
 			close(pipeout[0]), close(pipeerr[0]);
 		}
-		
-		execv(exec, argv);
+	
+		execvp(exec, argv);
 		exit(-1);
 	} else {
 		if (env) {
@@ -178,6 +184,7 @@ void run_expand_arguments(const char *args) {
 	int newargs, quote1, quote2, i, pos, skip;
 
 	newargs = 1;
+	newarg = malloc(sizeof(*newarg));
 	newarg[newargs - 1] = malloc(strlen(args) + 1);
 	for (i = pos = quote1 = quote2 = 0; args[i]; i++) {
 		skip = 0;
@@ -186,7 +193,7 @@ void run_expand_arguments(const char *args) {
 		if (args[i] == '\"')
 			quote2 = !quote2, skip = 1;
 		if (!quote1 && !quote2 && (args[i] == ' ' || args[i] == '\t')) {
-			newarg[i][pos] = 0;
+			newarg[newargs - 1][pos] = 0;
 			newargs++;
 			newarg = realloc(newarg, sizeof(*newarg) * newargs);
 
@@ -195,15 +202,16 @@ void run_expand_arguments(const char *args) {
 			pos = 0;
 			continue;
 		} else if (!skip)
-			newarg[i][pos++] = args[i];
+			newarg[newargs - 1][pos++] = args[i];
 	}
 
-	newarg[i][pos] = 0;
+	newarg[newargs - 1][pos] = 0;
 
 	for (i = 0; run_opt.argv[i]; i++);
-	newarg = realloc(newarg, sizeof(*newarg) * (newargs + i));
+	newarg = realloc(newarg, sizeof(*newarg) * (newargs + i + 1));
 	for (i = 0; run_opt.argv[i]; i++)
 		newarg[newargs + i] = strdup(run_opt.argv[i]);
+	newarg[newargs + i + 1] = NULL;
 	run_opt.argv = newarg;
 	run_opt.exec = newarg[0];
 
@@ -241,7 +249,6 @@ int run_path() {
 		}
 	}
 
-	fprintf(stderr, "Id is %s\n", id);
 	retret = 0;
 	exec = run_locate_default_exec(id);
 	if (!strlen(exec)) {
@@ -249,7 +256,6 @@ int run_path() {
 		goto cleanup;
 	}
 
-	fprintf(stderr, "Default exec is %s\n", run_opt.exec);
 	run_exec(run_opt.exec, run_opt.argv, 0, NULL);
 
 	cleanup:
