@@ -6,6 +6,17 @@
 
 struct config_s config_struct;
 
+static char *config_request_entry(struct desktop_file_s *df, const char *key) {
+	const char *tmp = desktop_lookup(df, key, "", "Package Daemon Config");
+
+	if (!tmp) {
+		fprintf(dbp_error_log, "%s: key %s is missing\n", CONFIG_FILE_PATH, key);
+		fflush(dbp_error_log);
+		exit(-1);
+	}
+
+	return strdup(tmp);
+}
 
 void config_expand_token(char ***target, int *targets, char *token) {
 	char *saveptr;
@@ -36,23 +47,27 @@ void config_init() {
 	}
 
 	c.file_extension = NULL, c.file_extensions = 0;
-	tmp = desktop_lookup(df, "file_extension", "", "Package Daemon Config");
+	tmp = config_request_entry(df, "file_extension");
 	config_expand_token(&c.file_extension, &c.file_extensions, tmp);
 
 	c.search_dir = NULL, c.search_dirs = 0;
-	tmp = desktop_lookup(df, "search_directories", "", "Package Daemon Config");
+	tmp = config_request_entry(df, "search_directories");
 	config_expand_token(&c.search_dir, &c.search_dirs, tmp);
 
-	c.img_mount = strdup(desktop_lookup(df, "image_mount_dir", "", "Package Daemon Config"));
-	c.union_mount = strdup(desktop_lookup(df, "union_mount_dir", "", "Package Daemon Config"));
+	c.img_mount = config_request_entry(df, "image_mount_dir");
+	c.union_mount = config_request_entry(df, "union_mount_dir");
 
-	c.data_directory = strdup(desktop_lookup(df, "data_directory", "", "Package Daemon Config"));
-	c.icon_directory = strdup(desktop_lookup(df, "icon_directory", "", "Package Daemon Config"));
-	c.exec_directory = strdup(desktop_lookup(df, "exec_directory", "", "Package Daemon Config"));
-	c.desktop_directory = strdup(desktop_lookup(df, "desktop_directory", "", "Package Daemon Config"));
-	c.exec_template = strdup(desktop_lookup(df, "exec_template", "", "Package Daemon Config"));
+	c.data_directory = config_request_entry(df, "data_directory");
+	c.icon_directory = config_request_entry(df, "icon_directory");
+	c.exec_directory = config_request_entry(df, "exec_directory");
+	c.desktop_directory = config_request_entry(df, "desktop_directory");
+	c.dbpout_directory = config_request_entry(df, "dbpout_directory");
+	c.dbpout_prefix = config_request_entry(df, "dbpout_prefix");
+	c.dbpout_suffix = config_request_entry(df, "dbpout_suffix");
 
-	c.per_user_appdata = (!strcmp(desktop_lookup(df, "per_user_appdata", "", "Package Daemon Config"), "yes"));
+	c.exec_template = config_request_entry(df, "exec_template");
+
+	c.per_user_appdata = (!strcmp(config_request_entry(df, "per_user_appdata"), "yes"));
 
 	desktop_free(df);
 	config_struct = c;

@@ -68,10 +68,11 @@ static int daemon_nuke() {
 
 static int daemon_init() {
 	if (!loop_directory_setup(config_struct.img_mount, 0755));
-	else if (!loop_directory_setup(config_struct.union_mount, 0777));
+	else if (!loop_directory_setup(config_struct.union_mount, 0755));
 	else if (!loop_directory_setup(config_struct.icon_directory, 0755));
 	else if (!loop_directory_setup(config_struct.exec_directory, 0755));
 	else if (!loop_directory_setup(config_struct.desktop_directory, 0755));
+	else if (!loop_directory_setup(config_struct.dbpout_directory, 0777));
 	else if (!daemon_nuke());
 	else
 		return 1;

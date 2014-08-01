@@ -16,6 +16,10 @@ struct config_s {
 	char			*exec_directory;
 	char			*desktop_directory;
 
+	char			*dbpout_directory;
+	char			*dbpout_prefix;
+	char			*dbpout_suffix;
+
 	char			*exec_template;
 
 	int			per_user_appdata;
