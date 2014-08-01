@@ -1,3 +1,4 @@
+#include "dbp.h"
 #include "config.h"
 #include "desktop.h"
 #include <stdlib.h>
@@ -30,7 +31,7 @@ void config_init() {
 	c.file_extension = NULL, c.file_extensions = 0;
 
 	if (!(df = desktop_parse_file(CONFIG_FILE_PATH))) {
-		fprintf(stderr, "Unable to open config file %s\n", CONFIG_FILE_PATH);
+		fprintf(dbp_error_log, "Unable to open config file %s\n", CONFIG_FILE_PATH);
 		return;
 	}
 

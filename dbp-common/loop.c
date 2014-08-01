@@ -24,20 +24,19 @@ int loop_directory_setup(const char *path, int umask) {
 	path_tok = strdup(path);
 	while ((tmp = strstr(path_tok, "//")))
 		memmove(tmp, tmp + 1, strlen(tmp));
-	fprintf(stderr, "Creating directory path %s\n", path_tok);
 
 	sprintf(next_path, "/");
 	for (tmp = strtok_r(path_tok, "/", &saveptr); tmp; tmp = strtok_r(NULL, "/", &saveptr)) {
 		strcat(next_path, tmp);
 		if (!stat(next_path, &dir_stat)) {
 			if (!S_ISDIR(dir_stat.st_mode)) {
-				fprintf(stderr, "%s exists but isn't a directory\n", next_path);
+				fprintf(dbp_error_log, "%s exists but isn't a directory\n", next_path);
 				free(path_tok);
 				return 0;
 			}
 		} else {
 			if (mkdir(next_path, umask)) {
-				fprintf(stderr, "Unable to create directory %s\n", next_path);
+				fprintf(dbp_error_log, "Unable to create directory %s\n", next_path);
 				free(path_tok);
 				return 0;
 			}
@@ -118,7 +117,7 @@ static int loop_setup(const char *image, int loop_n) {
 	if (ioctl(loop_fd, LOOP_SET_FD, img_fd) < 0) {
 		close(img_fd);
 		close(loop_fd);
-		fprintf(stderr, "%s\n", strerror(errno));
+		fprintf(dbp_error_log, "%s\n", strerror(errno));
 		return DBP_ERROR_SET_LOOP2;
 	}
 
@@ -191,7 +190,7 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	mount_opt = malloc(strlen(user_dir) + strlen(img_dir) + strlen("br=") + 2);
 	sprintf(mount_opt, "br=%s:%s", user_dir, img_dir);
 	if (mount("none", mount_path, DBP_UNIONFS_NAME, 0, mount_opt) < 0) {
-		fprintf(stderr, "%s, %s\n", mount_opt, strerror(errno));
+		fprintf(dbp_error_log, "%s, %s\n", mount_opt, strerror(errno));
 		free(mount_opt);
 		umount(img_dir);
 		loop_reset(loop_n);

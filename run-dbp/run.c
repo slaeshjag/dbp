@@ -14,6 +14,8 @@
 
 #define	FD_SET_NO_BLOCK(fd) 	(fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK))
 
+FILE *dbp_error_log;
+
 struct {
 	char			*exec;
 	char			*pkg_id;
@@ -68,7 +70,7 @@ void run_parse_args(int argc, char **argv) {
 	run_opt.argv = &argv[i];
 	run_opt.pkg_id = argv[1];
 	run_opt.exec = argv[2];
-	run_opt.use_path = (!strstr(argv[0], "run-dbp-path"));
+	run_opt.use_path = !(!strstr(argv[0], "run-dbp-path"));
 
 	return;
 }
@@ -266,13 +268,14 @@ void run_inject_exec() {
 
 int main(int argc, char **argv) {
 	char *user;
+	dbp_error_log = stderr;
 
 	run_parse_args(argc, argv);
 	config_init();
 	comm_dbus_init();
 
 	user = run_user_get();
-	if (run_opt.use_path)
+	if (!run_opt.use_path)
 		run_inject_exec(), run_id(run_opt.pkg_id, user);
 	else
 		run_path();

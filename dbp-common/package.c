@@ -67,12 +67,12 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 
 	for (i = 0; i < p->entries; i++) {
 		if (!package_id_validate(id)) {
-			fprintf(stderr, "Package at '%s' has illegal package ID %s\n", path, id);
+			fprintf(dbp_error_log, "Package at '%s' has illegal package ID %s\n", path, id);
 			free(path), free(id), free(device), free(mount);
 			return DBP_ERROR_BAD_PKG_ID;
 		}
 		if (!strcmp(p->entry[i].id, id)) {
-			fprintf(stderr, "Package %s is already registered at %s\n", id, p->entry[i].path);
+			fprintf(dbp_error_log, "Package %s is already registered at %s\n", id, p->entry[i].path);
 			free(path), free(id), free(device), free(mount);
 			return DBP_ERROR_PKG_REG;
 		}
@@ -147,12 +147,12 @@ static void package_emit_exec(const char *path, const char *bin, int env, const 
 	char *script, *saveptr, *tok;
 
 	if (!(fp = fopen(config_struct.exec_template, "r"))) {
-		fprintf(stderr, "Unable to open exec template %s\n", config_struct.exec_template);
+		fprintf(dbp_error_log, "Unable to open exec template %s\n", config_struct.exec_template);
 		return;
 	}
 
 	if (!(out = fopen(path, "w"))) {
-		fprintf(stderr, "Unable to open exec '%s' for writing\n", path);
+		fprintf(dbp_error_log, "Unable to open exec '%s' for writing\n", path);
 		fclose(fp);
 		return;
 	}
@@ -186,7 +186,7 @@ static void package_emit_exec(const char *path, const char *bin, int env, const 
 			else if (!strcmp(tok, "package_enviroment"))
 				fprintf(out, "%i", env);
 			else
-				fprintf(stderr, "Unhandled sequence %s\n", tok);
+				fprintf(dbp_error_log, "Unhandled sequence %s\n", tok);
 		}
 		
 		tok_var = !tok_var;
@@ -212,7 +212,7 @@ static void package_meta_exec_export(const char *exec, int env, struct package_s
 	for (tok = strtok_r(exec_tok, ";", &saveptr); tok; tok = strtok_r(NULL, ";", &saveptr)) {
 		sprintf(path, "%s/%s", config_struct.exec_directory, find_filename(tok));
 		if (!access(path, F_OK)) {
-			fprintf(stderr, "Executable collision! %s already exists\n", path);
+			fprintf(dbp_error_log, "Executable collision! %s already exists\n", path);
 			continue;
 		}
 
@@ -274,8 +274,7 @@ static void package_meta_extract(const char *path, struct package_s *p, int id) 
 				/* TODO: Extract executables */
 			} 
 			free(data);
-		} else
-			fprintf(stderr, "Not counting %s\n", pathname);
+		}
 	}
 	
 	archive_read_free(a);
@@ -297,7 +296,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		return DBP_ERROR_NO_MEMORY;
 	archive_read_support_format_zip(a);
 	if (archive_read_open_filename(a, path, 512) != ARCHIVE_OK) {
-		fprintf(stderr, "Bad archive %s\n", path);
+		fprintf(dbp_error_log, "Bad archive %s\n", path);
 		errid = DBP_ERROR_BAD_META;
 		goto error;
 	}
@@ -305,14 +304,13 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	found = 0;
 	while (archive_read_next_header(a, &ae) == ARCHIVE_OK) {
 		if (!strcmp("meta/default.desktop", archive_entry_pathname(ae))) {
-			fprintf(stderr, "Found default.desktop\n");
 			found = 1;
 			break;
 		}
 	}
 
 	if (!found) {
-		fprintf(stderr, "Package has no default.desktop\n");
+		fprintf(dbp_error_log, "Package has no default.desktop\n");
 		errid = DBP_ERROR_NO_DEFAULTD;
 		goto error;
 	}
@@ -345,7 +343,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	}
 
 	package_meta_extract(path, p, id);
-	fprintf(stderr, "Registered package %s\n", pkg_id);
+	fprintf(dbp_error_log, "Registered package %s\n", pkg_id);
 	
 	df = desktop_free(df);
 	archive_read_free(a);
@@ -353,7 +351,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	return id;
 
 	error:
-	fprintf(stderr, "An error occured while registering a package %s\n", pkg_id);
+	fprintf(dbp_error_log, "An error occured while registering a package %s\n", pkg_id);
 	df = desktop_free(df);
 	archive_read_free(a);
 	return errid;
@@ -387,7 +385,7 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 	int n;
 
 	if (!(d = opendir(path))) {
-		fprintf(stderr, "Unable to open %s for directory list\n", path);
+		fprintf(dbp_error_log, "Unable to open %s for directory list\n", path);
 		return;
 	}
 
@@ -465,7 +463,7 @@ static void package_kill(struct package_s *p, int entry) {
 		free(p->entry[entry].exec[i]);
 	}
 
-	fprintf(stderr, "Unregistering package %s\n", p->entry[entry].id);
+	fprintf(dbp_error_log, "Unregistering package %s\n", p->entry[entry].id);
 	free(p->entry[entry].exec);
 	free(p->entry[entry].device);
 	free(p->entry[entry].id);
@@ -543,7 +541,7 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 	p->instance[i].run_id = p->run_cnt++;
 	p->instance[i].loop = loop;
 	if (p->run_cnt < 0) {
-		fprintf(stderr, "Run count wrapped around. A bumpy road might await\n");
+		fprintf(dbp_error_log, "Run count wrapped around. A bumpy road might await\n");
 		p->run_cnt = 0;
 	}
 
@@ -568,7 +566,7 @@ int package_stop(struct package_s *p, int run_id) {
 	}
 
 	if (!id) {
-		fprintf(stderr, "Requested to stop instance with invalid id %i\n", run_id);
+		fprintf(dbp_error_log, "Requested to stop instance with invalid id %i\n", run_id);
 		goto done;
 	}
 

@@ -1,6 +1,7 @@
 #ifndef __DBP_H__
 #define	__DBP_H__
 
+#include <stdio.h>
 
 #define	DBP_META_PREFIX		"__dbp__"
 
@@ -34,5 +35,7 @@
 #define	DBP_ERROR_SIGEXIT	-1017	/* Program problably died from a signal */
 #define	DBP_ERROR_SIGSEGV	-1018	/* Program died from segfault */
 #define	DBP_ERROR_MYSTKILL	-1019	/* Program died from unhandled reason */
+
+extern FILE *dbp_error_log;
 
 #endif

@@ -1,3 +1,5 @@
+#include "dbp.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -25,7 +27,6 @@ void *mountwatch_dirchange() {
 		sem_post(&mountwatch_struct.changed);
 		pthread_mutex_unlock(&mountwatch_struct.dir_watch_mutex);
 
-		fprintf(stderr, "File changed!\n");
 		sem_wait(&mountwatch_struct.dir_watch_continue);
 	}
 }
@@ -35,7 +36,7 @@ void *mountwatch_loop(void *null) {
 	fd_set watch;
 
 	if ((mountfd = open("/proc/mounts", O_RDONLY, 0)) < 0) {
-		fprintf(stderr, "Unable to open /proc/mounts\n");
+		fprintf(dbp_error_log, "Unable to open /proc/mounts\n");
 		pthread_exit(NULL);
 	}
 
@@ -57,13 +58,13 @@ int mountwatch_init() {
 	mountwatch_struct.entry = NULL, mountwatch_struct.entries = 0;
 	mountwatch_struct.ientry = NULL, mountwatch_struct.ientries = 0;
 	if (pthread_create(&th, NULL, mountwatch_loop, NULL)) {
-		fprintf(stderr, "Error: Unable to create mountpoint watch process\n");
+		fprintf(dbp_error_log, "Error: Unable to create mountpoint watch process\n");
 		return 0;
 	}
 
 	mountwatch_struct.dir_fd = inotify_init1(IN_NONBLOCK);
 	if (pthread_create(&inth, NULL, mountwatch_dirchange, NULL)) {
-		fprintf(stderr, "Error: Unable to create dirwatch process\n");
+		fprintf(dbp_error_log, "Error: Unable to create dirwatch process\n");
 		return 0;
 	}
 
@@ -168,10 +169,11 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 				if ((ie->mask & IN_CLOSE_WRITE)) {
 					mountwatch_change_add(change, in->mount, in->device, path, MOUNTWATCH_TAG_PKG_REMOVED);
 					mountwatch_change_add(change, in->mount, in->device, path, MOUNTWATCH_TAG_PKG_ADDED);
-				} if ((ie->mask & IN_DELETE) || (ie->mask & IN_MOVED_FROM))
+				} if ((ie->mask & IN_DELETE) || (ie->mask & IN_MOVED_FROM)) {
 					mountwatch_change_add(change, in->mount, in->device, path, MOUNTWATCH_TAG_PKG_REMOVED);
-				if ((ie->mask & IN_CREATE) || (ie->mask & IN_MOVED_TO))
+				} if ((ie->mask & IN_CREATE) || (ie->mask & IN_MOVED_TO)) {
 					mountwatch_change_add(change, in->mount, in->device, path, MOUNTWATCH_TAG_PKG_ADDED);
+				}
 			}
 
 			no: 
@@ -199,7 +201,7 @@ struct mountwatch_change_s mountwatch_diff() {
 	change.entry = NULL, change.entries = 0;
 
 	if (!(fp = fopen("/proc/mounts", "r"))) {
-		fprintf(stderr, "Unable to open /proc/mounts\n");
+		fprintf(dbp_error_log, "Unable to open /proc/mounts\n");
 		pthread_mutex_unlock(&mountwatch_struct.dir_watch_mutex);
 		return change;
 	}

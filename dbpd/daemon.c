@@ -11,6 +11,7 @@
 #include "comm.h"
 #include "loop.h"
 
+FILE *dbp_error_log;
 
 static int daemon_nuke_dir(char *dir) {
 	DIR *d;
@@ -84,6 +85,7 @@ int main(int argc, char **argv) {
 	int i;
 	char *n;
 
+	dbp_error_log = stderr;
 	p = package_init();
 	comm_dbus_register(&p);
 
@@ -99,19 +101,15 @@ int main(int argc, char **argv) {
 			switch (change.entry[i].tag) {
 				case MOUNTWATCH_TAG_REMOVED:
 					package_release_mount(&p, change.entry[i].device);
-					fprintf(stderr, "%s umounted from %s\n", change.entry[i].device, change.entry[i].mount);
 					break;
 				case MOUNTWATCH_TAG_ADDED:
 					package_crawl_mount(&p, change.entry[i].device, change.entry[i].mount);
-					fprintf(stderr, "%s mounted at %s\n", change.entry[i].device, change.entry[i].mount);
 					break;
 				case MOUNTWATCH_TAG_PKG_ADDED:
 					package_register_path(&p, change.entry[i].device, change.entry[i].path, change.entry[i].mount, &n);
-					fprintf(stderr, "New pkg %s\n", n);
 					free(n);
 					break;
 				case MOUNTWATCH_TAG_PKG_REMOVED:
-					fprintf(stderr, "Removed pkg\n");
 					package_release_path(&p, change.entry[i].path);
 					break;
 				default:
