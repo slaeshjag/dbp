@@ -126,5 +126,7 @@ int main(int argc, char **argv) {
 		mountwatch_change_free(change);
 	}
 
+	(void) argc, (void) argv;
+
 	return 0;
 }

@@ -9,6 +9,7 @@
 
 #include <dirent.h>
 #include <pthread.h>
+#include <limits.h>
 
 /* The line-count in this file is too damn high! */
 static void package_meta_exec_export(const char *exec, int env, struct package_s *p, int id);
@@ -558,7 +559,7 @@ int package_stop(struct package_s *p, int run_id) {
 
 	/* Find out if this is the last instance in this package */
 	for (i = 0; i < p->instances; i++) {
-		if (p->instance[i].run_id == run_id) {
+		if ((int) p->instance[i].run_id == run_id) {
 			id = p->instance[i].package_id;
 			rid = i;
 			break;
@@ -571,7 +572,7 @@ int package_stop(struct package_s *p, int run_id) {
 	}
 
 	for (i = 0; i < p->instances; i++) {
-		if (!strcmp(p->instance[i].package_id, id) && p->instance[i].run_id != run_id)
+		if (!strcmp(p->instance[i].package_id, id) && (int) p->instance[i].run_id != run_id)
 			/* Other instances are using the package, do not umount */
 			goto umount_done;
 	}

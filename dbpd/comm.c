@@ -9,6 +9,8 @@
 #include "package.h"
 
 void comm_dbus_unregister(DBusConnection *dc, void *n) {
+	(void) n;
+	(void) dc;
 	fprintf(stderr, "Unregister handler called\n");
 	return;
 }

@@ -291,6 +291,8 @@ fail:
 void loop_umount(const char *pkg_id, int loop, const char *user) {
 	char *mount_path, *img_path = NULL;
 
+	/* parameter user will eventually be used */
+	(void) user;
 	assert(pkg_id);
 
 	if (!(mount_path = dbp_string("%s/%s", config_struct.union_mount, pkg_id)))

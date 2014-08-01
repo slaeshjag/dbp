@@ -6,6 +6,8 @@
 #include <string.h>
 
 #include <unistd.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <limits.h>
 #include <sys/inotify.h>
 #include "mountwatch.h"
@@ -35,6 +37,7 @@ void *mountwatch_loop(void *null) {
 	int mountfd;
 	fd_set watch;
 
+	(void) null;
 	if ((mountfd = open("/proc/mounts", O_RDONLY, 0)) < 0) {
 		fprintf(dbp_error_log, "Unable to open /proc/mounts\n");
 		pthread_exit(NULL);
@@ -177,7 +180,7 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 			}
 
 			no: 
-			if (ndata > sizeof(*ie) + ie->len + (next_buff - buff))
+			if (ndata > (int) sizeof(*ie) + ie->len + (next_buff - buff))
 				next_buff = &next_buff[ie->len + sizeof(*ie)];
 			else
 				break;
