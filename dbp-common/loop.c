@@ -141,7 +141,7 @@ static void loop_reset(int loop) {
 }
 
 	
-int loop_mount(const char *image, const char *id, const char *appdata, const char *user, const char *src_mount) {
+int loop_mount(const char *image, const char *id, const char *user, const char *src_mount, const char *appdata) {
 	int loop_n, ret;
 	char mount_path[PATH_MAX], loop[32], user_dir[PATH_MAX], img_dir[PATH_MAX];
 	char *mount_opt;

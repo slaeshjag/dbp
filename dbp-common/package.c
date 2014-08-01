@@ -344,11 +344,12 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		goto error;
 	}
 
+	package_meta_extract(path, p, id);
+	fprintf(stderr, "Registered package %s\n", pkg_id);
+	
 	df = desktop_free(df);
 	archive_read_free(a);
 
-	package_meta_extract(path, p, id);
-	fprintf(stderr, "Registered package %s\n", pkg_id);
 	return id;
 
 	error:

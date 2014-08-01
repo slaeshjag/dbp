@@ -149,6 +149,22 @@ int comm_dbus_get_id_from_path(const char *path, char **rets) {
 }
 
 
+int comm_dbus_get_appdata(const char *id, char **rets) {
+	DBusMessage *dm;
+	DBusPendingCall *pending;
+	DBusMessageIter iter;
+	const char *retc;
+
+	COMM_DBUS_MSG_EMIT("GetAppdata", id, id);
+
+	dbus_message_iter_get_basic(&iter, &retc);
+	*rets = strdup(retc);
+	dbus_message_unref(dm);
+
+	return !(!strcmp(id, "!"));
+}
+
+
 void comm_dbus_request_umount(int run_id) {
 	DBusMessage *dm;
 	DBusPendingCall *pending;
