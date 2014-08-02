@@ -170,12 +170,21 @@ void run_exec_prep() {
 
 
 void run_id(char *id, char *user) {
+	/* This will never exceed like 128 bytes, dynamically allocing	*
+	** it would just be silly .-.					*/
+	char mount[PATH_MAX];
 	int run_id;
 	char *appdata;
 
 	comm_dbus_get_appdata(run_opt.pkg_id, &appdata);
 	run_appdata_create(appdata, user);
 	run_id = comm_dbus_request_mount(id, user);
+
+	if (run_opt.env) {
+		sprintf(mount, "%s/%s", config_struct.union_mount, run_opt.pkg_id);
+		chdir(mount);
+	}
+
 	run_exec_prep();
 	comm_dbus_request_umount(run_id);
 	

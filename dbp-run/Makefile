@@ -19,7 +19,7 @@ clean:
 	@echo 
 
 %.o: %.c %.h
-	@echo " [ CC ] run-dbp/$<"
+	@echo " [ CC ] dbp-run/$<"
 	@$(CC) $(LIBINC) $(CFLAGS) -c -o $@ $<
 	
 

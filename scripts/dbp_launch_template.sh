@@ -13,7 +13,12 @@
 
 if [ !%package_enviroment! == 1 ]; then
 	# This is where pre/post launch env setup should be done
-	run-dbp !%package_id! !%package_binary! --gui --args "$@"
+
+	union_dir="`dbp-cfg union_mount_dir`/!%package_id!"
+
+	# chdir is done by dbp-run, as the union mount might not exist before
+	# dbp-run is runned
+	dbp-run !%package_id! !%package_binary! --env --args "$@"
 else
-	run-dbp !%package_id! !%package_binary! --args "$@"
+	dbp-run !%package_id! !%package_binary! --args "$@"
 fi
