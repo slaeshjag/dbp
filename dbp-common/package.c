@@ -63,20 +63,14 @@ static int package_id_validate(const char *pkg_id) {
 }
 
 
-static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount, char *appdata) {
-	int nid, i;
+static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount, char *appdata, char *sys, char *pkg) {
+	int nid, i, errid;
 
 	for (i = 0; i < p->entries; i++) {
-		if (!package_id_validate(id)) {
-			fprintf(dbp_error_log, "Package at '%s' has illegal package ID %s\n", path, id);
-			free(path), free(id), free(device), free(mount);
-			return DBP_ERROR_BAD_PKG_ID;
-		}
-		if (!strcmp(p->entry[i].id, id)) {
-			fprintf(dbp_error_log, "Package %s is already registered at %s\n", id, p->entry[i].path);
-			free(path), free(id), free(device), free(mount);
-			return DBP_ERROR_PKG_REG;
-		}
+		if (!package_id_validate(id))
+			goto badid;
+		if (!strcmp(p->entry[i].id, id))
+			goto noreg;
 	}
 	nid = p->entries++;
 	p->entry = realloc(p->entry, sizeof(*p->entry) * p->entries);
@@ -85,9 +79,25 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].device = device;
 	p->entry[nid].mount = mount;
 	p->entry[nid].appdata = appdata;
+	p->entry[nid].sys_dep = sys;
+	p->entry[nid].pkg_dep = pkg;
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
 
 	return nid;
+
+	badid:
+	fprintf(dbp_error_log, "Package at '%s' has illegal package ID %s\n", path, id);
+	errid = DBP_ERROR_BAD_PKG_ID;
+	goto fail;
+
+	noreg:
+	fprintf(dbp_error_log, "Package %s is already registered at %s\n", id, p->entry[i].path);
+	errid = DBP_ERROR_BAD_PKG_ID;
+	goto fail;
+
+	fail:
+	free(path), free(id), free(device), free(mount), free(sys), free(pkg);
+	return errid;
 }
 
 
@@ -287,7 +297,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	struct archive *a;
 	struct archive_entry *ae;
 	struct desktop_file_s *df;
-	char *data, *pkg_id = "none", *appdata;
+	char *data, *pkg_id = "none", *appdata, *sys, *pkg;
 	int found, size, id, errid;
 
 	df = NULL;
@@ -335,8 +345,12 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		appdata = pkg_id;
 	else if (!package_id_validate(appdata))
 		appdata = pkg_id;
+	if (!(sys = desktop_lookup(df, "SysDependency", "", "Package Entry")))
+		sys = "";
+	if (!(pkg = desktop_lookup(df, "PkgDependency", "", "Package Entry")))
+		pkg = "";
 	
-	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata))) < 0) {
+	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata), strdup(sys), strdup(pkg))) < 0) {
 		*coll_id = package_id_lookup(p, pkg_id);
 		errid = id;
 		pkg_id = NULL;
@@ -471,6 +485,8 @@ static void package_kill(struct package_s *p, int entry) {
 	free(p->entry[entry].path);
 	free(p->entry[entry].mount);
 	free(p->entry[entry].appdata);
+	free(p->entry[entry].sys_dep);
+	free(p->entry[entry].pkg_dep);
 	p->entries--;
 	memmove(&p->entry[entry], &p->entry[entry + 1], (p->entries - entry) * sizeof(*p->entry));
 	return;
@@ -637,3 +653,17 @@ char *package_appdata_from_id(struct package_s *p, const char *id) {
 	return ad;
 }
 
+
+int package_deps_from_id(struct package_s *p, const char *id, char **sys, char **pkg) {
+	int i;
+	
+	pthread_mutex_lock(&p->mutex);
+
+	if ((i = package_find(p, id)) < 0)
+		*sys = strdup(""), *pkg = strdup("");
+	else
+		*sys = strdup(p->entry[i].sys_dep), *pkg = strdup(p->entry[i].pkg_dep);
+	pthread_mutex_unlock(&p->mutex);
+	
+	return 0;
+}

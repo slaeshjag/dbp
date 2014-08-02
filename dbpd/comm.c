@@ -62,6 +62,8 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		ret2 = package_id_from_path(p, name);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetAppdata")) {
 		ret2 = package_appdata_from_id(p, name);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetPkgDep")) {
+		package_deps_from_id(p, name, &ret2, &ret3);
 	} else {
 		fprintf(stderr, "Bad method call\n");
 		goto done;

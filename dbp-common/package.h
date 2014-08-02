@@ -15,6 +15,12 @@ struct package_entry_s {
 	char				*device;
 	char				*mount;
 	char				*appdata;
+
+	/* Dependencies are only stored for later relay to client	*
+	** Daemon does not do any dep-checking itself			*/
+	char				*sys_dep;
+	char				*pkg_dep;
+
 	char				**exec;
 	int				execs;
 };
@@ -46,6 +52,7 @@ int package_stop(struct package_s *p, int run_id);
 char *package_mount_get(struct package_s *p, const char *pkg_id);
 char *package_id_from_path(struct package_s *p, const char *path);
 char *package_appdata_from_id(struct package_s *p, const char *id);
+int package_deps_from_id(struct package_s *p, const char *id, char **sys, char **pkg);
 
 
 #endif

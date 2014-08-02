@@ -223,9 +223,6 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 
 	loop_directory_setup(mount_path, 0555);
 	if (config_struct.per_user_appdata) {
-		/* If user tries to escape the dir, that's no big deal.	*
-		** There will be no privilegie escelation, and it's up	*
-		** to the user package runner to create it		*/
 		if (src_mount[1])
 			user_dir = dbp_string("%s/%s_%s/%s", src_mount, config_struct.data_directory, user, appdata);
 		else
