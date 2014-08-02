@@ -11,4 +11,9 @@
 # anything surrounded by an ! followed by % is replaced with
 # actual values by dbpd when the special folder is populated
 
-pyra-hspkg-run !%package_id! !%package_binary! --args "$@"
+if [ !%package_enviroment! == 1 ]; then
+	# This is where pre/post launch env setup should be done
+	run-dbp !%package_id! !%package_binary! --gui --args "$@"
+else
+	run-dbp !%package_id! !%package_binary! --args "$@"
+fi

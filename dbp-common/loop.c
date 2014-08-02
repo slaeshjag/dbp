@@ -139,9 +139,6 @@ static int loop_setup(const char *image, int loop_n) {
 	free(device);
 	device = NULL;
 
-	/* TODO: Remove this hack and free the loop properly instead */
-	ioctl(loop_fd, LOOP_CLR_FD, 0);
-
 	if (ioctl(loop_fd, LOOP_SET_FD, img_fd) < 0)
 		goto loop_set_fail;
 
@@ -198,7 +195,7 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	assert(image && id && user && src_mount && appdata);
 
 	if (strlen(user) > 63)	/* This is not a reasonable user name */
-		return 0;
+		return DBP_ERROR_INTERNAL_MSG;
 
 	if ((loop_n = loop_available_get()) < 0)
 		goto no_loop;
