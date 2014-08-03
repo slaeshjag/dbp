@@ -2,6 +2,7 @@
 #include "package.h"
 #include "config.h"
 #include "loop.h"
+#include "meta.h"
 #include "dbp.h"
 
 #include <archive.h>
@@ -294,60 +295,26 @@ static void package_meta_extract(const char *path, struct package_s *p, int id) 
 
 
 static int package_register(struct package_s *p, const char *path, const char *device, const char *mount, int *coll_id) {
-	struct archive *a;
-	struct archive_entry *ae;
-	struct desktop_file_s *df;
-	char *data, *pkg_id = "none", *appdata, *sys, *pkg;
-	int found, size, id, errid;
+	struct meta_package_s mp;
+	char *pkg_id = "none", *appdata, *sys, *pkg;
+	int id, errid;
 
-	df = NULL;
 	*coll_id = -1;
 	errid = DBP_ERROR_UNHANDLED;
-	if (!(a = archive_read_new()))
-		return DBP_ERROR_NO_MEMORY;
-	archive_read_support_format_zip(a);
-	if (archive_read_open_filename(a, path, 512) != ARCHIVE_OK) {
-		fprintf(dbp_error_log, "Bad archive %s\n", path);
-		errid = DBP_ERROR_BAD_META;
+	if ((errid = meta_package_open(path, &mp)) < 0)
 		goto error;
-	}
-	
-	found = 0;
-	while (archive_read_next_header(a, &ae) == ARCHIVE_OK) {
-		if (!strcmp("meta/default.desktop", archive_entry_pathname(ae))) {
-			found = 1;
-			break;
-		}
-	}
-
-	if (!found) {
-		fprintf(dbp_error_log, "Package has no default.desktop\n");
-		errid = DBP_ERROR_NO_DEFAULTD;
-		goto error;
-	}
-
-	size = archive_entry_size(ae);
-	if (!(data = malloc(size + 1))) {
-		errid = DBP_ERROR_NO_MEMORY;
-		goto error;
-	}
-	archive_read_data(a, data, size);
-	data[size] = 0;
-
-	df = desktop_parse(data);
-	free(data);
-	if (!(pkg_id = desktop_lookup(df, "Id", "", "Package Entry"))) {
+	if (!(pkg_id = desktop_lookup(mp.df, "Id", "", mp.section))) {
 		errid = DBP_ERROR_BAD_PKG_ID;
 		goto error;
 	}
 
-	if (!(appdata = desktop_lookup(df, "Appdata", "", "Package Entry")))
+	if (!(appdata = desktop_lookup(mp.df, "Appdata", "", mp.section)))
 		appdata = pkg_id;
 	else if (!package_id_validate(appdata))
 		appdata = pkg_id;
-	if (!(sys = desktop_lookup(df, "SysDependency", "", "Package Entry")))
+	if (!(sys = desktop_lookup(mp.df, "SysDependency", "", mp.section)))
 		sys = "";
-	if (!(pkg = desktop_lookup(df, "PkgDependency", "", "Package Entry")))
+	if (!(pkg = desktop_lookup(mp.df, "PkgDependency", "", mp.section)))
 		pkg = "";
 	
 	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata), strdup(sys), strdup(pkg))) < 0) {
@@ -360,15 +327,14 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	package_meta_extract(path, p, id);
 	fprintf(dbp_error_log, "Registered package %s\n", pkg_id);
 	
-	df = desktop_free(df);
-	archive_read_free(a);
+	mp.df = desktop_free(mp.df);
 
 	return id;
 
 	error:
 	fprintf(dbp_error_log, "An error occured while registering a package %s\n", pkg_id);
-	df = desktop_free(df);
-	archive_read_free(a);
+	if (mp.df)
+		mp.df = desktop_free(mp.df);
 	return errid;
 }
 
