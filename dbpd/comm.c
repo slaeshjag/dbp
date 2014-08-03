@@ -60,10 +60,12 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		package_release_path(p, name);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "IdFromPath")) {
 		ret2 = package_id_from_path(p, name);
-	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetAppdata")) {
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetAppdata")) {	/* TODO: Remove */
 		ret2 = package_appdata_from_id(p, name);
-	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetPkgDep")) {
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetPkgDep")) {	/* TODO: Remove */
 		package_deps_from_id(p, name, &ret2, &ret3);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "PathFromId")) {
+		ret2 = package_path_from_id(p, name);
 	} else {
 		fprintf(stderr, "Bad method call\n");
 		goto done;

@@ -633,3 +633,18 @@ int package_deps_from_id(struct package_s *p, const char *id, char **sys, char *
 	
 	return 0;
 }
+
+
+char *package_path_from_id(struct package_s *p, const char *id) {
+	int i;
+	char *ret;
+	
+	pthread_mutex_lock(&p->mutex);
+	
+	if ((i = package_find(p, id)) < 0)
+		ret = strdup("!");
+	else
+		ret = strdup(p->entry[i].path);
+	pthread_mutex_unlock(&p->mutex);
+	return ret;
+}

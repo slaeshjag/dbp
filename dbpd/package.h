@@ -53,6 +53,7 @@ char *package_mount_get(struct package_s *p, const char *pkg_id);
 char *package_id_from_path(struct package_s *p, const char *path);
 char *package_appdata_from_id(struct package_s *p, const char *id);
 int package_deps_from_id(struct package_s *p, const char *id, char **sys, char **pkg);
+char *package_path_from_id(struct package_s *p, const char *id);
 
 
 #endif
