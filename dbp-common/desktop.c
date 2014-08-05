@@ -111,6 +111,8 @@ struct desktop_file_s *desktop_parse(char *str) {
 	
 		*value = 0, *key = 0;
 		sscanf(str, "%[^\n=] = %[^\n]\n", key, value);
+		if (!(*key))
+			continue;
 		if (*key == '[') {	/* This is a new section */
 			if (!strchr(key, ']'))
 				continue;
