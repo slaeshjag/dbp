@@ -73,6 +73,11 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 		if (!strcmp(p->entry[i].id, id))
 			goto noreg;
 	}
+
+	/* pga. ev. "//", gör en fuling */
+	if (strstr(path, "//") == path)
+		memmove(path, path + 1, strlen(path));
+
 	nid = p->entries++;
 	p->entry = realloc(p->entry, sizeof(*p->entry) * p->entries);
 	p->entry[nid].path = path;
