@@ -98,7 +98,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 
 	noreg:
 	fprintf(dbp_error_log, "Package %s is already registered at %s\n", id, p->entry[i].path);
-	errid = DBP_ERROR_BAD_PKG_ID;
+	errid = DBP_ERROR_PKG_REG;
 	goto fail;
 
 	fail:
