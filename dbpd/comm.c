@@ -52,20 +52,20 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "MountP")) {
 		ret2 = package_mount_get(p, arg);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "RegisterPath")) {
-		util_lookup_mount(name, &mount, &dev);
-		sprintf(ret, "%i", package_register_path(p, dev, name, mount, &ret3));
+		util_lookup_mount(arg, &mount, &dev);
+		sprintf(ret, "%i", package_register_path(p, dev, arg, mount, &ret3));
 		free(dev), free(mount);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "UnregisterPath")) {
 		sprintf(ret, "1");
-		package_release_path(p, name);
+		package_release_path(p, arg);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "IdFromPath")) {
-		ret2 = package_id_from_path(p, name);
+		ret2 = package_id_from_path(p, arg);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetAppdata")) {	/* TODO: Remove */
-		ret2 = package_appdata_from_id(p, name);
+		ret2 = package_appdata_from_id(p, arg);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "GetPkgDep")) {	/* TODO: Remove */
-		package_deps_from_id(p, name, &ret2, &ret3);
+		package_deps_from_id(p, arg, &ret2, &ret3);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "PathFromId")) {
-		ret2 = package_path_from_id(p, name);
+		ret2 = package_path_from_id(p, arg);
 	} else {
 		fprintf(stderr, "Bad method call\n");
 		goto done;
