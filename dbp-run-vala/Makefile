@@ -6,4 +6,4 @@ LIBS = -larchive
 BIN = ../build/bin/dbp-run-vala
 
 all:
-	$(VALAC) -o $(BIN) $(VALAPKG) $(VALAFLAGS) *.vala -X $(VALASTATICLIBS) -X $(LIBS)
+	$(VALAC) -o $(BIN) $(VALAPKG) $(VALAFLAGS) *.vala -X *.c -X $(VALASTATICLIBS) -X $(LIBS)

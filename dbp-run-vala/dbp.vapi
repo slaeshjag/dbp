@@ -41,6 +41,36 @@ namespace DBP {
 	
 	[CCode (cheader_filename = "config.h")]
 	namespace Config {
+		[CCode (cname = "struct config_s", has_type_id = false)]
+		struct Config {
+			[CCode (array_length_cname = "file_extensions", array_length_type = "int")]
+			string[] file_extension;
+			//int file_extensions;
+			[CCode (array_length_cname = "search_dirs", array_length_type = "int")]
+			string[] search_dir;
+			//int search_dirs;
+			string img_mount;
+			string union_mount;
+
+			string data_directory;
+			string icon_directory;
+			string exec_directory;
+			string desktop_directory;
+
+			string dbpout_directory;
+			string dbpout_prefix;
+			string dbpout_suffix;
+
+			string daemon_log;
+
+			string exec_template;
+
+			bool per_user_appdata;
+		}
+		
+		[CCode (cname = "config_struct")]
+		Config config;
+		
 		[CCode (cprefix = "CONFIG_")]
 		public const string FILE_PATH;
 	

@@ -3,8 +3,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
-char* dbp_string(const char *fmt, ...)
-{
+char* dbp_string(const char *fmt, ...) {
 	assert(fmt);
 
 	char *buffer;
