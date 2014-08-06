@@ -39,6 +39,10 @@ void config_init() {
 	struct config_s c;
 	char *tmp;
 
+	/* En fuling åt h4xxel's vala-jox */
+	if (!dbp_error_log)
+		dbp_error_log = stderr;
+
 	c.file_extension = NULL, c.file_extensions = 0;
 
 	if (!(df = desktop_parse_file(CONFIG_FILE_PATH))) {
