@@ -34,7 +34,7 @@ void config_expand_token(char ***target, int *targets, char *token) {
 }
 
 
-void config_init() {
+int config_init() {
 	struct desktop_file_s *df;
 	struct config_s c;
 	char *tmp;
@@ -47,7 +47,7 @@ void config_init() {
 
 	if (!(df = desktop_parse_file(CONFIG_FILE_PATH))) {
 		fprintf(dbp_error_log, "Unable to open config file %s\n", CONFIG_FILE_PATH);
-		return;
+		return 0;
 	}
 
 	c.file_extension = NULL, c.file_extensions = 0;
@@ -76,5 +76,5 @@ void config_init() {
 
 	desktop_free(df);
 	config_struct = c;
-	return;
+	return 1;
 }

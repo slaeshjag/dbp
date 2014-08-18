@@ -28,7 +28,7 @@ struct config_s {
 };
 
 
-void config_init();
+int config_init();
 extern struct config_s config_struct;
 void config_expand_token(char ***target, int *targets, char *token);
 
