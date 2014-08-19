@@ -2,7 +2,7 @@
 *.elf
 *.so
 *.a
-*.po
+*.mo
 *.swp
 *.swo
 *.bin

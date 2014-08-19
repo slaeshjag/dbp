@@ -1,9 +1,13 @@
 VALAC = valac
 VALAPKG = --pkg=gio-2.0 --target-glib 2.32 --pkg glib-2.0 --pkg=posix --pkg=dbp
-VALAFLAGS = --vapidir=. -X -I../dbp-common --thread
-VALASTATICLIBS = ../dbp-common/dbp-common.a
-LIBS = -larchive
-BIN = ../build/bin/dbp-run-vala
+VALAFLAGS = --vapidir=./common -X -I../dbp-common --thread -X -DGETTEXT_PACKAGE=\"dbp-run\"
+VALASTATICLIBS = -X ../dbp-common/dbp-common.a
+LIBS = -X -larchive
+BINPATH = ../build/bin
 
 all:
-	$(VALAC) -o $(BIN) $(VALAPKG) $(VALAFLAGS) *.vala -X *.c -X $(VALASTATICLIBS) -X $(LIBS)
+	xgettext -L C -k_ -d dbp-run -s -o po/dbp-run.pot *.vala common/*.vala
+	make -C po/
+	
+	$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
+	$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)

@@ -1,0 +1,44 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-08-19 22:26+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: dbp-run-path.vala:29 dbp-run-path.vala:64 dbp-run.vala:34 dbp-run.vala:75
+#, c-format
+msgid "Error: %s\n"
+msgstr ""
+
+#: dbp-run-path.vala:44 dbp-run.vala:55
+#, c-format
+msgid "Error: unknown option '%s'\n"
+msgstr ""
+
+#: common/run.vala:41
+msgid "Failed to find mountpoint"
+msgstr ""
+
+#: dbp-run.vala:12
+#, c-format
+msgid ""
+"Usage: dbp-run [--gui-errors] [--log-output] [--chdir] <package id> "
+"<executable> [arg1] [arg2] ...\n"
+msgstr ""
+
+#: dbp-run-path.vala:9
+#, c-format
+msgid "Usage: dbp-run-path [--gui-errors] <path to .dbp> [arg1] [arg2] ...\n"
+msgstr ""
