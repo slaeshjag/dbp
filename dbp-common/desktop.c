@@ -84,6 +84,28 @@ char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *loc
 }
 
 
+static void desktop_entry_unescape(char *str) {
+	int i, len;
+	len = strlen(str) + 1;
+	for (i = 0; i < len; i++) {
+		if (str[i] != '\\')
+			continue;
+		i++;
+		if (!str[i])
+			continue;
+		if (str[i] == '\\')
+			memmove(&str[i], &str[i + 1], (len--) - i);
+		else if (str[i] == 'n')
+			str[i - 1] = '\n', memmove(&str[i], &str[i + 1], (len--) - i);
+		else if (str[i] == 'r')
+			str[i - 1] = '\r', memmove(&str[i], &str[i + 1], (len--) - i);
+		else if (str[i] == 't')
+			str[i - 1] = '\t', memmove(&str[i], &str[i + 1], (len--) - i);
+	}
+	return;
+}
+
+
 struct desktop_file_s *desktop_parse(char *str) {
 	/* TODO: Make these dynamically reallocable */
 	char key[4096], value[4096], buff[4096], buff2[4096], *tmp;
@@ -121,6 +143,7 @@ struct desktop_file_s *desktop_parse(char *str) {
 			desktop_section_new(df, buff);
 		} else if (*key == ';' || *key == '#') {
 		} else {
+			desktop_entry_unescape(value);
 			if (strchr(key, '[')) {	/* locale string */
 				if (!strchr(key, ']'))
 					continue;	/* nope.avi */
@@ -156,6 +179,26 @@ struct desktop_file_s *desktop_parse_file(const char *path) {
 }
 
 
+static void desktop_write_format(FILE *fp, char *str) {
+	int i, len;
+	len = strlen(str);
+	for (i = 0; i < len; i++) {
+		if (str[i] == '\\')
+			fprintf(fp, "\\\\");
+		else if (str[i] == '\r')
+			fprintf(fp, "\\r");
+		else if (str[i] == '\n')
+			fprintf(fp, "\\n");
+		else if (str[i] == '\t')
+			fprintf(fp, "\\t");
+		else
+			fwrite(&str[i], 1, 1, fp);
+	}
+
+	fprintf(fp, "\n");
+}
+
+
 void desktop_write(struct desktop_file_s *df, const char *path) {
 	FILE *fp;
 	int i, j;
@@ -169,9 +212,10 @@ void desktop_write(struct desktop_file_s *df, const char *path) {
 			if (!*df->section[i].entry[j].key)
 				continue;
 			else if (*df->section[i].entry[j].locale)
-				fprintf(fp, "%s[%s]=%s\n", df->section[i].entry[j].key, df->section[i].entry[j].locale, df->section[i].entry[j].value);
+				fprintf(fp, "%s[%s]=", df->section[i].entry[j].key, df->section[i].entry[j].locale);
 			else
-				fprintf(fp, "%s=%s\n", df->section[i].entry[j].key, df->section[i].entry[j].value);
+				fprintf(fp, "%s=", df->section[i].entry[j].key);
+			desktop_write_format(fp, df->section[i].entry[j].value);
 	}
 
 	fclose(fp);

@@ -87,7 +87,8 @@ int main(int argc, char **argv) {
 	char *n;
 
 	dbp_error_log = stderr;
-	config_init();
+	if (!config_init())
+		return -1;
 	if (!(dbp_error_log = fopen(config_struct.daemon_log, "w"))) {
 		dbp_error_log = stderr;
 		fprintf(stderr, "Unable to open %s\n", config_struct.daemon_log);
