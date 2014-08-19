@@ -31,30 +31,24 @@ namespace Run {
 		}
 	}
 	
-	void appdata_create(string pkg_id) {
+	void appdata_create(string pkg_id) throws IOError {
 		string mountpoint;
 		string appdata;
 		
-		try {
-			mountpoint = bus.mount_p(pkg_id, "");
-		} catch(IOError e) {
-			stderr.printf ("%s\n", e.message);
-			return;
-		}
+		mountpoint = bus.mount_p(pkg_id, "");
 		
-		if(mountpoint == null || mountpoint == "")
-			return;
+		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
+			throw new IOError.FAILED(_("Failed to find mountpoint"));
 		
 		if(DBP.Config.config.per_user_appdata)
 			appdata = DBP.Config.config.data_directory + "_" + Environment.get_user_name();
 		else
 			appdata = DBP.Config.config.data_directory;
 		
-		stdout.printf("creating appdata: %s\n", Path.build_filename(mountpoint, appdata, pkg_id));
 		DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
 	}
 	
-	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir) {
+	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir) throws IOError, SpawnError {
 		string mount_id;
 		string binary_path;
 		string ?cwd;
@@ -70,10 +64,8 @@ namespace Run {
 		//TODO: validate pkg_id
 		
 		mount_id = bus.mount(pkg_id, "");
-		if(int.parse(mount_id) < 0) {
-			stderr.printf("oops, i just shat myself mounting package %s, error code %s\n", pkg_id, mount_id);
-			return;
-		}
+		if(int.parse(mount_id) < 0)
+			throw new IOError.FAILED(mount_id);
 		
 		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
 		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
@@ -91,7 +83,7 @@ namespace Run {
 			stderrlogger = new OutputLogger(errpipe, errlogfile, stderr);
 			
 			Posix.waitpid(pid, out info, 0);
-			Process.closepid(pid);
+			Process.close_pid(pid);
 		} else {
 			Process.spawn_sync(cwd, argv, null, SpawnFlags.CHILD_INHERITS_STDIN, null, null, null);
 		}
@@ -99,7 +91,7 @@ namespace Run {
 		bus.u_mount(mount_id, "");
 	}
 	
-	public void run_path(string path) {
+	public void run_path(string path, string[] args) throws IOError, SpawnError {
 		string pkg_id;
 		string error_code;
 		string actual_path;
@@ -107,14 +99,13 @@ namespace Run {
 		ExecLine exec;
 		
 		pkg_id = bus.register_path(path, "", out error_code);
-		if(pkg_id == "!") {
-			stderr.printf("Failed to register path %s\n", path);
-			return;
-		}
+		if(pkg_id == "!")
+			throw new IOError.FAILED(error_code);
 		
 		actual_path = bus.path_from_id(pkg_id, "");
 		DBP.Meta.package_open(actual_path, out meta);
 		exec = new ExecLine(meta.desktop_file.lookup("Exec", "", "Desktop Entry"));
+		exec.append(args);
 		exec.run(false);
 		
 		if(int.parse(error_code) != DBP.Error.PKG_REG)

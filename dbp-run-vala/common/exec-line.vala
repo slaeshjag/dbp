@@ -17,7 +17,6 @@ class ExecLine {
 	}
 	
 	public ExecLine(string cmd_line) {
-		//Gee.ArrayList<string> arguments = new Gee.ArrayList<string>();
 		string[] arguments = {};
 		StringBuilder arg = new StringBuilder();
 		unichar c;
@@ -83,7 +82,13 @@ class ExecLine {
 		_exec = arguments;
 	}
 	
-	public void run(bool in_background) {
+	public void append(string[] args) {
+		foreach(string s in args) {
+			_exec += s;
+		}
+	}
+	
+	public void run(bool in_background) throws SpawnError {
 		if(in_background)
 			Process.spawn_async(null, _exec, null, SpawnFlags.SEARCH_PATH | SpawnFlags.CHILD_INHERITS_STDIN, null, null);
 		else
