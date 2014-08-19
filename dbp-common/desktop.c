@@ -208,7 +208,7 @@ void desktop_write(struct desktop_file_s *df, const char *path) {
 	for (i = 0; i < df->sections; i++) {
 		if (df->section[i].name)
 			fprintf(fp, "[%s]\n", df->section[i].name);
-		for (j = 0; j < df->section[i].entries; j++)
+		for (j = 0; j < df->section[i].entries; j++) {
 			if (!*df->section[i].entry[j].key)
 				continue;
 			else if (*df->section[i].entry[j].locale)
@@ -216,6 +216,7 @@ void desktop_write(struct desktop_file_s *df, const char *path) {
 			else
 				fprintf(fp, "%s=", df->section[i].entry[j].key);
 			desktop_write_format(fp, df->section[i].entry[j].value);
+		}
 	}
 
 	fclose(fp);
