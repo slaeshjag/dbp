@@ -587,7 +587,7 @@ char *package_mount_get(struct package_s *p, const char *pkg_id) {
 
 	if ((i = package_find(p, pkg_id)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
-		return strdup("NULL");
+		return strdup("!");
 	}
 
 	path = strdup(p->entry[i].mount);
