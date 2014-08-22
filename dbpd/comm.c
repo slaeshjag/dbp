@@ -16,12 +16,14 @@ void comm_dbus_unregister(DBusConnection *dc, void *n) {
 }
 
 
+/* I am not proud of this function. Sorry. */
 DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, void *n) {
 	struct package_s *p = n;
 	DBusMessage *ndm;
 	DBusMessageIter iter;
 	const char *arg, *name;
-	char *ret, *ret2, *ret3, *mount, *dev;
+	char *ret, *ret2, *ret3, *mount, *dev, **arr;
+	int i;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
 		fprintf(stderr, "Message has no arguments\n");
@@ -66,8 +68,19 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		package_deps_from_id(p, arg, &ret2, &ret3);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "PathFromId")) {
 		ret2 = package_path_from_id(p, arg);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "PackageList")) {
+		ndm = dbus_message_new_method_return(dm);
+		
+		pthread_mutex_lock(&p->mutex);
+		for (i = 0; i < p->entries; i++) {
+			arr = (void *) &p->entry[i];
+			dbus_message_append_args(ndm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &arr, 2, DBUS_TYPE_INVALID);
+		}
+		pthread_mutex_unlock(&p->mutex);
+
+		goto send_message;
 	} else {
-		fprintf(stderr, "Bad method call\n");
+		fprintf(stderr, "Bad method call %s\n", dbus_message_get_member(dm));
 		goto done;
 	}
 
@@ -78,6 +91,8 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		dbus_message_append_args(ndm, DBUS_TYPE_STRING, &ret2, DBUS_TYPE_INVALID);
 	if (ret3)
 		dbus_message_append_args(ndm, DBUS_TYPE_STRING, &ret3, DBUS_TYPE_INVALID);
+
+	send_message:
 	dbus_connection_send(dc, ndm, NULL);
 	dbus_connection_flush(dc);
 

@@ -467,6 +467,7 @@ static void package_kill(struct package_s *p, int entry) {
 void package_release_path(struct package_s *p, const char *path) {
 	int i;
 	pthread_mutex_lock(&p->mutex);
+	if (strstr(path, "//") == path) path++;
 	for (i = 0; i < p->entries; i++)
 		if (!strcmp(p->entry[i].path, path)) {
 			package_kill(p, i);

@@ -10,8 +10,10 @@
 
 
 struct package_entry_s {
+	/* DO NOT MOVE path, id. HACK IN comm.c DEPENDS ON THE POSITION OF THESE */
 	char				*path;
 	char				*id;
+
 	char				*device;
 	char				*mount;
 	char				*appdata;

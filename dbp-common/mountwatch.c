@@ -77,7 +77,7 @@ int mountwatch_init() {
 
 int mountwatch_change_add(struct mountwatch_change_s *change, const char *mount, const char *device, const char *path, int tag) {
 	int id;
-
+	
 	id = change->entries++;
 	change->entry = realloc(change->entry, sizeof(*change->entry) * change->entries);
 	change->entry[id].device = strdup(device);
@@ -159,8 +159,8 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 
 	while ((ndata = read(mountwatch_struct.dir_fd, buff, max_sz)) > 0) {
 		next_buff = buff;
-		ie = (void *) next_buff;
 		for (;;) {
+			ie = (void *) next_buff;
 			name = next_buff + ie->len;
 			if (ie->len > 0) {
 				if ((ientry = mountwatch_path_lookup_entry(ie->wd)) < 0)
@@ -169,7 +169,7 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 				
 				sprintf(path, "%s/%s", in->path, name);
 				/* Remove-add sequence */
-				if ((ie->mask & IN_CLOSE_WRITE)) {
+				if ((ie->mask & IN_CLOSE_WRITE) || (ie->mask & IN_ATTRIB)) {
 					mountwatch_change_add(change, in->mount, in->device, path, MOUNTWATCH_TAG_PKG_REMOVED);
 					mountwatch_change_add(change, in->mount, in->device, path, MOUNTWATCH_TAG_PKG_ADDED);
 				} if ((ie->mask & IN_DELETE) || (ie->mask & IN_MOVED_FROM)) {
@@ -179,7 +179,7 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 				}
 			}
 
-			no: 
+			no:
 			if (ndata > (int) sizeof(*ie) + ie->len + (next_buff - buff))
 				next_buff = &next_buff[ie->len + sizeof(*ie)];
 			else
