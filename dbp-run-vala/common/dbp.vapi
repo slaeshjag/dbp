@@ -53,6 +53,7 @@ namespace DBP {
 			string union_mount;
 
 			string data_directory;
+			string rodata_directory;
 			string icon_directory;
 			string exec_directory;
 			string desktop_directory;

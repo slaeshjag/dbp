@@ -33,18 +33,22 @@ namespace Run {
 	
 	void appdata_create(string pkg_id) throws IOError {
 		string mountpoint;
-		string appdata;
+		string appdata, roappdata;
 		
 		mountpoint = bus.mount_p(pkg_id, "");
 		
 		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
 			throw new IOError.FAILED(_("Failed to find mountpoint"));
 		
-		if(DBP.Config.config.per_user_appdata)
+		if(DBP.Config.config.per_user_appdata) {
 			appdata = DBP.Config.config.data_directory + "_" + Environment.get_user_name();
-		else
+			roappdata = DBP.Config.config.rodata_directory + "_" + Environment.get_user_name();
+		} else {
 			appdata = DBP.Config.config.data_directory;
+			roappdata = DBP.Config.config.rodata_directory;
+		}
 		
+		DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
 		DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
 	}
 	
