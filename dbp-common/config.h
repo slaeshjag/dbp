@@ -12,6 +12,7 @@ struct config_s {
 	char			*union_mount;
 
 	char			*data_directory;
+	char			*rodata_directory;
 	char			*icon_directory;
 	char			*exec_directory;
 	char			*desktop_directory;
@@ -25,7 +26,7 @@ struct config_s {
 	char			*exec_template;
 
 	int			per_user_appdata;
-	char			*rodata_directory;
+	int			per_package_appdata;
 };
 
 

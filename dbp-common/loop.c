@@ -187,6 +187,27 @@ fail:
 }
 
 
+static void loop_decide_appdata(int fs, const char *appdata, const char *fs_path, char **user_dir, char **rodata, const char *user) {
+	if (config_struct.per_user_appdata) {
+		if (config_struct.per_package_appdata) {
+			*user_dir = dbp_string("%s/%s_%s/%s", fs?fs_path:"", config_struct.data_directory, user, appdata);
+			*rodata = dbp_string("%s/%s_%s/%s", fs?fs_path:"", config_struct.rodata_directory, user, appdata);
+		} else {
+			*user_dir = dbp_string("%s/%s_%s", fs?fs_path:"", config_struct.data_directory, user);
+			*rodata = dbp_string("%s/%s_%s", fs?fs_path:"", config_struct.rodata_directory, user);
+		}
+	} else {
+		if (config_struct.per_package_appdata) {
+			*user_dir = dbp_string("%s/%s/%s", fs?fs_path:"", config_struct.data_directory, appdata);
+			*rodata = dbp_string("%s/%s/%s", fs?fs_path:"", config_struct.rodata_directory, appdata);
+		} else {
+			*user_dir = dbp_string("%s/%s", fs?fs_path:"", config_struct.data_directory);
+			*rodata = dbp_string("%s/%s", fs?fs_path:"", config_struct.rodata_directory);
+		}
+	}
+}
+
+
 int loop_mount(const char *image, const char *id, const char *user, const char *src_mount, const char *appdata) {
 	int loop_n = -1, ret = 0, lret;
 	char *mount_path = NULL, *loop = NULL, *user_dir = NULL, *img_dir = NULL, *rodata_dir = NULL;
@@ -222,25 +243,9 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 		goto fail;
 
 	loop_directory_setup(mount_path, 0555);
-	if (config_struct.per_user_appdata) {
-		if (src_mount[1]) {
-			user_dir = dbp_string("%s/%s_%s/%s", src_mount, config_struct.data_directory, user, appdata);
-			rodata_dir = dbp_string("%s/%s_%s/%s", src_mount, config_struct.rodata_directory, user, appdata);
-		} else {
-			user_dir = dbp_string("/%s_%s/%s", config_struct.data_directory, user, appdata);
-			rodata_dir = dbp_string("/%s_%s/%s", config_struct.rodata_directory, user, appdata);
-		}
-	} else {
-		if (src_mount[1]) {
-			user_dir = dbp_string("%s/%s/%s", src_mount, config_struct.data_directory, appdata);
-			rodata_dir = dbp_string("%s/%s/%s", src_mount, config_struct.rodata_directory, appdata);
-		} else {
-			user_dir = dbp_string("/%s/%s", config_struct.data_directory, appdata);
-			rodata_dir = dbp_string("/%s/%s", config_struct.rodata_directory, appdata);
-		}
-	}
+	loop_decide_appdata(src_mount[1]!=0, appdata, src_mount, &user_dir, &rodata_dir, user);
 
-	if (!user_dir)
+	if (!user_dir || !rodata_dir)
 		goto fail;
 
 	if (strchr(user_dir, ':') || strchr(img_dir, ':') || strchr(rodata_dir, ':'))
@@ -249,11 +254,9 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	if (!(mount_opt = dbp_string("br=%s:%s:%s", user_dir, rodata_dir, img_dir)))
 		goto fail;
 
-	free(user_dir);
-	user_dir = NULL;
-
-	free(img_dir);
-	img_dir = NULL;
+	free(user_dir), user_dir = NULL;
+	free(img_dir), img_dir = NULL;
+	free(rodata_dir), rodata_dir = NULL;
 
 	if (mount("none", mount_path, DBP_UNIONFS_NAME, 0, mount_opt) < 0)
 		goto union_failed;
@@ -278,6 +281,7 @@ union_failed:
 	ret = DBP_ERROR_UNION_FAILED;
 fail:
 	free(img_dir);
+	free(rodata_dir);
 	free(loop);
 	free(mount_path);
 	free(user_dir);
