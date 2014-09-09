@@ -25,6 +25,7 @@ struct config_s {
 	char			*exec_template;
 
 	int			per_user_appdata;
+	char			*rodata_directory;
 };
 
 

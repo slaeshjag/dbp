@@ -62,6 +62,7 @@ int config_init() {
 	c.union_mount = config_request_entry(df, "union_mount_dir");
 
 	c.data_directory = config_request_entry(df, "data_directory");
+	c.rodata_directory = config_request_entry(df, "ro_data_directory");
 	c.icon_directory = config_request_entry(df, "icon_directory");
 	c.exec_directory = config_request_entry(df, "exec_directory");
 	c.desktop_directory = config_request_entry(df, "desktop_directory");
