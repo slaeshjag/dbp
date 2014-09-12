@@ -87,6 +87,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].appdata = appdata;
 	p->entry[nid].sys_dep = sys;
 	p->entry[nid].pkg_dep = pkg;
+	p->entry[nid].desktop = strdup(loop_desktop_directory(path) ? "desk" : "nodesk");
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
 
 	return nid;
@@ -458,6 +459,7 @@ static void package_kill(struct package_s *p, int entry) {
 	free(p->entry[entry].appdata);
 	free(p->entry[entry].sys_dep);
 	free(p->entry[entry].pkg_dep);
+	free(p->entry[entry].desktop);
 	p->entries--;
 	memmove(&p->entry[entry], &p->entry[entry + 1], (p->entries - entry) * sizeof(*p->entry));
 	return;

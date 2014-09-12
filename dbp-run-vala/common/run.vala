@@ -47,9 +47,16 @@ namespace Run {
 			appdata = DBP.Config.config.data_directory;
 			roappdata = DBP.Config.config.rodata_directory;
 		}
-		
-		DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
-		DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
+	
+		if (DBP.Config.config.per_package_appdata) {
+			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
+			if (DBP.Config.config.create_rodata)
+				DirUtils.create_with_parents(Path.build_filename(mountpoint, roappdata, pkg_id), appdata_mode);
+		} else {
+			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata), appdata_mode);
+			if (DBP.Config.config.create_rodata)
+				DirUtils.create_with_parents(Path.build_filename(mountpoint, roappdata), appdata_mode);
+		}
 	}
 	
 	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir) throws IOError, SpawnError {

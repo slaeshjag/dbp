@@ -64,6 +64,7 @@ int config_init() {
 	c.data_directory = config_request_entry(df, "data_directory");
 	c.rodata_directory = config_request_entry(df, "ro_data_directory");
 	c.per_package_appdata = (!strcmp(config_request_entry(df, "per_package_appdata"), "yes"));
+	c.create_rodata = (!strcmp(config_request_entry(df, "create_rodata"), "yes"));
 	c.icon_directory = config_request_entry(df, "icon_directory");
 	c.exec_directory = config_request_entry(df, "exec_directory");
 	c.desktop_directory = config_request_entry(df, "desktop_directory");

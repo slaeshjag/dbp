@@ -74,7 +74,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		pthread_mutex_lock(&p->mutex);
 		for (i = 0; i < p->entries; i++) {
 			arr = (void *) &p->entry[i];
-			dbus_message_append_args(ndm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &arr, 2, DBUS_TYPE_INVALID);
+			dbus_message_append_args(ndm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &arr, 3, DBUS_TYPE_INVALID);
 		}
 		pthread_mutex_unlock(&p->mutex);
 

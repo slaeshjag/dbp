@@ -18,6 +18,15 @@
 #include <errno.h>
 #include <assert.h>
 
+
+int loop_desktop_directory(const char *path) {
+	if (strstr(path, "desktop/"))
+		if (!strchr(strstr(path, "desktop/") + strlen("desktop/"), '/'))
+			return 1;
+	return 0;
+}
+
+
 int loop_directory_setup(const char *path, int umask) {
 	char *path_tok, *tmp, *saveptr, *next_path = NULL, *old_path = NULL;
 	struct stat dir_stat;
@@ -209,9 +218,10 @@ static void loop_decide_appdata(int fs, const char *appdata, const char *fs_path
 
 
 int loop_mount(const char *image, const char *id, const char *user, const char *src_mount, const char *appdata) {
-	int loop_n = -1, ret = 0, lret;
+	int loop_n = -1, ret = 0, lret, rodata = 0;
 	char *mount_path = NULL, *loop = NULL, *user_dir = NULL, *img_dir = NULL, *rodata_dir = NULL;
 	char *mount_opt = NULL;
+	struct stat st;
 
 	assert(image && id && user && src_mount && appdata);
 
@@ -250,9 +260,16 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 
 	if (strchr(user_dir, ':') || strchr(img_dir, ':') || strchr(rodata_dir, ':'))
 		goto illegal_dirname;
-
-	if (!(mount_opt = dbp_string("br=%s:%s:%s", user_dir, rodata_dir, img_dir)))
-		goto fail;
+	
+	if (!stat(rodata_dir, &st))
+		if (S_ISDIR(st.st_mode))
+			rodata = 1;
+	if (!rodata)
+		if (!(mount_opt = dbp_string("br=%s:%s", user_dir, img_dir)))
+			goto fail;
+	if (rodata)
+		if (!(mount_opt = dbp_string("br=%s:%s:%s", user_dir, rodata_dir, img_dir)))
+			goto fail;
 
 	free(user_dir), user_dir = NULL;
 	free(img_dir), img_dir = NULL;
