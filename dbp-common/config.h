@@ -1,7 +1,7 @@
 #ifndef __CONFIG_H__
 #define	__CONFIG_H__
 
-#define	CONFIG_FILE_PATH	"/tmp/dbp_config.ini"
+#define	CONFIG_FILE_PATH	"/etc/dbp/dbp_config.ini"
 
 struct config_s {
 	char			**file_extension;

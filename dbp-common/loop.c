@@ -260,15 +260,17 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 
 	if (strchr(user_dir, ':') || strchr(img_dir, ':') || strchr(rodata_dir, ':'))
 		goto illegal_dirname;
+	if (strchr(user_dir, '=') || strchr(img_dir, '=') || strchr(rodata_dir, '='))
+		goto illegal_dirname;
 	
 	if (!stat(rodata_dir, &st))
 		if (S_ISDIR(st.st_mode))
 			rodata = 1;
 	if (!rodata)
-		if (!(mount_opt = dbp_string("br=%s:%s", user_dir, img_dir)))
+		if (!(mount_opt = dbp_string("br=%s:%s=ro", user_dir, img_dir)))
 			goto fail;
 	if (rodata)
-		if (!(mount_opt = dbp_string("br=%s:%s:%s", user_dir, rodata_dir, img_dir)))
+		if (!(mount_opt = dbp_string("br=%s:%s=ro:%s=ro", user_dir, rodata_dir, img_dir)))
 			goto fail;
 
 	free(user_dir), user_dir = NULL;

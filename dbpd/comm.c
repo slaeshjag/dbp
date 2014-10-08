@@ -38,20 +38,22 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	dbus_message_iter_get_basic(&iter, &arg);
 	dbus_message_iter_next(&iter);
 	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-		fprintf(stderr, "Message has bad argument type\n");
-		return DBUS_HANDLER_RESULT_HANDLED;
-	}
-	dbus_message_iter_get_basic(&iter, &name);
+	//	fprintf(stderr, "Message has bad argument type\n");
+		//return DBUS_HANDLER_RESULT_HANDLED;
+		name = NULL;
+	} else
+		dbus_message_iter_get_basic(&iter, &name);
 
 	ret = malloc(11);
 
 	ret2 = ret3 = NULL;
 	/* Process message */
 	if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "Mount")) {
+		if (!name) return DBUS_HANDLER_RESULT_HANDLED;
 		sprintf(ret, "%i", package_run(p, arg, name));
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "UMount")) {
 		sprintf(ret, "%i", package_stop(p, atoi(arg)));
-	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "MountP")) {
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "MountPointGet")) {
 		ret2 = package_mount_get(p, arg);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "RegisterPath")) {
 		util_lookup_mount(arg, &mount, &dev);
