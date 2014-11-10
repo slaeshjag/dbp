@@ -11,3 +11,6 @@ all:
 	
 	$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
 	$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
+
+clean:
+	@echo " Nothing needs to be done to clean dbp-run-vala/"
