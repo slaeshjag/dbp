@@ -36,7 +36,6 @@ namespace DBP {
 		SIGEXIT,
 		SIGSEGV,
 		MYSTKILL,
-		NO_META,
 	}
 	
 	[CCode (cheader_filename = "config.h")]

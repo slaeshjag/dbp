@@ -35,7 +35,6 @@
 #define	DBP_ERROR_SIGEXIT	-1017	/* Program problably died from a signal */
 #define	DBP_ERROR_SIGSEGV	-1018	/* Program died from segfault */
 #define	DBP_ERROR_MYSTKILL	-1019	/* Program died from unhandled reason */
-#define	DBP_ERROR_NO_META	-1020	/* Package meta-data not present */
 
 extern FILE *dbp_error_log;
 

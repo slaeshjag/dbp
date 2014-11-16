@@ -28,7 +28,7 @@ int meta_package_open(const char *path, struct meta_package_s *mp) {
 		}
 	
 	if (!found) {
-		errid = DBP_ERROR_NO_META;
+		errid = DBP_ERROR_NO_DEFAULTD;
 		goto error;
 	}
 
