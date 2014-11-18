@@ -4,6 +4,7 @@
 #include "loop.h"
 #include "meta.h"
 #include "dbp.h"
+#include "comm.h"
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -126,7 +127,7 @@ static const char *find_filename(const char *path) {
 }
 
 
-static void package_desktop_write(struct package_s *p, int id, const char *fname, char *data) {
+static void package_desktop_write(struct package_s *p, int id, const char *fname, char *data, int announce) {
 	char writename[PATH_MAX];
 	const char *pkg_id = p->entry[id].id;
 	struct desktop_file_s *df;
@@ -152,6 +153,8 @@ static void package_desktop_write(struct package_s *p, int id, const char *fname
 	chmod(writename, 0755);
 	package_meta_exec_export(desktop_lookup(df, "Exec", "", "Package Entry"), 1, p, id);
 	package_meta_exec_export(desktop_lookup(df, "NoEnvExec", "", "Package Entry"), 0, p, id);
+	if (announce)
+		comm_dbus_announce_new_meta(writename);
 
 	desktop_free:
 	desktop_free(df);
@@ -246,7 +249,7 @@ static void package_meta_exec_export(const char *exec, int env, struct package_s
 }
 
 
-static void package_meta_extract(const char *path, struct package_s *p, int id) {
+static void package_meta_extract(const char *path, struct package_s *p, int id, int announce) {
 	struct archive *a;
 	struct archive_entry *ae;
 	const char *pkg_id = p->entry[id].id;
@@ -288,7 +291,7 @@ static void package_meta_extract(const char *path, struct package_s *p, int id) 
 				fclose(fp);
 				chmod(writename, 0755);
 			} else {
-				package_desktop_write(p, id, find_filename(pathname), data);
+				package_desktop_write(p, id, find_filename(pathname), data, announce);
 				/* TODO: Extract executables */
 			} 
 			free(data);
@@ -330,7 +333,7 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		goto error;
 	}
 
-	package_meta_extract(path, p, id);
+	package_meta_extract(path, p, id, !strcmp(p->entry[id].desktop, "desk"));
 	fprintf(dbp_error_log, "Registered package %s\n", pkg_id);
 	
 	mp.df = desktop_free(mp.df);
@@ -413,7 +416,7 @@ void package_crawl_mount(struct package_s *p, const char *device, const char *pa
 }
 
 
-static void package_kill_prefix(const char *dir, const char *prefix) {
+static void package_kill_prefix(const char *dir, const char *prefix, int meta) {
 	char full[PATH_MAX];
 	DIR *d;
 	struct dirent de, *result;
@@ -421,19 +424,22 @@ static void package_kill_prefix(const char *dir, const char *prefix) {
 	if (!(d = opendir(dir)))
 		return;
 	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result))
-		if (strstr(de.d_name, prefix) == de.d_name)
+		if (strstr(de.d_name, prefix) == de.d_name) {
 			sprintf(full, "%s/%s", dir, de.d_name), unlink(full);
+			if (meta)
+				comm_dbus_announce_rem_meta(full);
+		}
 	closedir(d);
 	return;
 }
 
 
-static void package_meta_remove(const char *pkg_id) {
+static void package_meta_remove(const char *pkg_id, int announce) {
 	char prefix[PATH_MAX];
 
 	sprintf(prefix, "%s%s_", DBP_META_PREFIX, pkg_id);
-	package_kill_prefix(config_struct.icon_directory, prefix);
-	package_kill_prefix(config_struct.desktop_directory, prefix);
+	package_kill_prefix(config_struct.icon_directory, prefix, 0);
+	package_kill_prefix(config_struct.desktop_directory, prefix, announce);
 
 	return;
 }
@@ -443,7 +449,8 @@ static void package_kill(struct package_s *p, int entry) {
 	int i;
 	char ulinkpath[PATH_MAX];
 
-	package_meta_remove(p->entry[entry].id);
+	
+	package_meta_remove(p->entry[entry].id, !strcmp(p->entry[entry].desktop, "desk"));
 	for (i = 0; i < p->entry[entry].execs; i++) {
 		snprintf(ulinkpath, PATH_MAX, "%s/%s", config_struct.exec_directory, p->entry[entry].exec[i]);
 		unlink(ulinkpath);

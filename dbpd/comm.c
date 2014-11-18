@@ -3,10 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "dbp.h"
 #include "util.h"
 #include "package.h"
+
+DBusConnection *dbus_conn_handle;
 
 void comm_dbus_unregister(DBusConnection *dc, void *n) {
 	(void) n;
@@ -114,6 +117,8 @@ void *comm_dbus_loop(void *n) {
 	DBusConnection *dc;
 	DBusObjectPathVTable vt;
 
+
+	dbus_threads_init_default();
 	vt.unregister_function = comm_dbus_unregister;
 	vt.message_function = comm_dbus_msg_handler;
 
@@ -128,7 +133,9 @@ void *comm_dbus_loop(void *n) {
 		fprintf(stderr, "unable to name bus: %s\n", err.message);
 	if (!dbus_connection_register_object_path(dc, DBP_DBUS_DAEMON_OBJECT, &vt, p))
 		fprintf(stderr, "Unable to register object path\n");
-	while (dbus_connection_read_write_dispatch (dc, -1));
+	dbus_conn_handle = dc;
+	while (dbus_connection_read_write_dispatch (dc, 500));
+	fprintf(stderr, "dbus exit\n");
 	pthread_exit(NULL);
 }
 
@@ -140,4 +147,29 @@ void comm_dbus_register(struct package_s *p) {
 		fprintf(stderr, "Unable to create dbus listen thread\n");
 		exit(-1);
 	}
+}
+
+
+void comm_dbus_announce(const char *name, const char *sig_name) {
+	DBusMessage *sig;
+	char *id;
+
+	sig = dbus_message_new_signal(DBP_DBUS_DAEMON_OBJECT, DBP_DBUS_DAEMON_PREFIX, sig_name);
+	id = strdup(name);
+	dbus_message_append_args(sig, DBUS_TYPE_STRING, &id, DBUS_TYPE_INVALID);
+	
+	dbus_connection_send(dbus_conn_handle, sig, NULL);
+	dbus_message_unref(sig);
+	fprintf(stderr, "announce %s %s\n", name, sig_name);
+
+	free(id);
+	return;
+}
+
+void comm_dbus_announce_new_meta(const char *id) {
+	return comm_dbus_announce(id, "NewMeta");
+}
+
+void comm_dbus_announce_rem_meta(const char *id) {
+	return comm_dbus_announce(id, "RemoveMeta");
 }
