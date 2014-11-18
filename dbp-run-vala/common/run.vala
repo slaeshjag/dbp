@@ -35,7 +35,7 @@ namespace Run {
 		string mountpoint;
 		string appdata, roappdata;
 		
-		mountpoint = bus.mount_p(pkg_id, "");
+		mountpoint = bus.mount_point_get(pkg_id);
 		
 		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
 			throw new IOError.FAILED(_("Failed to find mountpoint"));
@@ -99,7 +99,7 @@ namespace Run {
 			Process.spawn_sync(cwd, argv, null, SpawnFlags.CHILD_INHERITS_STDIN, null, null, null);
 		}
 		
-		bus.u_mount(mount_id, "");
+		bus.u_mount(mount_id);
 	}
 	
 	public void run_path(string path, string[] args) throws IOError, SpawnError {
@@ -109,17 +109,17 @@ namespace Run {
 		DBP.Meta.Package meta;
 		ExecLine exec;
 		
-		pkg_id = bus.register_path(path, "", out error_code);
+		pkg_id = bus.register_path(path, out error_code);
 		if(pkg_id == "!")
 			throw new IOError.FAILED(error_code);
 	
-		actual_path = bus.path_from_id(pkg_id, "");
+		actual_path = bus.path_from_id(pkg_id);
 		DBP.Meta.package_open(actual_path, out meta);
 		exec = new ExecLine(meta.desktop_file.lookup("Exec", "", "Desktop Entry"));
 		exec.append(args);
 		exec.run(false);
 		
 		if(int.parse(error_code) != DBP.Error.PKG_REG)
-			bus.unregister_path(path, "");
+			bus.unregister_path(path);
 	}
 }

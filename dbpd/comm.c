@@ -25,7 +25,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	DBusMessage *ndm;
 	DBusMessageIter iter;
 	const char *arg, *name;
-	char *ret, *ret2, *ret3, *mount, *dev, **arr;
+	char *ret, *ret2, *ret3, *mount, *dev, **arr, **new_arr = NULL;
 	int i;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
@@ -77,10 +77,15 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		ndm = dbus_message_new_method_return(dm);
 		
 		pthread_mutex_lock(&p->mutex);
+		new_arr = malloc(sizeof(char *) * p->entries * 3);
 		for (i = 0; i < p->entries; i++) {
-			arr = (void *) &p->entry[i];
-			dbus_message_append_args(ndm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &arr, 3, DBUS_TYPE_INVALID);
+			new_arr[i*3] = p->entry[i].path;
+			new_arr[i*3+1] = p->entry[i].id;
+			new_arr[i*3+2] = p->entry[i].desktop;
 		}
+	
+		dbus_message_append_args(ndm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &new_arr, (p->entries * 3), DBUS_TYPE_INVALID);
+		free(new_arr);
 		pthread_mutex_unlock(&p->mutex);
 
 		goto send_message;
