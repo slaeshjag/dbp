@@ -112,7 +112,7 @@ namespace Run {
 		pkg_id = bus.register_path(path, "", out error_code);
 		if(pkg_id == "!")
 			throw new IOError.FAILED(error_code);
-		
+	
 		actual_path = bus.path_from_id(pkg_id, "");
 		DBP.Meta.package_open(actual_path, out meta);
 		exec = new ExecLine(meta.desktop_file.lookup("Exec", "", "Desktop Entry"));

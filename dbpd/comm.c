@@ -160,7 +160,6 @@ void comm_dbus_announce(const char *name, const char *sig_name) {
 	
 	dbus_connection_send(dbus_conn_handle, sig, NULL);
 	dbus_message_unref(sig);
-	fprintf(stderr, "announce %s %s\n", name, sig_name);
 
 	free(id);
 	return;
