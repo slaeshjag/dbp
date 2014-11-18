@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-18 16:22+0100\n"
+"POT-Creation-Date: 2014-11-18 16:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,63 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dbp-cmd.vala:35 dbp-cmd.vala:155 dbp-run-path.vala:29 dbp-run-path.vala:64
+#: dbp-cmd.vala:40 dbp-cmd.vala:160 dbp-run-path.vala:29 dbp-run-path.vala:64
 #: dbp-run.vala:34 dbp-run.vala:75
 #, c-format
 msgid "Error: %s\n"
 msgstr ""
 
-#: dbp-cmd.vala:84
+#: dbp-cmd.vala:89
 #, c-format
 msgid ""
 "Error: A path to the package that is to be registered needs to be provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:98
+#: dbp-cmd.vala:103
 #, c-format
 msgid ""
 "Error: A path to the package that is to be unregistered needs to be "
 "provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:111
+#: dbp-cmd.vala:116
 #, c-format
 msgid ""
 "Error: A path to the package that pkgid is to re returned for needs to be "
 "provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:125
+#: dbp-cmd.vala:130
 #, c-format
 msgid "Error: A pkgid to resolve path for needs to be provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:150
+#: dbp-cmd.vala:155
 #, c-format
 msgid "Error: Invalid option %s\n"
 msgstr ""
 
-#: dbp-cmd.vala:117
+#: dbp-cmd.vala:122
 #, c-format
 msgid "Error: No package with path '%s' exists in the database\n"
 msgstr ""
 
-#: dbp-cmd.vala:131
+#: dbp-cmd.vala:136
 #, c-format
 msgid "Error: No package with the pkgid %s exists in the database\n"
 msgstr ""
 
-#: dbp-cmd.vala:77
+#: dbp-cmd.vala:82
 #, c-format
 msgid "Error: Package %s is not in database\n"
 msgstr ""
 
-#: dbp-cmd.vala:46
+#: dbp-cmd.vala:51
 #, c-format
 msgid "Error: The enviroment variable $USER isn't set, it is needed\n"
 msgstr ""
 
-#: dbp-cmd.vala:71
+#: dbp-cmd.vala:76
 #, c-format
 msgid ""
 "Error: You must provide a pkgid from which the mount point is resolved\n"
@@ -105,7 +105,7 @@ msgstr ""
 msgid "Usage: dbp-run-path [--gui-errors] <path to .dbp> [arg1] [arg2] ...\n"
 msgstr ""
 
-#: dbp-cmd.vala:104
+#: dbp-cmd.vala:109
 #, c-format
 msgid "Warning: package %s isn't registered\n"
 msgstr ""
