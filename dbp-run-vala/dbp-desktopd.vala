@@ -41,9 +41,10 @@ void nuke_desktop() {
 			full = file_info.get_name();
 			if (!full.has_prefix("__dbp__"))
 				continue;
+			if (!full.has_suffix(".desktop"))
+				continue;
 			full = GLib.Path.build_filename(desktop_directory, file_info.get_name());
-			if (GLib.FileUtils.test(full, GLib.FileTest.IS_SYMLINK))
-				GLib.FileUtils.unlink(full);
+			GLib.FileUtils.unlink(full);
 		}
 	} catch (Error e) {
 		stderr.printf(_("Error: %s\n"), e.message);
@@ -92,7 +93,9 @@ void add_package_meta(string pkgid) {
 				continue;
 			path = GLib.Path.build_filename(DBP.Config.config.desktop_directory, fname, null);
 			newpath = GLib.Path.build_filename(desktop_directory, fname, null);
-			GLib.FileUtils.symlink(path, newpath);
+			var src = File.new_for_path(path);
+			var dest = File.new_for_path(newpath);
+			src.copy(dest, FileCopyFlags.NONE);
 		}
 	} catch (Error e) {
 		stderr.printf(_("Error: %s\n"), e.message);

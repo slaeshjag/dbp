@@ -158,7 +158,9 @@ void comm_dbus_register(struct package_s *p) {
 void comm_dbus_announce(const char *name, const char *sig_name) {
 	DBusMessage *sig;
 	char *id;
-
+	
+	if (!dbus_conn_handle)
+		return;
 	sig = dbus_message_new_signal(DBP_DBUS_DAEMON_OBJECT, DBP_DBUS_DAEMON_PREFIX, sig_name);
 	id = strdup(name);
 	dbus_message_append_args(sig, DBUS_TYPE_STRING, &id, DBUS_TYPE_INVALID);
