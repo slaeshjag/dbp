@@ -33,9 +33,18 @@ namespace Run {
 	
 	void appdata_create(string pkg_id) throws IOError {
 		string mountpoint;
-		string appdata, roappdata;
+		string appdata, roappdata, appdata_name;
+		string pkgpath;
+		DBP.Meta.Package meta;
 		
 		mountpoint = bus.mount_point_get(pkg_id);
+		pkgpath = bus.path_from_id(pkg_id);
+		if (pkgpath == null || pkgpath == "" || pkgpath == "!")
+			throw new IOError.FAILED(_("pkgid is not in the database"));
+		DBP.Meta.package_open(pkgpath, out meta);
+		appdata_name = meta.desktop_file.lookup("Appdata", "", "Package Entry");
+		if (appdata_name == null)
+			appdata_name = pkg_id;
 		
 		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
 			throw new IOError.FAILED(_("Failed to find mountpoint"));
@@ -49,9 +58,9 @@ namespace Run {
 		}
 	
 		if (DBP.Config.config.per_package_appdata) {
-			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, pkg_id), appdata_mode);
+			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, appdata_name), appdata_mode);
 			if (DBP.Config.config.create_rodata)
-				DirUtils.create_with_parents(Path.build_filename(mountpoint, roappdata, pkg_id), appdata_mode);
+				DirUtils.create_with_parents(Path.build_filename(mountpoint, roappdata, appdata_name), appdata_mode);
 		} else {
 			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata), appdata_mode);
 			if (DBP.Config.config.create_rodata)
@@ -106,6 +115,7 @@ namespace Run {
 		string pkg_id;
 		string error_code;
 		string actual_path;
+		string exec_name;
 		DBP.Meta.Package meta;
 		ExecLine exec;
 		
@@ -115,7 +125,10 @@ namespace Run {
 	
 		actual_path = bus.path_from_id(pkg_id);
 		DBP.Meta.package_open(actual_path, out meta);
-		exec = new ExecLine(meta.desktop_file.lookup("Exec", "", "Desktop Entry"));
+		exec_name = meta.desktop_file.lookup("Exec", "", "Desktop Entry");
+		if (exec_name == null)
+			throw new IOError.FAILED(_("Unable to extract exec from package meta data"));
+		exec = new ExecLine(exec_name);
 		exec.append(args);
 		exec.run(false);
 		

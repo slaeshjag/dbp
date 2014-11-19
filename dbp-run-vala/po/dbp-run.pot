@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-19 06:07+0100\n"
+"POT-Creation-Date: 2014-11-19 07:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dbp-cmd.vala:40 dbp-cmd.vala:160 dbp-desktopd.vala:49 dbp-desktopd.vala:100
-#: dbp-desktopd.vala:120 dbp-run-path.vala:29 dbp-run-path.vala:64
+#: dbp-cmd.vala:40 dbp-cmd.vala:160 dbp-desktopd.vala:49 dbp-desktopd.vala:98
+#: dbp-desktopd.vala:118 dbp-run-path.vala:29 dbp-run-path.vala:64
 #: dbp-run.vala:34 dbp-run.vala:75
 #, c-format
 msgid "Error: %s\n"
@@ -97,8 +97,12 @@ msgstr ""
 msgid "Error: unknown option '%s'\n"
 msgstr ""
 
-#: common/run.vala:41
+#: common/run.vala:50
 msgid "Failed to find mountpoint"
+msgstr ""
+
+#: common/run.vala:130
+msgid "Unable to extract exec from package meta data"
 msgstr ""
 
 #: dbp-cmd.vala:6
@@ -126,4 +130,8 @@ msgstr ""
 #: dbp-cmd.vala:109
 #, c-format
 msgid "Warning: package %s isn't registered\n"
+msgstr ""
+
+#: common/run.vala:43
+msgid "pkgid is not in the database"
 msgstr ""

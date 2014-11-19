@@ -32,6 +32,8 @@ static int desktop_entry_new(struct desktop_file_s *df, const char *key, const c
 
 int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
 	int s, i;
+	
+	if (!df) return -1;
 
 	if (!section)
 		s = 0;
@@ -48,6 +50,7 @@ int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
 int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char *locale, int section) {
 	int i;
 
+	if (!df) return -1;
 	if (section < 0) return -1;
 
 	for (i = 0; i < df->section[section].entries; i++)
@@ -61,6 +64,8 @@ int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char 
 char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *locale, const char *section) {
 	char *locbuff;
 	int s, i;
+	
+	if (!df) return NULL;
 
 	locbuff = strdup(locale);
 	/* Strip out variant */
@@ -202,6 +207,8 @@ static void desktop_write_format(FILE *fp, char *str) {
 void desktop_write(struct desktop_file_s *df, const char *path) {
 	FILE *fp;
 	int i, j;
+
+	if (!df) return;
 
 	if (!(fp = fopen(path, "w")))
 		return;
