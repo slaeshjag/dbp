@@ -142,8 +142,8 @@ int main(string[] args) {
 			case "list":
 				string[] reta;
 
-				reta = bus.package_list("");
-				for (int i = 0; i < reta.length; i+=3) {
+				reta = bus.package_list();
+				for (int i = 0; i < reta.length + 2; i+=3) {
 					stdout.printf("'%s' '%s' '%s'\n", reta[i*3], reta[i*3+1], reta[i*3+2]);
 				}
 

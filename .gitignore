@@ -6,4 +6,5 @@
 *.swp
 *.swo
 *.bin
+*.pot
 build/
