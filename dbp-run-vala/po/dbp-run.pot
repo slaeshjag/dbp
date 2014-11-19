@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-18 16:52+0100\n"
+"POT-Creation-Date: 2014-11-19 06:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dbp-cmd.vala:40 dbp-cmd.vala:160 dbp-run-path.vala:29 dbp-run-path.vala:64
+#: dbp-cmd.vala:40 dbp-cmd.vala:160 dbp-desktopd.vala:49 dbp-desktopd.vala:100
+#: dbp-desktopd.vala:120 dbp-run-path.vala:29 dbp-run-path.vala:64
 #: dbp-run.vala:34 dbp-run.vala:75
 #, c-format
 msgid "Error: %s\n"
@@ -48,6 +49,13 @@ msgstr ""
 msgid "Error: A pkgid to resolve path for needs to be provided\n"
 msgstr ""
 
+#: dbp-desktopd.vala:25
+#, c-format
+msgid ""
+"Error: Guessed $HOME/Desktop, which doesn't exist. Configure XDG_DESKTOP_DIR "
+"properly, kthx?\n"
+msgstr ""
+
 #: dbp-cmd.vala:155
 #, c-format
 msgid "Error: Invalid option %s\n"
@@ -71,6 +79,11 @@ msgstr ""
 #: dbp-cmd.vala:51
 #, c-format
 msgid "Error: The enviroment variable $USER isn't set, it is needed\n"
+msgstr ""
+
+#: dbp-desktopd.vala:18
+#, c-format
+msgid "Error: Unable to locate your home directory\n"
 msgstr ""
 
 #: dbp-cmd.vala:76
@@ -103,6 +116,11 @@ msgstr ""
 #: dbp-run-path.vala:9
 #, c-format
 msgid "Usage: dbp-run-path [--gui-errors] <path to .dbp> [arg1] [arg2] ...\n"
+msgstr ""
+
+#: dbp-desktopd.vala:14
+#, c-format
+msgid "Warning: $XDG_DESKTOP_DIR is not set. Guessing $HOME/Desktop..\n"
 msgstr ""
 
 #: dbp-cmd.vala:109

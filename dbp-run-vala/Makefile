@@ -11,6 +11,7 @@ all:
 	
 	$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
 	$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
+	$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
 	$(VALAC) -o $(BINPATH)/dbp-cmd $(VALAPKG) $(VALAFLAGS) dbp-cmd.vala common/*.vala -X common/*.c $(VALASTATICLIBS) $(LIBS)
 
 clean:
