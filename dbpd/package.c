@@ -517,7 +517,7 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 			loop = p->instance[i].loop;
 			goto mounted;
 		}
-	if ((pkg_n = package_find(p, id) < 0)) {
+	if ((pkg_n = package_find(p, id)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
 		return DBP_ERROR_BAD_PKG_ID;
 	}

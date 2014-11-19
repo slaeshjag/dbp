@@ -124,7 +124,7 @@ int main(string[] args) {
 
 	try {
 		package_list = bus.package_list();
-		for (int i = 0; i < package_list.length; i += 3) {
+		for (int i = 0; i < package_list.length/3; i++) {
 			if (package_list[i*3 + 2] == "desk") {
 				add_package_meta(package_list[i*3 + 1]);
 			}
