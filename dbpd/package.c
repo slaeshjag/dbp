@@ -58,8 +58,8 @@ static int package_id_validate(const char *pkg_id) {
 	int i;
 
 	for (i = 0; pkg_id[i]; i++)
-		if ((pkg_id[i] < 'a' || pkg_id[i] > 'z') && (pkg_id[i] < 'A' || pkg_id[i] > 'Z')
-		    && (pkg_id[i] < 0 || pkg_id[i] > 9) && pkg_id[i] != '-' && pkg_id[i] != '_' && pkg_id[i] != '.')
+		if (!(pkg_id[i] >= 'a' && pkg_id[i] <= 'z') && !(pkg_id[i] >= 'A' && pkg_id[i] <= 'Z')
+		    && !(pkg_id[i] >= '0' && pkg_id[i] <= '9') && pkg_id[i] != '-' && pkg_id[i] != '_' && pkg_id[i] != '.')
 			return 0;
 	return 1;
 }
