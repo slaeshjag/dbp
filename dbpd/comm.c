@@ -179,3 +179,11 @@ void comm_dbus_announce_new_meta(const char *id) {
 void comm_dbus_announce_rem_meta(const char *id) {
 	return comm_dbus_announce(id, "RemoveMeta");
 }
+
+void comm_dbus_announce_new_package(const char *id) {
+	return comm_dbus_announce(id, "NewPackage");
+}
+
+void comm_dbus_announce_rem_package(const char *id) {
+	return comm_dbus_announce(id, "RemovePackage");
+}

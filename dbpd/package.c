@@ -90,6 +90,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].pkg_dep = pkg;
 	p->entry[nid].desktop = strdup(loop_desktop_directory(path) ? "desk" : "nodesk");
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
+	comm_dbus_announce_new_package(id);
 
 	return nid;
 
@@ -458,6 +459,7 @@ static void package_kill(struct package_s *p, int entry) {
 	}
 
 	fprintf(dbp_error_log, "Unregistering package %s\n", p->entry[entry].id);
+	comm_dbus_announce_rem_package(p->entry[entry].id);
 	free(p->entry[entry].exec);
 	free(p->entry[entry].device);
 	free(p->entry[entry].id);
