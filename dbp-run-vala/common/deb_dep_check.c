@@ -30,12 +30,14 @@ int dbp_deb_dep_check_check_package(const char *pkgname, const char *arch_given)
 		return 0;
 	
 	for (; pkg; pkg = pkg->next) {
+		if (strcmp(pkg->name, pkgname))
+			continue;
 		for (arch = (struct dpkg_arch *) pkg->pkg.installed.arch; arch; arch = (struct dpkg_arch *) arch->next) {
-			if (strcmp(pkg->name, pkgname))
-				continue;
 			if (arch->type == arch_native)
-				if (!strcmp(arch->name, arch_given))
+	/*			if (!strcmp(arch->name, arch_given))*/
 					return 1;
+			// For now, only care about package name matching exactly
+			//return 1;
 		}
 	}
 

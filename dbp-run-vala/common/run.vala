@@ -31,7 +31,7 @@ namespace Run {
 		}
 	}
 
-	bool dependency_ok(DBP.Meta.Package pkg) {
+	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg) {
 		string[] sysdeps, dbpdeps, sysmissing, dbpmissing;
 		string sysdep, dbpdep;
 		
@@ -51,7 +51,23 @@ namespace Run {
 		} else
 			dbpmissing = {};
 		if (dbpmissing.length > 0 || sysmissing.length > 0) {
-			/* Handle missing deps */
+			string err;
+
+			err = _("Package '%s' is missing some of its dependencies\n\n").printf(pkg_id);
+			if (dbpmissing.length > 0) {
+				err = err + _("Removable packages: ");
+				err = err + string.joinv(", ", dbpmissing) + "\n\n";
+			}
+
+			if (sysmissing.length > 0) {
+				err = err + _("System packages: ");
+				err = err + string.joinv(", ", sysmissing) + "\n\n";
+			}
+
+			err = err + _("The application may or may not work at all without these. It is recommended that you use a package manager to install the missing dependencies.");
+
+			stdout.printf("%s\n", err);
+			/* TODO: Ask the user what to do */
 		}
 			
 		return true;	
@@ -119,7 +135,7 @@ namespace Run {
 		
 		DBP.Meta.package_open(pkgpath, out pkg);
 		
-		if (!dependency_ok(pkg))
+		if (!dependency_ok(pkg_id, pkg))
 			return;
 
 		appdata_name = resolve_appdata(pkg_id, pkg);
@@ -131,8 +147,8 @@ namespace Run {
 		if(int.parse(mount_id) < 0)
 			throw new IOError.FAILED(mount_id);
 		
-		binary_path = Path.build_filename(DBP.Config.config.union_mount, appdata_name, exec);
-		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, appdata_name) : null;
+		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
+		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
 		
 		argv += binary_path;
 		foreach(string s in args)
