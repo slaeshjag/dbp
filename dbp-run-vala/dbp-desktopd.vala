@@ -65,7 +65,9 @@ string desktop_path(string full_path) {
 }
 
 void add_meta(string path) {
-	GLib.FileUtils.symlink(path, desktop_path(path));
+	var src = File.new_for_path(path);
+	var dest = File.new_for_path(desktop_path(path));
+	src.copy(dest, FileCopyFlags.NONE);
 	return;
 }
 

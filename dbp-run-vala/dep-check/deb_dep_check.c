@@ -1,6 +1,10 @@
 /* deb_dep_check.c - Steven Arnow <s@rdw.se>,  2014 */
 #define	LIBDPKG_VOLATILE_API
 
+#ifndef DPKG_ARCH_NATIVE
+#define	DPKG_ARCH_NATIVE arch_native
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <dpkg/dpkg.h>

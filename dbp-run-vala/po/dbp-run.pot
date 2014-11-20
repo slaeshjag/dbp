@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-20 12:39+0100\n"
+"POT-Creation-Date: 2014-11-20 15:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,8 +80,8 @@ msgstr ""
 msgid "A registered package have its executables and .desktop files exported\n"
 msgstr ""
 
-#: dbp-cmd.vala:39 dbp-cmd.vala:159 dbp-desktopd.vala:50 dbp-desktopd.vala:101
-#: dbp-desktopd.vala:121 dbp-run-path.vala:29 dbp-run-path.vala:64
+#: dbp-cmd.vala:39 dbp-cmd.vala:159 dbp-desktopd.vala:50 dbp-desktopd.vala:103
+#: dbp-desktopd.vala:123 dbp-run-path.vala:29 dbp-run-path.vala:64
 #: dbp-run.vala:34 dbp-run.vala:75
 #, c-format
 msgid "Error: %s\n"
