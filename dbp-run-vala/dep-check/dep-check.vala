@@ -11,20 +11,16 @@ namespace DepCheck {
 		return missing;
 	}
 
-	string[] check_sys_dep(string[] deps, string arch) {
+	string[] check_sys_dep(string[] deps) {
 		DBP.DebDepCheck.do_init();
 		string[] missing = { };
 
 		foreach (string s in deps) {
-			if (!DBP.DebDepCheck.check_package(s, arch))
+			if (!DBP.DebDepCheck.check_package(s))
 				missing += s;
 		}
 
 		DBP.DebDepCheck.do_free();
 		return missing;
-	}
-
-	string current_arch() {
-		return "amd64";
 	}
 }

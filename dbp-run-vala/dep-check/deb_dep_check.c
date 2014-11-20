@@ -21,7 +21,7 @@ void dbp_deb_dep_check_do_free() {
 }
 
 
-int dbp_deb_dep_check_check_package(const char *pkgname, const char *arch_given) {
+int dbp_deb_dep_check_check_package(const char *pkgname) {
 	struct pkgset *pkg;
 	struct dpkg_arch *arch;
 	
@@ -36,8 +36,6 @@ int dbp_deb_dep_check_check_package(const char *pkgname, const char *arch_given)
 			if (arch->type == arch_native)
 	/*			if (!strcmp(arch->name, arch_given))*/
 					return 1;
-			// For now, only care about package name matching exactly
-			//return 1;
 		}
 	}
 

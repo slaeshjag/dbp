@@ -41,7 +41,7 @@ namespace Run {
 
 		if (sysdep != null) {
 			sysdeps = sysdep.split(";");
-			sysmissing = DepCheck.check_sys_dep(sysdeps, DepCheck.current_arch());
+			sysmissing = DepCheck.check_sys_dep(sysdeps);
 		} else
 			sysmissing = {};
 		

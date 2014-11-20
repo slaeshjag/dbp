@@ -2,22 +2,21 @@
 extern const string GETTEXT_PACKAGE;
 
 void usage() {
-	stdout.printf(_(
-		"Usage: dbp-cmd <command> [arg]
-		Executes a command dbpd system call
-		List of valid commands:
-		mount		- Mounts a package so that it can be executed. Takes pkgid.
-				  Returns a token that you use to unmount the package
-		umount		- Unmounts the package if no other instance is using it. Takes mount token
-		getmount	- Returns the mountpoint for the media the package is on. Takes pkgid
-		register	- Register a package in the database. Takes path to package file
-		unregister	- Unregisters a package in the database. Takes path to package file
-		id		- Returns the pkgid for the package at <path>
-		path		- Returns the path for the package with id <pkgid>
-		list		- Lists all registered packages
-		
-		pkgid is a unique ID that every valid package has\n
-		A registered package have its executables and .desktop files exported\n"));
+	stdout.printf(_("Usage: dbp-cmd <command> [arg]\n"));
+	stdout.printf(_("Executes a command dbpd system call\n"));
+	stdout.printf(_("(List of valid commands:\n"));
+	stdout.printf(_("\tmount	- Mounts a package so that it can be executed. Takes pkgid.\n"));
+	stdout.printf(_("\t		  Returns a token that you use to unmount the package\n"));
+	stdout.printf(_("\tumount	- Unmounts the package if no other instance is using it. Takes mount token\n"));
+	stdout.printf(_("\tgetmount	- Returns the mountpoint for the media the package is on. Takes pkgid\n"));
+	stdout.printf(_("\tregister	- Register a package in the database. Takes path to package file\n"));
+	stdout.printf(_("\tunregister	- Unregisters a package in the database. Takes path to package file\n"));
+	stdout.printf(_("\tid		- Returns the pkgid for the package at <path>\n"));
+	stdout.printf(_("\tpath		- Returns the path for the package with id <pkgid>\n"));
+	stdout.printf(_("\tlist		- Lists all registered packages\n"));
+	stdout.printf("\n");
+	stdout.printf(_("pkgid is a unique ID that every valid package has\n"));
+	stdout.printf(_("A registered package have its executables and .desktop files exported\n"));
 	return;
 }
 	

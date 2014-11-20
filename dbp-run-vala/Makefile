@@ -11,10 +11,15 @@ all:
 	xgettext -L C -k_ -d dbp-run -s -o po/dbp-run.pot *.vala common/*.vala
 	make -C po/
 	
-	$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
-	$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c  $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
-	$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
-	$(VALAC) -o $(BINPATH)/dbp-cmd $(VALAPKG) $(VALAFLAGS) dbp-cmd.vala common/dbp-bus.vala $(LIBS)
+	@echo " [VALA] dbp-run.vala"
+	@$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
+	@echo " [VALA] dbp-run-path.vala"
+	@$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c  $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
+	@echo " [VALA] dbp-desktopd.vala"
+	@$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
+	@echo " [VALA] dbp-cmd.vala"
+	@$(VALAC) -o $(BINPATH)/dbp-cmd $(VALAPKG) $(VALAFLAGS) dbp-cmd.vala common/dbp-bus.vala $(LIBS)
+	@echo "Done."
 
 clean:
 	@echo " Nothing needs to be done to clean dbp-run-vala/"

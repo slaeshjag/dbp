@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-20 12:06+0100\n"
+"POT-Creation-Date: 2014-11-20 12:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,34 +17,97 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: dbp-cmd.vala:40 dbp-cmd.vala:160 dbp-desktopd.vala:50 dbp-desktopd.vala:101
+#: dbp-cmd.vala:9
+#, c-format
+msgid "\t\t\t  Returns a token that you use to unmount the package\n"
+msgstr ""
+
+#: dbp-cmd.vala:11
+#, c-format
+msgid ""
+"\tgetmount\t- Returns the mountpoint for the media the package is on. Takes "
+"pkgid\n"
+msgstr ""
+
+#: dbp-cmd.vala:14
+#, c-format
+msgid "\tid\t\t- Returns the pkgid for the package at <path>\n"
+msgstr ""
+
+#: dbp-cmd.vala:16
+#, c-format
+msgid "\tlist\t\t- Lists all registered packages\n"
+msgstr ""
+
+#: dbp-cmd.vala:8
+#, c-format
+msgid "\tmount\t- Mounts a package so that it can be executed. Takes pkgid.\n"
+msgstr ""
+
+#: dbp-cmd.vala:15
+#, c-format
+msgid "\tpath\t\t- Returns the path for the package with id <pkgid>\n"
+msgstr ""
+
+#: dbp-cmd.vala:12
+#, c-format
+msgid ""
+"\tregister\t- Register a package in the database. Takes path to package "
+"file\n"
+msgstr ""
+
+#: dbp-cmd.vala:10
+#, c-format
+msgid ""
+"\tumount\t- Unmounts the package if no other instance is using it. Takes "
+"mount token\n"
+msgstr ""
+
+#: dbp-cmd.vala:13
+#, c-format
+msgid ""
+"\tunregister\t- Unregisters a package in the database. Takes path to package "
+"file\n"
+msgstr ""
+
+#: dbp-cmd.vala:7
+#, c-format
+msgid "(List of valid commands:\n"
+msgstr ""
+
+#: dbp-cmd.vala:19
+#, c-format
+msgid "A registered package have its executables and .desktop files exported\n"
+msgstr ""
+
+#: dbp-cmd.vala:39 dbp-cmd.vala:159 dbp-desktopd.vala:50 dbp-desktopd.vala:101
 #: dbp-desktopd.vala:121 dbp-run-path.vala:29 dbp-run-path.vala:64
 #: dbp-run.vala:34 dbp-run.vala:75
 #, c-format
 msgid "Error: %s\n"
 msgstr ""
 
-#: dbp-cmd.vala:89
+#: dbp-cmd.vala:88
 #, c-format
 msgid ""
 "Error: A path to the package that is to be registered needs to be provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:103
+#: dbp-cmd.vala:102
 #, c-format
 msgid ""
 "Error: A path to the package that is to be unregistered needs to be "
 "provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:116
+#: dbp-cmd.vala:115
 #, c-format
 msgid ""
 "Error: A path to the package that pkgid is to re returned for needs to be "
 "provided\n"
 msgstr ""
 
-#: dbp-cmd.vala:130
+#: dbp-cmd.vala:129
 #, c-format
 msgid "Error: A pkgid to resolve path for needs to be provided\n"
 msgstr ""
@@ -56,27 +119,27 @@ msgid ""
 "properly, kthx?\n"
 msgstr ""
 
-#: dbp-cmd.vala:155
+#: dbp-cmd.vala:154
 #, c-format
 msgid "Error: Invalid option %s\n"
 msgstr ""
 
-#: dbp-cmd.vala:122
+#: dbp-cmd.vala:121
 #, c-format
 msgid "Error: No package with path '%s' exists in the database\n"
 msgstr ""
 
-#: dbp-cmd.vala:136
+#: dbp-cmd.vala:135
 #, c-format
 msgid "Error: No package with the pkgid %s exists in the database\n"
 msgstr ""
 
-#: dbp-cmd.vala:82
+#: dbp-cmd.vala:81
 #, c-format
 msgid "Error: Package %s is not in database\n"
 msgstr ""
 
-#: dbp-cmd.vala:51
+#: dbp-cmd.vala:50
 #, c-format
 msgid "Error: The enviroment variable $USER isn't set, it is needed\n"
 msgstr ""
@@ -86,7 +149,7 @@ msgstr ""
 msgid "Error: Unable to locate your home directory\n"
 msgstr ""
 
-#: dbp-cmd.vala:76
+#: dbp-cmd.vala:75
 #, c-format
 msgid ""
 "Error: You must provide a pkgid from which the mount point is resolved\n"
@@ -95,6 +158,11 @@ msgstr ""
 #: dbp-run-path.vala:44 dbp-run.vala:55
 #, c-format
 msgid "Error: unknown option '%s'\n"
+msgstr ""
+
+#: dbp-cmd.vala:6
+#, c-format
+msgid "Executes a command dbpd system call\n"
 msgstr ""
 
 #: common/run.vala:94
@@ -126,9 +194,9 @@ msgstr ""
 msgid "Unable to extract exec from package meta data"
 msgstr ""
 
-#: dbp-cmd.vala:6
+#: dbp-cmd.vala:5
 #, c-format
-msgid "Usage: dbp-cmd <command> [arg]"
+msgid "Usage: dbp-cmd <command> [arg]\n"
 msgstr ""
 
 #: dbp-run.vala:12
@@ -148,9 +216,14 @@ msgstr ""
 msgid "Warning: $XDG_DESKTOP_DIR is not set. Guessing $HOME/Desktop..\n"
 msgstr ""
 
-#: dbp-cmd.vala:109
+#: dbp-cmd.vala:108
 #, c-format
 msgid "Warning: package %s isn't registered\n"
+msgstr ""
+
+#: dbp-cmd.vala:18
+#, c-format
+msgid "pkgid is a unique ID that every valid package has\n"
 msgstr ""
 
 #: common/run.vala:134

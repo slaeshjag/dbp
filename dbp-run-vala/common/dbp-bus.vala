@@ -1,5 +1,5 @@
 [DBus (name = "de.dragonbox.PackageDaemon")]
-interface DBPBus : Object {
+public interface DBPBus : Object {
 	public signal void new_meta(string path);
 	public signal void remove_meta(string path);
 
