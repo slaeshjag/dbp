@@ -30,22 +30,50 @@ namespace Run {
 			return 0;
 		}
 	}
-	
-	void appdata_create(string pkg_id) throws IOError {
-		string mountpoint;
-		string appdata, roappdata, appdata_name;
-		string pkgpath;
-		DBP.Meta.Package meta;
+
+	bool dependency_ok(DBP.Meta.Package pkg) {
+		string[] sysdeps, dbpdeps, sysmissing, dbpmissing;
+		string sysdep, dbpdep;
 		
-		mountpoint = bus.mount_point_get(pkg_id);
-		pkgpath = bus.path_from_id(pkg_id);
-		if (pkgpath == null || pkgpath == "" || pkgpath == "!")
-			throw new IOError.FAILED(_("pkgid is not in the database"));
-		DBP.Meta.package_open(pkgpath, out meta);
-		appdata_name = meta.desktop_file.lookup("Appdata", "", "Package Entry");
+
+		sysdep = pkg.desktop_file.lookup("SysDependency", "", "Package Entry");
+		dbpdep = pkg.desktop_file.lookup("PkgDependency", "", "Package Entry");
+
+		if (sysdep != null) {
+			sysdeps = sysdep.split(";");
+			sysmissing = DepCheck.check_sys_dep(sysdeps, DepCheck.current_arch());
+		} else
+			sysmissing = {};
+		
+		if (dbpdep != null) {
+			dbpdeps = dbpdep.split(";");
+			dbpmissing = DepCheck.check_dbp_dep(dbpdeps);
+		} else
+			dbpmissing = {};
+		if (dbpmissing.length > 0 || sysmissing.length > 0) {
+			/* Handle missing deps */
+		}
+			
+		return true;	
+	}
+
+	string resolve_appdata(string pkg_id, DBP.Meta.Package pkg) {
+		string appdata_name; 
+		
+		appdata_name = pkg.desktop_file.lookup("Appdata", "", "Package Entry");
+		
 		if (appdata_name == null)
 			appdata_name = pkg_id;
+
+		return appdata_name;
+	}
+
+	void appdata_create(string pkg_id, string appdata_name) throws IOError {
+		string mountpoint;
+		string appdata, roappdata;
 		
+		
+		mountpoint = bus.mount_point_get(pkg_id);
 		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
 			throw new IOError.FAILED(_("Failed to find mountpoint"));
 		
@@ -73,13 +101,29 @@ namespace Run {
 		string binary_path;
 		string ?cwd;
 		string[] argv = {};
+		string appdata_name, pkgpath;
 		int outpipe, errpipe;
 		string outlogfile, errlogfile;
 		int pid;
 		int info;
+		DBP.Meta.Package pkg;
 		OutputLogger stdoutlogger, stderrlogger;
 		
-		appdata_create(pkg_id);
+		if (pkg_id == null)
+			return;
+		
+		pkgpath = bus.path_from_id(pkg_id);
+
+		if (pkgpath == null || pkgpath == "" || pkgpath == "!")
+			throw new IOError.FAILED(_("pkgid is not in the database"));
+		
+		DBP.Meta.package_open(pkgpath, out pkg);
+		
+		if (!dependency_ok(pkg))
+			return;
+
+		appdata_name = resolve_appdata(pkg_id, pkg);
+		appdata_create(pkg_id, appdata_name);
 		
 		//TODO: validate pkg_id
 		
@@ -87,8 +131,8 @@ namespace Run {
 		if(int.parse(mount_id) < 0)
 			throw new IOError.FAILED(mount_id);
 		
-		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
-		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
+		binary_path = Path.build_filename(DBP.Config.config.union_mount, appdata_name, exec);
+		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, appdata_name) : null;
 		
 		argv += binary_path;
 		foreach(string s in args)

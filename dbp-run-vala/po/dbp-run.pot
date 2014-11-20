@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-19 11:21+0100\n"
+"POT-Creation-Date: 2014-11-20 09:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -97,11 +97,11 @@ msgstr ""
 msgid "Error: unknown option '%s'\n"
 msgstr ""
 
-#: common/run.vala:50
+#: common/run.vala:78
 msgid "Failed to find mountpoint"
 msgstr ""
 
-#: common/run.vala:130
+#: common/run.vala:174
 msgid "Unable to extract exec from package meta data"
 msgstr ""
 
@@ -132,6 +132,6 @@ msgstr ""
 msgid "Warning: package %s isn't registered\n"
 msgstr ""
 
-#: common/run.vala:43
+#: common/run.vala:118
 msgid "pkgid is not in the database"
 msgstr ""
