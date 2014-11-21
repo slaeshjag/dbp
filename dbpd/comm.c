@@ -14,7 +14,7 @@ DBusConnection *dbus_conn_handle;
 void comm_dbus_unregister(DBusConnection *dc, void *n) {
 	(void) n;
 	(void) dc;
-	fprintf(stderr, "Unregister handler called\n");
+	fprintf(dbp_error_log, "Unregister handler called\n");
 	return;
 }
 
@@ -29,19 +29,19 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	int i;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
-		fprintf(stderr, "Message has no arguments\n");
+		fprintf(dbp_error_log, "Message has no arguments\n");
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
 
 	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-		fprintf(stderr, "Message has bad argument type\n");
+		fprintf(dbp_error_log, "Message has bad argument type\n");
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
 
 	dbus_message_iter_get_basic(&iter, &arg);
 	dbus_message_iter_next(&iter);
 	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) {
-	//	fprintf(stderr, "Message has bad argument type\n");
+	//	fprintf(dbp_error_log, "Message has bad argument type\n");
 		//return DBUS_HANDLER_RESULT_HANDLED;
 		name = NULL;
 	} else
@@ -90,7 +90,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 
 		goto send_message;
 	} else {
-		fprintf(stderr, "Bad method call %s\n", dbus_message_get_member(dm));
+		fprintf(dbp_error_log, "Bad method call %s\n", dbus_message_get_member(dm));
 		goto done;
 	}
 
@@ -129,18 +129,18 @@ void *comm_dbus_loop(void *n) {
 
 	dbus_error_init(&err);
 	if (!(dc = dbus_bus_get(DBUS_BUS_SYSTEM, &err))) {
-		fprintf(stderr, "Unable to connect to dbus system bus\n");
+		fprintf(dbp_error_log, "Unable to connect to dbus system bus\n");
 		exit(-1);
 	}
 
 	dbus_bus_request_name(dc, DBP_DBUS_DAEMON_PREFIX, 0, &err);
 	if (dbus_error_is_set(&err))
-		fprintf(stderr, "unable to name bus: %s\n", err.message);
+		fprintf(dbp_error_log, "unable to name bus: %s\n", err.message);
 	if (!dbus_connection_register_object_path(dc, DBP_DBUS_DAEMON_OBJECT, &vt, p))
-		fprintf(stderr, "Unable to register object path\n");
+		fprintf(dbp_error_log, "Unable to register object path\n");
 	dbus_conn_handle = dc;
 	while (dbus_connection_read_write_dispatch (dc, 500));
-	fprintf(stderr, "dbus exit\n");
+	fprintf(dbp_error_log, "dbus exit\n");
 	pthread_exit(NULL);
 }
 
@@ -149,7 +149,7 @@ void comm_dbus_register(struct package_s *p) {
 	pthread_t th;
 
 	if (pthread_create(&th, NULL, comm_dbus_loop, p)) {
-		fprintf(stderr, "Unable to create dbus listen thread\n");
+		fprintf(dbp_error_log, "Unable to create dbus listen thread\n");
 		exit(-1);
 	}
 }

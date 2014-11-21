@@ -4,7 +4,7 @@ extern const string GETTEXT_PACKAGE;
 void usage() {
 	stdout.printf(_("Usage: dbp-cmd <command> [arg]\n"));
 	stdout.printf(_("Executes a command dbpd system call\n"));
-	stdout.printf(_("(List of valid commands:\n"));
+	stdout.printf(_("List of valid commands:\n"));
 	stdout.printf(_("\tmount	- Mounts a package so that it can be executed. Takes pkgid.\n"));
 	stdout.printf(_("\t		  Returns a token that you use to unmount the package\n"));
 	stdout.printf(_("\tumount	- Unmounts the package if no other instance is using it. Takes mount token\n"));
@@ -92,6 +92,7 @@ int main(string[] args) {
 				ret2 = bus.register_path(args[2], out ret);
 				if (int.parse(ret) < 0) {
 					/* TODO: print error */
+					/* Should probably return something else if it already was registered */
 					return 1;
 				}
 
