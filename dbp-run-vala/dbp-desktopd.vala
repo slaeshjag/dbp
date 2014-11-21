@@ -22,7 +22,7 @@ string? get_desktop() {
 	desktop = GLib.Path.build_filename(home, "Desktop", null);
 	if (!GLib.FileUtils.test(desktop, GLib.FileTest.IS_DIR)) {
 		/* Well... Shit. */
-		stderr.printf(_("Error: Guessed $HOME/Desktop, which doesn't exist. Configure XDG_DESKTOP_DIR properly, kthx?\n"));
+		stderr.printf(_("Error: Guessed $HOME/Desktop, which doesn't exist. Configure $XDG_DESKTOP_DIR properly, kthx?\n"));
 		return null;
 	}
 

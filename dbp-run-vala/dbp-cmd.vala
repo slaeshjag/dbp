@@ -113,7 +113,7 @@ int main(string[] args) {
 				return 0;
 			case "id":
 				if (args.length == 2) {
-					stderr.printf(_("Error: A path to the package that pkgid is to re returned for needs to be provided\n"));
+					stderr.printf(_("Error: A path to the package that pkgid is to be returned for needs to be provided\n"));
 					return 1;
 				}
 
