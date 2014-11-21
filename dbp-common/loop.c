@@ -280,6 +280,7 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	if (mount("none", mount_path, DBP_UNIONFS_NAME, 0, mount_opt) < 0)
 		goto union_failed;
 
+	free(mount_path), mount_path = NULL;
 	free(mount_opt);
 	return loop_n;
 
@@ -330,6 +331,10 @@ void loop_umount(const char *pkg_id, int loop, const char *user) {
 	rmdir(mount_path);
 	rmdir(img_path);
 	loop_reset(loop);
+
+	free(mount_path);
+	free(img_path);
+
 	return;
 
 fail:
