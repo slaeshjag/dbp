@@ -7,6 +7,7 @@ VERSION		=	0.1
 DAEMONBIN	=	"$(TOPDIR)/build/bin/$(NAME)d"
 RUNNERBIN	=	"$(TOPDIR)/build/bin/$(NAME)-run-old"
 CONFIGBIN	=	"$(TOPDIR)/build/bin/$(NAME)-cfg"
+METABIN		=	"$(TOPDIR)/build/bin/$(NAME)-meta"
 LIB		=	"$(TOPDIR)/dbp-common/dbp-common.a"
 LIBINC		=	"-I$(TOPDIR)/dbp-common"
 PREFIX		+=	/usr/local
