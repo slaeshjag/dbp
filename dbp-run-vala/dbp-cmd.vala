@@ -23,14 +23,14 @@ void usage() {
 int main(string[] args) {
 	string ret, ret2;
 
+	Intl.setlocale(LocaleCategory.MESSAGES, "");
+	Intl.textdomain(GETTEXT_PACKAGE); 
+	Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
+	
 	if (args.length < 2) {
 		usage();
 		return 1;
 	}
-	
-	Intl.setlocale(LocaleCategory.MESSAGES, "");
-	Intl.textdomain(GETTEXT_PACKAGE); 
-	Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
 
 	try {
 		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
