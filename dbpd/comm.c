@@ -25,7 +25,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	DBusMessage *ndm;
 	DBusMessageIter iter;
 	const char *arg, *name;
-	char *ret, *ret2, *ret3, *mount, *dev, **arr, **new_arr = NULL;
+	char *ret, *ret2, *ret3, *mount, *dev, **new_arr = NULL;
 	int i;
 
 	if (!dbus_message_iter_init(dm, &iter)) {

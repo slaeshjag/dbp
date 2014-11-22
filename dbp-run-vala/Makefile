@@ -8,8 +8,6 @@ DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/*.c
 BINPATH = ../build/bin
 
 all:
-	xgettext -L C -k_ -d dbp-run -s -o po/dbp-run.pot *.vala common/*.vala
-	make -C po/
 	
 	@echo " [VALA] dbp-run.vala"
 	@$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
