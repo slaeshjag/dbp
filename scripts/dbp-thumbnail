@@ -6,3 +6,4 @@ if [ "$icon" -eq "" ]; then
 fi
 
 unzip -p $1 "icons/$icon" > $2
+exit $?

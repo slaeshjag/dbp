@@ -31,7 +31,7 @@ namespace Run {
 		}
 	}
 
-	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg) {
+	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg) throws IOError {
 		string[] sysdeps, dbpdeps, sysmissing, dbpmissing;
 		string sysdep, dbpdep;
 		

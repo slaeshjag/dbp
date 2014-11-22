@@ -15,6 +15,9 @@ int main(int argc, char **argv) {
 	struct meta_package_s mp;
 	const char *str;
 
+	setlocale(LC_ALL, "");
+	textdomain("dbp-run");
+
 	if (argc <3) {
 		usage();
 		return 1;

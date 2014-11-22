@@ -2,7 +2,7 @@
 # Makefile configurations
 
 NAME		=	dbp
-VERSION		=	0.1
+VERSION		=	0.5
 
 DAEMONBIN	=	"$(TOPDIR)/build/bin/$(NAME)d"
 RUNNERBIN	=	"$(TOPDIR)/build/bin/$(NAME)-run-old"

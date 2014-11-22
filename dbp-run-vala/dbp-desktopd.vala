@@ -65,9 +65,14 @@ string desktop_path(string full_path) {
 }
 
 void add_meta(string path) {
-	var src = File.new_for_path(path);
-	var dest = File.new_for_path(desktop_path(path));
-	src.copy(dest, FileCopyFlags.NONE);
+	try {
+		var src = File.new_for_path(path);
+		var dest = File.new_for_path(desktop_path(path));
+		src.copy(dest, FileCopyFlags.NONE);
+	} catch (Error e) {
+		stderr.printf("Error: %s\n", e.message);
+		return;
+	}
 	return;
 }
 
@@ -111,6 +116,9 @@ void add_package_meta(string pkgid) {
 int main(string[] args) {
 	string[] package_list;
 	
+	Intl.setlocale(LocaleCategory.MESSAGES, "");
+	Intl.textdomain(GETTEXT_PACKAGE); 
+	Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
 	DBP.Config.init();
 	desktop_directory = get_desktop();
 	if (desktop_directory == null)
