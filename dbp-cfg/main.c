@@ -12,7 +12,6 @@ int main(int argc, char **argv) {
 	const char *value;
 
 	setlocale(LC_ALL, "");
-	bindtextdomain("helloworld","./build/share/locale");
 	textdomain("dbp-run");
 
 	if (argc < 2) {
