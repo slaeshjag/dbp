@@ -97,7 +97,6 @@ int main(int argc, char **argv) {
 		setbuf(dbp_error_log, NULL);
 
 	p = package_init();
-	comm_dbus_register(&p);
 
 	if (argc > 1 && !strcmp(argv[1], "-d")) {	/* Daemonize */
 		if ((procid = fork()) < 0) {
@@ -118,6 +117,8 @@ int main(int argc, char **argv) {
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
 	}
+	
+	comm_dbus_register(&p);
 
 	if (!mountwatch_init())
 		exit(-1);
