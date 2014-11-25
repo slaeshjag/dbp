@@ -80,6 +80,18 @@ static int daemon_init() {
 }
 
 
+static void create_pidfile() {
+	FILE *fp;
+
+	if ((fp = fopen("/var/run/dbpd.pid", "w"))) {
+		fprintf(fp, "%i", getpid());
+		fclose(fp);
+	}
+
+	return;
+}
+
+
 int main(int argc, char **argv) {
 	struct mountwatch_change_s change;
 	struct package_s p;
@@ -116,6 +128,7 @@ int main(int argc, char **argv) {
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
+		create_pidfile();
 	}
 	
 	comm_dbus_register(&p);

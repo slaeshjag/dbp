@@ -1,0 +1,11 @@
+[Unit]
+Description=DragonBox Package Daemon
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/dbpd -d
+PIDFile=/var/run/dbpd.pid
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
