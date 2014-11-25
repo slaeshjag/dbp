@@ -17,6 +17,8 @@ int main(string[] args) {
 	};
 	bus = null;
 	
+	ErrorLog.init(ref args);
+	
 	Intl.setlocale(LocaleCategory.MESSAGES, "");
 	Intl.textdomain(GETTEXT_PACKAGE); 
 	Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
@@ -26,7 +28,7 @@ int main(string[] args) {
 	try {
 		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
 	} catch(Error e) {
-		stderr.printf (_("Error: %s\n"), e.message);
+		ErrorLog.display(e.message);
 		return 1;
 	}
 	
@@ -61,7 +63,7 @@ int main(string[] args) {
 	try {
 		Run.run_path(argv[0], argv[1:argv.length]);
 	} catch(Error e) {
-		stderr.printf(_("Error: %s\n"), e.message);
+		ErrorLog.display(e.message);
 		return 1;
 	}
 	
