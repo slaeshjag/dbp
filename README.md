@@ -16,6 +16,14 @@ Entries that can hold multiple values are ;-separated
 * SysDependency		(Optional) System packages needed to run
 * PkgDependency		(Optional) DBP dependencies needed to run
 
+### DBus
+Dbus-signals that may be of use:
+* NewMeta	<path to .desktop>	- For every new .desktop file to be placed on the desktop
+* RemoveMeta <path to .desktop>	- For every .desktop file that is to be removed from the desktop
+* NewPackage <pkgid>		- For every new detected package
+* RemovePackage <pkgid>		- For every removed package
+
+
 ### Potential repository-only keys
 These are ignored by the DBP-system but might be of use in the repo
 Potentially, a Package Entry might be present in all .desktop files with these

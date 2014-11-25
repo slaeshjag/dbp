@@ -1,4 +1,4 @@
-class ExecLine {
+public class ExecLine {
 	private string _str;
 	private string[] _exec;
 	

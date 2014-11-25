@@ -84,7 +84,7 @@ namespace DBP {
 		[CCode (cname = "config_init")]
 		void init();
 	}
-	
+
 	[CCode (cheader_filename = "desktop.h", cname = "struct desktop_file_s", free_function = "desktop_free")]
 	[Compact]
 	public class Desktop {
@@ -107,6 +107,13 @@ namespace DBP {
 		int mount(string image, string id, string user, string src_mount, string appdata);
 		void umount(string pkg_id, int loop, string user);
 		int directory_setup(string path, int umask);
+	}
+	
+	[CCode (cheader_filename = "deb_dep_check.h", cprefix = "deb_")]
+	namespace DebDepCheck {
+		void do_init();
+		void do_free();
+		bool check_package(string pkgname);
 	}
 	
 	[CCode (cheader_filename = "meta.h")]

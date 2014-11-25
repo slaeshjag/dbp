@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=dbp-desktopd
+Comment=Manages desktop icons for DBP
+Exec=dbp-desktopd
+Terminal=false
+Type=Application
+X-GNOME-Autostart-enabled=true

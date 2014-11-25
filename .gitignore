@@ -6,4 +6,8 @@
 *.swp
 *.swo
 *.bin
+*.pot
+*.orig
+*.local
+*.remote
 build/

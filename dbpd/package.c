@@ -58,8 +58,8 @@ static int package_id_validate(const char *pkg_id) {
 	int i;
 
 	for (i = 0; pkg_id[i]; i++)
-		if ((pkg_id[i] < 'a' || pkg_id[i] > 'z') && (pkg_id[i] < 'A' || pkg_id[i] > 'Z')
-		    && (pkg_id[i] < 0 || pkg_id[i] > 9) && pkg_id[i] != '-' && pkg_id[i] != '_' && pkg_id[i] != '.')
+		if (!(pkg_id[i] >= 'a' && pkg_id[i] <= 'z') && !(pkg_id[i] >= 'A' && pkg_id[i] <= 'Z')
+		    && !(pkg_id[i] >= '0' && pkg_id[i] <= '9') && pkg_id[i] != '-' && pkg_id[i] != '_' && pkg_id[i] != '.')
 			return 0;
 	return 1;
 }
@@ -90,6 +90,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].pkg_dep = pkg;
 	p->entry[nid].desktop = strdup(loop_desktop_directory(path) ? "desk" : "nodesk");
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
+	comm_dbus_announce_new_package(id);
 
 	return nid;
 
@@ -458,6 +459,7 @@ static void package_kill(struct package_s *p, int entry) {
 	}
 
 	fprintf(dbp_error_log, "Unregistering package %s\n", p->entry[entry].id);
+	comm_dbus_announce_rem_package(p->entry[entry].id);
 	free(p->entry[entry].exec);
 	free(p->entry[entry].device);
 	free(p->entry[entry].id);
@@ -517,7 +519,7 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 			loop = p->instance[i].loop;
 			goto mounted;
 		}
-	if ((pkg_n = package_find(p, id) < 0)) {
+	if ((pkg_n = package_find(p, id)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
 		return DBP_ERROR_BAD_PKG_ID;
 	}

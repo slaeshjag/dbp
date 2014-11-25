@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-dbp">
+         <comment xml:lang="en">(insert description of dbp)</comment>
+         <glob pattern="*.dbp"/>
+  </mime-type>
+</mime-info>

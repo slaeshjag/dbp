@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
 	struct package_s p;
 	int i;
 	char *n;
+	pid_t procid;
 
 	dbp_error_log = stderr;
 	if (!config_init())
@@ -94,7 +95,29 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "Unable to open %s\n", config_struct.daemon_log);
 	} else
 		setbuf(dbp_error_log, NULL);
+
 	p = package_init();
+
+	if (argc > 1 && !strcmp(argv[1], "-d")) {	/* Daemonize */
+		if ((procid = fork()) < 0) {
+			fprintf(stderr, "Unable to fork();\n");
+			return 1;
+		}
+
+		if (procid)
+			exit(0);
+		umask(0);
+		if (setsid() < 0) {
+			fprintf(stderr, "Unable to setsid()\n");
+			exit(1);
+		}
+
+		chdir("/");
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+	}
+	
 	comm_dbus_register(&p);
 
 	if (!mountwatch_init())
