@@ -33,5 +33,7 @@ void desktop_write(struct desktop_file_s *df, const char *path);
 char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *locale, const char *section);
 int desktop_lookup_section(struct desktop_file_s *df, const char *section);
 int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char *locale, int section);
+int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value);
+int desktop_section_new(struct desktop_file_s *df, const char *name);
 
 #endif

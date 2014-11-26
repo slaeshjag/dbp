@@ -4,7 +4,7 @@
 	trouble that it tries to do both */
 
 
-static int desktop_section_new(struct desktop_file_s *df, const char *name) {
+int desktop_section_new(struct desktop_file_s *df, const char *name) {
 	int id;
 
 	id = df->sections++;
@@ -17,7 +17,7 @@ static int desktop_section_new(struct desktop_file_s *df, const char *name) {
 }
 
 
-static int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value) {
+int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value) {
 	struct desktop_file_section_s *s;
 	int e;
 

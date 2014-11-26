@@ -28,6 +28,8 @@ struct config_s {
 	int			per_user_appdata;
 	int			per_package_appdata;
 	int			create_rodata;
+
+	char			*state_file;
 };
 
 

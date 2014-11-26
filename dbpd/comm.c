@@ -11,6 +11,20 @@
 
 DBusConnection *dbus_conn_handle;
 
+static int should_die = 0;
+static int died = 0;
+
+
+void comm_kill() {
+	should_die = 1;
+}
+
+
+int comm_died() {
+	return died;
+}
+
+
 void comm_dbus_unregister(DBusConnection *dc, void *n) {
 	(void) n;
 	(void) dc;
@@ -27,6 +41,9 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	const char *arg, *name;
 	char *ret, *ret2, *ret3, *mount, *dev, **new_arr = NULL;
 	int i;
+
+	if (should_die)
+		return DBUS_HANDLER_RESULT_HANDLED;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
 		fprintf(dbp_error_log, "Message has no arguments\n");
@@ -139,7 +156,16 @@ void *comm_dbus_loop(void *n) {
 	if (!dbus_connection_register_object_path(dc, DBP_DBUS_DAEMON_OBJECT, &vt, p))
 		fprintf(dbp_error_log, "Unable to register object path\n");
 	dbus_conn_handle = dc;
-	while (dbus_connection_read_write_dispatch (dc, 500));
+	while (dbus_connection_read_write_dispatch (dc, 500)) {
+		if (should_die) {
+			/* Flush out the buffers */
+			dbus_connection_read_write_dispatch(dc, 100);
+			dbus_connection_close(dc);
+			died = 1;
+			break;
+		}
+	}
+
 	fprintf(dbp_error_log, "dbus exit\n");
 	pthread_exit(NULL);
 }

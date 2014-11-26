@@ -16,13 +16,41 @@
 /* I keep almost typing mouthwash.. <.< */
 struct mountwatch_s mountwatch_struct;
 
+void mountwatch_kill() {
+	mountwatch_struct.should_die = 1;
+}
+
+
+int mountwatch_died() {
+	return mountwatch_struct.died && mountwatch_struct.died2;
+}
+
+
+static struct timeval get_timeout() {
+	struct timeval to;
+
+	to.tv_sec = 0;
+	to.tv_usec = 500000;
+	return to;
+}
+
 
 void *mountwatch_dirchange() {
+	struct timeval timeout;
 	fd_set set;
 	for (;;) {
 		FD_ZERO(&set);
 		FD_SET(mountwatch_struct.dir_fd, &set);
-		select(FD_SETSIZE, &set, NULL, NULL, NULL);
+		timeout = get_timeout();
+		if (select(FD_SETSIZE, &set, NULL, NULL, &timeout) < 1) {
+			if (!mountwatch_struct.should_die)
+				continue;
+		}
+
+		if (mountwatch_struct.should_die) {
+			mountwatch_struct.died2 = 1;
+			pthread_exit(NULL);
+		}
 
 		pthread_mutex_lock(&mountwatch_struct.dir_watch_mutex);
 		mountwatch_struct.dir_change = 1;
@@ -44,6 +72,13 @@ void *mountwatch_loop(void *null) {
 	}
 
 	for (;;) {
+		if (mountwatch_struct.should_die) {
+			mountwatch_struct.died = 1;
+			/* Wakes up the dirwatch thread */
+			sem_post(&mountwatch_struct.dir_watch_continue);
+			pthread_exit(NULL);
+		}
+
 		FD_ZERO(&watch);
 		FD_SET(mountfd, &watch);
 		select(mountfd + 1, NULL, NULL, &watch, NULL);
@@ -60,6 +95,7 @@ int mountwatch_init() {
 	sem_init(&mountwatch_struct.dir_watch_continue, 0, 0);
 	mountwatch_struct.entry = NULL, mountwatch_struct.entries = 0;
 	mountwatch_struct.ientry = NULL, mountwatch_struct.ientries = 0;
+	mountwatch_struct.should_die = 0, mountwatch_struct.died = mountwatch_struct.died2 = 0;
 	if (pthread_create(&th, NULL, mountwatch_loop, NULL)) {
 		fprintf(dbp_error_log, "Error: Unable to create mountpoint watch process\n");
 		return 0;

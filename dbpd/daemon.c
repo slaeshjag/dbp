@@ -4,14 +4,41 @@
 #include <limits.h>
 #include <dirent.h>
 #include <string.h>
+#include <signal.h>
 #include "mountwatch.h"
 #include "config.h"
 #include "package.h"
 #include "dbp.h"
 #include "comm.h"
 #include "loop.h"
+#include "state.h"
 
 FILE *dbp_error_log;
+static struct package_s *p_s;
+
+static void sleep_usec(int usec) {
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_sec = usec * 1000;
+	nanosleep(&ts, NULL);
+	return;
+}
+
+
+/* Responisble for saving all state when it's time to shut down */
+void shutdown(int signal) {
+	mountwatch_kill();
+	/* Wait for mountwatch threads to die */
+	while (!mountwatch_died())
+		sleep_usec(1000);
+	comm_kill();
+	/* Wait for dbus thread to die */
+	while (!comm_died())
+		sleep_usec(1000);
+	state_dump(p_s);
+	exit(0);
+}
+
 
 static int daemon_nuke_dir(char *dir) {
 	DIR *d;
@@ -100,6 +127,7 @@ int main(int argc, char **argv) {
 	pid_t procid;
 
 	dbp_error_log = stderr;
+	p_s = &p;
 	if (!config_init())
 		return -1;
 	if (!(dbp_error_log = fopen(config_struct.daemon_log, "w"))) {
@@ -132,6 +160,12 @@ int main(int argc, char **argv) {
 	}
 	
 	comm_dbus_register(&p);
+
+	/* TODO: Replace with sigaction */
+	signal(SIGTERM, shutdown);
+	signal(SIGINT, shutdown);
+	signal(SIGUSR1, shutdown);
+	signal(SIGUSR2, shutdown);
 
 	if (!mountwatch_init())
 		exit(-1);

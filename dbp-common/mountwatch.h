@@ -48,6 +48,10 @@ struct mountwatch_s {
 	sem_t				dir_watch_continue;
 	int				dir_change;
 	int				dir_fd;
+
+	int				should_die;
+	int				died;
+	int				died2;
 };
 
 
@@ -57,5 +61,7 @@ extern struct mountwatch_s mountwatch_struct;
 int mountwatch_init();
 struct mountwatch_change_s mountwatch_diff();
 void mountwatch_change_free(struct mountwatch_change_s change);
+void mountwatch_kill();
+int mountwatch_died();
 
 #endif

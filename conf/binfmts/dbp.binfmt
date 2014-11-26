@@ -1,0 +1,5 @@
+package dbprun
+interpreter /usr/bin/dbp-run-path
+type E
+magic dbp
+flags P
