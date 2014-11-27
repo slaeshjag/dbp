@@ -6,6 +6,7 @@
 #include "package.h"
 #include "config.h"
 #include "loop.h"
+#include "dbp.h"
 
 /* When calling any of these funtions, other threads must not exist. Else, things will blow up horribly */
 
@@ -59,5 +60,44 @@ void state_dump(struct package_s *p) {
 	free(dirname_s);
 	desktop_write(df, config_struct.state_file);
 	desktop_free(df);
+	return;
+}
+
+
+void state_recover(struct package_s *p) {
+	int i, section;
+	struct desktop_file_s *df;
+	signed long long boot, rboot;
+	char *s;
+
+	if (!(df = desktop_parse_file(config_struct.state_file)))
+		return;
+	if (!(s = desktop_lookup(df, "SystemBootup", "", "DBPStateControl")))
+		return;
+	
+	rboot = atoll(s);
+	boot = state_btime();
+	
+	/* FIXME: This may lead to issues during DST transistion. Hopefully not a big issue */
+	/* Apparently, during second transition, this value may wiggle a little */
+	if (rboot - boot < -1 || rboot - boot > 1) {
+		fprintf(dbp_error_log, "Ignoring stale state file\n");
+		return;
+	}
+
+	if ((section = desktop_lookup_section(df, "Instances")) < 0) {
+		fprintf(dbp_error_log, "Section Instances is missing, Ignoring state file\n");
+		return;
+	}
+
+	if (!(s = desktop_lookup(df, "RunCnt", "", "DBPStateControl"))) {
+		fprintf(dbp_error_log, "RunCnt is missing from state file. Ignoring state file\n");
+		return;
+	}
+
+	p->run_cnt = atoll(s);
+
+	
+
 	return;
 }
