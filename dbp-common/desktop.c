@@ -1,4 +1,5 @@
 #include "desktop.h"
+#include "dbp.h"
 
 /* A hybrid of a .desktop parser, and a .ini parser. Shouldn't cause too much
 	trouble that it tries to do both */
@@ -210,8 +211,10 @@ void desktop_write(struct desktop_file_s *df, const char *path) {
 
 	if (!df) return;
 
-	if (!(fp = fopen(path, "w")))
+	if (!(fp = fopen(path, "w"))) {
+		fprintf(stderr, "Unable to write %s\n", path);
 		return;
+	}
 	for (i = 0; i < df->sections; i++) {
 		if (df->section[i].name)
 			fprintf(fp, "[%s]\n", df->section[i].name);

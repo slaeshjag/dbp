@@ -17,24 +17,31 @@ FILE *dbp_error_log;
 static struct package_s *p_s;
 
 static void sleep_usec(int usec) {
+	#if 0
 	struct timespec ts;
 	ts.tv_sec = 0;
 	ts.tv_sec = usec * 1000;
 	nanosleep(&ts, NULL);
+	#else
+	usleep(usec);
+	#endif
 	return;
 }
 
 
 /* Responisble for saving all state when it's time to shut down */
 void shutdown(int signal) {
+	fprintf(dbp_error_log, "Killing mountwatch...\n");
 	mountwatch_kill();
 	/* Wait for mountwatch threads to die */
 	while (!mountwatch_died())
 		sleep_usec(1000);
+	fprintf(dbp_error_log, "Killing dbus...\n");
 	comm_kill();
 	/* Wait for dbus thread to die */
 	while (!comm_died())
 		sleep_usec(1000);
+	fprintf(dbp_error_log, "Dumping state...\n");
 	state_dump(p_s);
 	exit(0);
 }
@@ -137,6 +144,7 @@ int main(int argc, char **argv) {
 		setbuf(dbp_error_log, NULL);
 
 	p = package_init();
+	state_recover(&p);
 
 	if (argc > 1 && !strcmp(argv[1], "-d")) {	/* Daemonize */
 		if ((procid = fork()) < 0) {

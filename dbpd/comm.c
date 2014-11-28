@@ -160,7 +160,7 @@ void *comm_dbus_loop(void *n) {
 		if (should_die) {
 			/* Flush out the buffers */
 			dbus_connection_read_write_dispatch(dc, 100);
-			dbus_connection_close(dc);
+			dbus_connection_unref(dc);
 			died = 1;
 			break;
 		}

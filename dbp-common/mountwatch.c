@@ -63,6 +63,7 @@ void *mountwatch_dirchange() {
 
 void *mountwatch_loop(void *null) {
 	int mountfd;
+	struct timeval to;
 	fd_set watch;
 
 	(void) null;
@@ -79,10 +80,11 @@ void *mountwatch_loop(void *null) {
 			pthread_exit(NULL);
 		}
 
+		to = get_timeout();
 		FD_ZERO(&watch);
 		FD_SET(mountfd, &watch);
-		select(mountfd + 1, NULL, NULL, &watch, NULL);
-		sem_post(&mountwatch_struct.changed);
+		if (select(mountfd + 1, NULL, NULL, &watch, &to) >= 0)
+			sem_post(&mountwatch_struct.changed);
 	}
 }
 
