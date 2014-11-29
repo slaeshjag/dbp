@@ -31,6 +31,8 @@ static void sleep_usec(int usec) {
 
 /* Responisble for saving all state when it's time to shut down */
 void shutdown(int signal) {
+	((void) signal);
+
 	fprintf(dbp_error_log, "Killing mountwatch...\n");
 	mountwatch_kill();
 	/* Wait for mountwatch threads to die */
@@ -125,11 +127,16 @@ static void create_pidfile() {
 	return;
 }
 
+void die(int signal) {
+	((void) signal);
+	exit(0);
+}
+
 
 int main(int argc, char **argv) {
 	struct mountwatch_change_s change;
 	struct package_s p;
-	int i;
+	int i, sig_parent = 0;
 	char *n;
 	pid_t procid;
 
@@ -147,13 +154,21 @@ int main(int argc, char **argv) {
 	state_recover(&p);
 
 	if (argc > 1 && !strcmp(argv[1], "-d")) {	/* Daemonize */
+		sig_parent = 1;
 		if ((procid = fork()) < 0) {
 			fprintf(stderr, "Unable to fork();\n");
 			return 1;
 		}
 
-		if (procid)
+		if (procid) {
+			/* Make sure we don't get stuck forever... */
+			signal(SIGINT, die);
+			signal(SIGALRM, die);
+			alarm(5);
+			pause();
 			exit(0);
+		}
+
 		umask(0);
 		if (setsid() < 0) {
 			fprintf(stderr, "Unable to setsid()\n");
@@ -168,6 +183,8 @@ int main(int argc, char **argv) {
 	}
 	
 	comm_dbus_register(&p);
+	if (sig_parent)
+		kill(getppid(), SIGINT);
 
 	/* TODO: Replace with sigaction */
 	signal(SIGTERM, shutdown);

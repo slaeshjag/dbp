@@ -69,7 +69,7 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 	ret2 = ret3 = NULL;
 	/* Process message */
 	if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "Mount")) {
-		if (!name) return DBUS_HANDLER_RESULT_HANDLED;
+		if (!name) return (free(ret), DBUS_HANDLER_RESULT_HANDLED);
 		sprintf(ret, "%i", package_run(p, arg, name));
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "UMount")) {
 		sprintf(ret, "%i", package_stop(p, atoi(arg)));
@@ -90,6 +90,8 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 		package_deps_from_id(p, arg, &ret2, &ret3);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "PathFromId")) {
 		ret2 = package_path_from_id(p, arg);
+	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "Ping")) {
+		ret2 = strdup("Pong");
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_DAEMON_PREFIX, "PackageList")) {
 		ndm = dbus_message_new_method_return(dm);
 		

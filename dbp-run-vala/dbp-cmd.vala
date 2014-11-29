@@ -14,6 +14,7 @@ void usage() {
 	stdout.printf(_("\tid		- Returns the pkgid for the package at <path>\n"));
 	stdout.printf(_("\tpath		- Returns the path for the package with id <pkgid>\n"));
 	stdout.printf(_("\tlist		- Lists all registered packages\n"));
+	stdout.printf(_("\tping		- Pings dbpd, exits with a failure if dbpd isn't running\n"));
 	stdout.printf("\n");
 	stdout.printf(_("pkgid is a unique ID that every valid package has\n"));
 	stdout.printf(_("A registered package have its executables and .desktop files exported\n"));
@@ -146,6 +147,9 @@ int main(string[] args) {
 					stdout.printf("'%s' '%s' '%s'\n", reta[i*3], reta[i*3+1], reta[i*3+2]);
 				}
 
+				return 0;
+			case "ping":
+				bus.ping();
 				return 0;
 			case "help":
 				usage();

@@ -32,7 +32,7 @@ int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *lo
 
 
 int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
-	int s, i;
+	int s, i = 0;
 	
 	if (!df) return -1;
 
