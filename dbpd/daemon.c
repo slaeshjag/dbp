@@ -128,7 +128,8 @@ static void create_pidfile() {
 }
 
 void die(int signal) {
-	((void) signal);
+	if (signal == SIGALRM)
+		exit(1);
 	exit(0);
 }
 
