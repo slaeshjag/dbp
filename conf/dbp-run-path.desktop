@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Run DBP as program
+Comment=Run a DragonBox Package as a program
+NoDisplay=true
+MimeType=application/x-dbp
