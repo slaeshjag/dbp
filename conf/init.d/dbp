@@ -51,7 +51,7 @@ stop_dbpd() {
 		log_daemon_message "Stopping $NAME..."
 		kill -TERM `get_pid`
 		while [ $i -le 30 ]; do	## Wait at most appr. 3 seconds
-			if ! kill -0 `get_pid` then
+			if ! kill -0 `get_pid`; then
 				exit 0
 			fi
 			sleep 0.1
