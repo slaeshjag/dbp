@@ -89,7 +89,10 @@ int main(string[] args) {
 					return 1;
 				}
 				
-				ret2 = bus.register_path(args[2], out ret);
+				if (Path.is_absolute(args[2]))
+					ret2 = bus.register_path(args[2], out ret);
+				else
+					ret2 = bus.register_path(Path.build_path(Environment.get_current_dir(), args[2], null), out ret);
 				if (int.parse(ret) < 0) {
 					/* TODO: print error */
 					/* Should probably return something else if it already was registered */
@@ -104,7 +107,10 @@ int main(string[] args) {
 					return 1;
 				}
 				
-				ret = bus.unregister_path(args[2]);
+				if (Path.is_absolute(args[2]))
+					ret = bus.unregister_path(args[2]);
+				else
+					ret = bus.unregister_path(Path.build_path(Environment.get_current_dir(), args[2], null));
 				if (int.parse(ret) < 0) {
 					stderr.printf(_("Warning: package %s isn't registered\n"), args[2]);
 					return 1;
