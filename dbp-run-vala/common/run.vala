@@ -181,7 +181,7 @@ namespace Run {
 		ExecLine exec;
 	
 		if (path_in[0] != '/')
-			path = Environment.get_current_dir() + path_in;
+			path = Path.build_filename(Environment.get_current_dir(), path_in, null);
 		else
 			path = path_in;
 		pkg_id = bus.register_path(path, out error_code);
