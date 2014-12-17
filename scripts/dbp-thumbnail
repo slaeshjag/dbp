@@ -1,6 +1,6 @@
 #!/bin/bash
 
-icon=$(dbp-meta get $1 Icon)
+icon=$(dbp-meta get "$1" Icon)
 if [ "$icon" == "" ]; then
 	exit 1
 fi
