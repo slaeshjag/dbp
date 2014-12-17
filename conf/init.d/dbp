@@ -44,6 +44,7 @@ start_dbpd() {
 		log_failure_message "Can't start $DESC"
 		exit 1
 	fi
+	update-binfmts --import dbp.binfmt
 }
 
 stop_dbpd() {
@@ -61,6 +62,7 @@ stop_dbpd() {
 
 		kill -KILL `get_pid`
 	fi
+	update-binfmts --disable dbp.binfmt
 }
 
 
