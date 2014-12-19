@@ -30,7 +30,7 @@ static struct timeval get_timeout() {
 	struct timeval to;
 
 	to.tv_sec = 0;
-	to.tv_usec = 500000;
+	to.tv_usec = 50000;
 	return to;
 }
 

@@ -91,6 +91,11 @@ int config_init() {
 
 	c.per_user_appdata = config_get_bool(df, "per_user_appdata");
 
+	/* Optional key */
+	c.run_script = desktop_lookup(df, "run_script", "", "Package Daemon Config");
+	if (c.run_script)
+		c.run_script = strdup(c.run_script);
+
 	desktop_free(df);
 	config_struct = c;
 	return 1;

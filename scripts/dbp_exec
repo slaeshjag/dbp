@@ -18,7 +18,7 @@ if [ !%package_enviroment! == 1 ]; then
 
 	# chdir is done by dbp-run, as the union mount might not exist before
 	# dbp-run is runned
-	dbp-run !%package_id! !%package_binary! --env --args "$@"
+	dbp-run --gui-errors --log-output --chdir !%package_id! !%package_binary! "$@"
 else
-	dbp-run !%package_id! !%package_binary! --args "$@"
+	dbp-run !%package_id! !%package_binary! "$@"
 fi

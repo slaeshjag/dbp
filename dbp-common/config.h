@@ -30,6 +30,7 @@ struct config_s {
 	int			create_rodata;
 
 	char			*state_file;
+	char			*run_script;
 };
 
 

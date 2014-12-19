@@ -190,6 +190,7 @@ int main(int argc, char **argv) {
 	/* TODO: Replace with sigaction */
 	signal(SIGTERM, shutdown);
 	signal(SIGINT, shutdown);
+	signal(SIGHUP, shutdown);
 	signal(SIGUSR1, shutdown);
 	signal(SIGUSR2, shutdown);
 

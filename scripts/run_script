@@ -1,0 +1,8 @@
+#!/bin/bash
+## This is an optional run script for use with the DBP system
+## This is not a place to set up an enviroment overriding $HOME et al, that's for the exec
+##	template. This script may be run even for executables that shall have no
+##	environment override, and should as such only be for invoking user pre/post run
+##	scripts, and the likes.
+
+"$@"

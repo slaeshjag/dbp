@@ -158,10 +158,10 @@ void *comm_dbus_loop(void *n) {
 	if (!dbus_connection_register_object_path(dc, DBP_DBUS_DAEMON_OBJECT, &vt, p))
 		fprintf(dbp_error_log, "Unable to register object path\n");
 	dbus_conn_handle = dc;
-	while (dbus_connection_read_write_dispatch (dc, 500)) {
+	while (dbus_connection_read_write_dispatch (dc, 50)) {
 		if (should_die) {
 			/* Flush out the buffers */
-			dbus_connection_read_write_dispatch(dc, 100);
+			dbus_connection_read_write_dispatch(dc, 10);
 			dbus_connection_unref(dc);
 			died = 1;
 			break;

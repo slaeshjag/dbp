@@ -84,19 +84,25 @@ int main(string[] args) {
 				stdout.printf("%s\n", ret);
 				return 0;
 			case "register":
+				string path;
 				if (args.length == 2) {
 					stderr.printf(_("Error: A path to the package that is to be registered needs to be provided\n"));
 					return 1;
 				}
 				
 				if (Path.is_absolute(args[2]))
-					ret2 = bus.register_path(args[2], out ret);
+					path = args[2];
 				else
-					ret2 = bus.register_path(Path.build_path(Environment.get_current_dir(), args[2], null), out ret);
+					path = Path.build_path(Environment.get_current_dir(), args[2], null);
+				ret2 = bus.register_path(path, out ret);
+
 				if (int.parse(ret) < 0) {
-					/* TODO: print error */
-					/* Should probably return something else if it already was registered */
-					return 1;
+					if (int.parse(ret) == -1013)	/* Package already registered */
+						stderr.printf(_("Warning: Package with pkgid %s is already registered at %s\n"), ret2, bus.path_from_id(ret2));
+					else {
+						/* TODO: print error */
+						return 1;
+					}
 				}
 
 				stdout.printf("%s\n", ret2);

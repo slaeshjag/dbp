@@ -150,6 +150,9 @@ namespace Run {
 		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
 		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
 		
+		if (DBP.Config.config.run_script != null)
+			argv += DBP.Config.config.run_script;
+
 		argv += binary_path;
 		foreach(string s in args)
 			argv += s;
