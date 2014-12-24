@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <unistd.h>
 #include <sys/time.h>
@@ -229,6 +230,33 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 }
 
 
+/* This is probably not the right way of doing it */
+static void char_escape_path(char *in) {
+	char *out;
+	int sum;
+
+	for (out = in; *in; out++) {
+		if (*in != '\\')
+			goto next;
+
+		if (isdigit(in[1]))
+			if (isdigit(in[2]))
+				if (isdigit(in[3])) {
+					if (in[1] > '7' || in[2] > '7' || in[3] > '7') 
+						goto next;
+					sum = ((in[1] - '0') << 6) + ((in[2] - '0') << 3) + (in[3] - '0');
+					*in = sum, in += 4;
+					continue;
+				}
+		next:
+
+		*out = *in, in++;
+		continue;
+	}
+	*out = 0;
+}
+
+
 struct mountwatch_change_s mountwatch_diff() {
 	struct mountwatch_change_s change;
 	FILE *fp;
@@ -251,6 +279,9 @@ struct mountwatch_change_s mountwatch_diff() {
 	while (!feof(fp)) {
 		*mount = *device = 0;
 		fscanf(fp, "%256s %256s \n", device, mount);
+		/* /proc/mounts escape space and possibly other chars with \octal notation */
+		char_escape_path(device);
+		char_escape_path(mount);
 
 		if (*device != '/')
 			/* Special filesystem, ignore */

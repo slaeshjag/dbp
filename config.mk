@@ -4,6 +4,8 @@
 NAME		=	dbp
 VERSION		=	0.5
 
+#Uncomment to build dbp-run without dpkg dependency checking
+#BUILD_DPKG	=	NO
 DAEMONBIN	=	"$(TOPDIR)/build/bin/$(NAME)d"
 RUNNERBIN	=	"$(TOPDIR)/build/bin/$(NAME)-run-old"
 CONFIGBIN	=	"$(TOPDIR)/build/bin/$(NAME)-cfg"

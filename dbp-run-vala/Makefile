@@ -3,8 +3,14 @@ VALAPKG = --pkg=gio-2.0 --target-glib 2.32 --pkg glib-2.0 --pkg=posix --pkg=dbp
 VALAFLAGS = --vapidir=./common -X -I../dbp-common -X -I./common --thread -X -DGETTEXT_PACKAGE=\"dbp-run\"
 VALASTATICLIBS = -X ../dbp-common/dbp-common.a
 LIBS = -X -larchive -X -ldpkg
-DEPCHECKLIBS = -X -ldpkg
-DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/*.c
+
+ifeq ($(BUILD_DPKG), NO)
+	DEPCHECKLIBS = -X
+	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/deb_dep_check.nodpkg.c
+else
+	DEPCHECKLIBS = -X -ldpkg
+	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/deb_dep_check.c
+endif
 BINPATH = ../build/bin
 
 all:
