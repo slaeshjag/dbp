@@ -5,7 +5,7 @@ VALASTATICLIBS = -X ../dbp-common/dbp-common.a
 LIBS = -X -larchive -X -ldpkg
 
 ifeq ($(BUILD_DPKG), NO)
-	DEPCHECKLIBS = -X
+	DEPCHECKLIBS =
 	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/deb_dep_check.nodpkg.c
 else
 	DEPCHECKLIBS = -X -ldpkg
