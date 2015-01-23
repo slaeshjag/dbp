@@ -19,6 +19,8 @@ all:
 	+@make -C dbp-common/
 	@echo " [ CD ] dbpd/"
 	+@make -C dbpd/
+	@echo " [ CD ] dbp-thumbnailer/"
+	+@make -C dbp-thumbnailer/
 	@echo " [ CD ] dbp-run-vala/"
 	+@make -C dbp-run-vala/
 	@echo " [ CD ] dbp-cfg/"
@@ -41,6 +43,8 @@ clean:
 	+@make -C dbp-common/ clean
 	@echo " [ CD ] dbpd/"
 	+@make -C dbpd/ clean
+	@echo " [ CD ] dbp-thumbnailer/"
+	+@make -C dbp-thumbnailer/ clean
 	@echo " [ CD ] dbp-run-vala/"
 	+@make -C dbp-run-vala/ clean
 	@echo " [ CD ] dbp-cfg/"

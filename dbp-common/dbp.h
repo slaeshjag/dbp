@@ -8,9 +8,12 @@
 #define	DBP_DBUS_CLIENT_PREFIX	"de.dragonbox.DBP.run"
 #define	DBP_DBUS_DAEMON_PREFIX	"de.dragonbox.PackageDaemon"
 #define	DBP_DBUS_DAEMON_OBJECT	"/de/dragonbox/PackageDaemon"
+#define	DBP_DBUS_THUMB_PREFIX	"de.dragonbox.PackageThumbnail"
+#define	DBP_DBUS_THUMB_OBJECT	"/de/dragonbox/PackageThumbnail"
 
 #define	DBP_FS_NAME		"squashfs"
 #define	DBP_UNIONFS_NAME	"aufs"
+
 
 
 /* ERROR CODES */

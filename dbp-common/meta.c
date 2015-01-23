@@ -54,4 +54,3 @@ int meta_package_open(const char *path, struct meta_package_s *mp) {
 	return errid;
 	
 }
-	

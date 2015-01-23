@@ -1,0 +1,71 @@
+[DBus (name = "de.dragonbox.PackageThumbnail")]
+public class ThumbBus : Object {
+	private ThumbManager tm;
+
+	struct Entry {
+		string uri;
+		uint handle;
+	};
+
+	public class Bus : Object {
+		public signal void ready(uint handle, string uri);
+		public signal void started(uint handle);
+		public signal void finished(uint handle);
+		public signal void error(uint handle, string failed_uri, int error, string message);
+		
+		public void queue(string uri, string mime_type, string flavour, bool urgent, out uint handle) {
+
+		}
+		
+		public void dequeue(uint handle) {
+			
+		}
+	}
+
+	private uint index = 0;
+	private Queue<Entry> 
+
+
+	private void bus_get(DBusConnection conn) {
+		stdout.printf("Bus get!\n");
+		try {
+			conn.register_object("/de/dragonbox/PackageThumbnail", new ThumbBus.Bus()
+		} catch (IOError e) {
+			stderr.printf("Could not register service\n");
+
+		}
+
+	}
+	
+	bool register_bus() {
+		Bus.own_name(BusType.SESSION, "de.dragonbox.PackageThumbnail", BusNameOwnerFlags.NONE, bus_get, () => {}, () => { stderr.printf("Unable to aquire bus\n"); exit(1); });
+		new MainLoop().run();
+	}
+
+
+	bool aquire_bus() {
+		for (;;) {
+			try {
+				tm = Bus.get_proxy_sync(BusType.Session, "org.freedesktop.thumbnails.Manager1", "/org/freedesktop/thumbnails/Manager1");
+				stdout.printf("Connected to thumbnailer\n");
+				return true;
+			} catch (Error e) {
+				continue;
+			}
+			
+			Thread.usleep(100000);
+		}
+	}
+
+	public void ThumbBus() {
+		string[] uri_schemes = {};
+		string[] mime_types = {};
+		
+		aquire_bus();
+	}
+}
+
+[DBus (name = "org.freedesktop.thumbnails.Manager1")]
+public interface ThumbManager : Object {
+	public abstract void register(string object_path, string[] uri_schemes, string[] mime_types) throws IOError;
+}
