@@ -35,7 +35,12 @@ namespace DBP {
 		NO_DEFAULTH,
 		SIGEXIT,
 		SIGSEGV,
-		MYSTKILL,
+		MYSTKILL;
+		
+		public string error_string() {
+			//TODO: fix
+			return this.to_string();
+		}
 	}
 	
 	[CCode (cheader_filename = "config.h")]

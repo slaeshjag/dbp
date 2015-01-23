@@ -15,7 +15,10 @@ int main(string[] args) {
 	Config config = Config() {
 		gui_errors = false
 	};
+	ErrorLog errorlog;
 	bus = null;
+	
+	errorlog = new ErrorLog(ref args);
 	
 	Intl.setlocale(LocaleCategory.MESSAGES, "");
 	Intl.textdomain(GETTEXT_PACKAGE); 
@@ -25,7 +28,7 @@ int main(string[] args) {
 	try {
 		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
 	} catch(Error e) {
-		stderr.printf (_("Error: %s\n"), e.message);
+		errorlog.display(e.message);
 		return 1;
 	}
 	
@@ -60,7 +63,7 @@ int main(string[] args) {
 	try {
 		Run.run_path(argv[0], argv[1:argv.length]);
 	} catch(Error e) {
-		stderr.printf(_("Error: %s\n"), e.message);
+		errorlog.display(e.message);
 		return 1;
 	}
 	

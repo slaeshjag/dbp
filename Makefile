@@ -21,15 +21,15 @@ all:
 	+@make -C dbpd/
 	@echo " [ CD ] dbp-thumbnailer/"
 	+@make -C dbp-thumbnailer/
-	@echo " [ CD ] dbp-run-vala/"
-	+@make -C dbp-run-vala/
+	@echo " [ CD ] dbp-run/"
+	+@make -C dbp-run/
 	@echo " [ CD ] dbp-cfg/"
 	+@make -C dbp-cfg/
 	@echo " [ CD ] dbp-meta/"
 	+@make -C dbp-meta/
 	
 	@echo " [POT ] po/dbp-run.pot"
-	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run-vala/*.vala dbp-run-vala/common/*.vala dbp-cfg/*.c dbp-meta/*.c
+	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c
 	@echo " [ CD ] po/"
 	@make -C po/
 	
@@ -45,8 +45,8 @@ clean:
 	+@make -C dbpd/ clean
 	@echo " [ CD ] dbp-thumbnailer/"
 	+@make -C dbp-thumbnailer/ clean
-	@echo " [ CD ] dbp-run-vala/"
-	+@make -C dbp-run-vala/ clean
+	@echo " [ CD ] dbp-run/"
+	+@make -C dbp-run/ clean
 	@echo " [ CD ] dbp-cfg/"
 	+@make -C dbp-cfg/ clean
 	@echo " [ CD ] dbp-meta/"
