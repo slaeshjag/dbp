@@ -310,7 +310,6 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	int id, errid;
 
 	*coll_id = -1;
-	errid = DBP_ERROR_UNHANDLED;
 	if ((errid = meta_package_open(path, &mp)) < 0)
 		goto error;
 	if (!(pkg_id = desktop_lookup(mp.df, "Id", "", mp.section))) {

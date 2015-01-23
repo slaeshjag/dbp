@@ -73,6 +73,8 @@ namespace DBP {
 			bool per_user_appdata;
 			bool per_package_appdata;
 			bool create_rodata;
+
+			string? run_script;
 		}
 		
 		[CCode (cname = "config_struct")]

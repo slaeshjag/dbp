@@ -1,10 +1,11 @@
 #include "desktop.h"
+#include "dbp.h"
 
 /* A hybrid of a .desktop parser, and a .ini parser. Shouldn't cause too much
 	trouble that it tries to do both */
 
 
-static int desktop_section_new(struct desktop_file_s *df, const char *name) {
+int desktop_section_new(struct desktop_file_s *df, const char *name) {
 	int id;
 
 	id = df->sections++;
@@ -17,7 +18,7 @@ static int desktop_section_new(struct desktop_file_s *df, const char *name) {
 }
 
 
-static int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value) {
+int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value) {
 	struct desktop_file_section_s *s;
 	int e;
 
@@ -31,7 +32,7 @@ static int desktop_entry_new(struct desktop_file_s *df, const char *key, const c
 
 
 int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
-	int s, i;
+	int s, i = 0;
 	
 	if (!df) return -1;
 
@@ -210,8 +211,10 @@ void desktop_write(struct desktop_file_s *df, const char *path) {
 
 	if (!df) return;
 
-	if (!(fp = fopen(path, "w")))
+	if (!(fp = fopen(path, "w"))) {
+		fprintf(stderr, "Unable to write %s\n", path);
 		return;
+	}
 	for (i = 0; i < df->sections; i++) {
 		if (df->section[i].name)
 			fprintf(fp, "[%s]\n", df->section[i].name);

@@ -1,4 +1,4 @@
 [Thumbnailer Entry]
 TryExec=dbp-thumbnail
-Exec=dbp-thumbnail %u %o
+Exec=dbp-thumbnail %i %o
 MimeType=application/x-dbp

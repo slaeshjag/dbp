@@ -11,6 +11,7 @@ public interface DBPBus : Object {
 	public abstract string path_from_id(string pkg_id) throws IOError;
 	public abstract string id_from_path(string path) throws IOError;
 	public abstract string[] package_list(string donotcare = "") throws IOError;
+	public abstract string ping(string donotcare = "") throws IOError;
 }
 
 DBPBus bus;

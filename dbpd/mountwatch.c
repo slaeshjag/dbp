@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <unistd.h>
 #include <sys/time.h>
@@ -16,13 +17,41 @@
 /* I keep almost typing mouthwash.. <.< */
 struct mountwatch_s mountwatch_struct;
 
+void mountwatch_kill() {
+	mountwatch_struct.should_die = 1;
+}
+
+
+int mountwatch_died() {
+	return mountwatch_struct.died && mountwatch_struct.died2;
+}
+
+
+static struct timeval get_timeout() {
+	struct timeval to;
+
+	to.tv_sec = 0;
+	to.tv_usec = 50000;
+	return to;
+}
+
 
 void *mountwatch_dirchange() {
+	struct timeval timeout;
 	fd_set set;
 	for (;;) {
 		FD_ZERO(&set);
 		FD_SET(mountwatch_struct.dir_fd, &set);
-		select(FD_SETSIZE, &set, NULL, NULL, NULL);
+		timeout = get_timeout();
+		if (select(FD_SETSIZE, &set, NULL, NULL, &timeout) < 1) {
+			if (!mountwatch_struct.should_die)
+				continue;
+		}
+
+		if (mountwatch_struct.should_die) {
+			mountwatch_struct.died2 = 1;
+			pthread_exit(NULL);
+		}
 
 		pthread_mutex_lock(&mountwatch_struct.dir_watch_mutex);
 		mountwatch_struct.dir_change = 1;
@@ -35,6 +64,7 @@ void *mountwatch_dirchange() {
 
 void *mountwatch_loop(void *null) {
 	int mountfd;
+	struct timeval to;
 	fd_set watch;
 
 	(void) null;
@@ -44,10 +74,18 @@ void *mountwatch_loop(void *null) {
 	}
 
 	for (;;) {
+		if (mountwatch_struct.should_die) {
+			mountwatch_struct.died = 1;
+			/* Wakes up the dirwatch thread */
+			sem_post(&mountwatch_struct.dir_watch_continue);
+			pthread_exit(NULL);
+		}
+
+		to = get_timeout();
 		FD_ZERO(&watch);
 		FD_SET(mountfd, &watch);
-		select(mountfd + 1, NULL, NULL, &watch, NULL);
-		sem_post(&mountwatch_struct.changed);
+		if (select(mountfd + 1, NULL, NULL, &watch, &to) >= 0)
+			sem_post(&mountwatch_struct.changed);
 	}
 }
 
@@ -60,6 +98,7 @@ int mountwatch_init() {
 	sem_init(&mountwatch_struct.dir_watch_continue, 0, 0);
 	mountwatch_struct.entry = NULL, mountwatch_struct.entries = 0;
 	mountwatch_struct.ientry = NULL, mountwatch_struct.ientries = 0;
+	mountwatch_struct.should_die = 0, mountwatch_struct.died = mountwatch_struct.died2 = 0;
 	if (pthread_create(&th, NULL, mountwatch_loop, NULL)) {
 		fprintf(dbp_error_log, "Error: Unable to create mountpoint watch process\n");
 		return 0;
@@ -191,6 +230,33 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 }
 
 
+/* This is probably not the right way of doing it */
+static void char_escape_path(char *in) {
+	char *out;
+	int sum;
+
+	for (out = in; *in; out++) {
+		if (*in != '\\')
+			goto next;
+
+		if (isdigit(in[1]))
+			if (isdigit(in[2]))
+				if (isdigit(in[3])) {
+					if (in[1] > '7' || in[2] > '7' || in[3] > '7') 
+						goto next;
+					sum = ((in[1] - '0') << 6) + ((in[2] - '0') << 3) + (in[3] - '0');
+					*in = sum, in += 4;
+					continue;
+				}
+		next:
+
+		*out = *in, in++;
+		continue;
+	}
+	*out = 0;
+}
+
+
 struct mountwatch_change_s mountwatch_diff() {
 	struct mountwatch_change_s change;
 	FILE *fp;
@@ -213,6 +279,9 @@ struct mountwatch_change_s mountwatch_diff() {
 	while (!feof(fp)) {
 		*mount = *device = 0;
 		fscanf(fp, "%256s %256s \n", device, mount);
+		/* /proc/mounts escape space and possibly other chars with \octal notation */
+		char_escape_path(device);
+		char_escape_path(mount);
 
 		if (*device != '/')
 			/* Special filesystem, ignore */

@@ -4,14 +4,50 @@
 #include <limits.h>
 #include <dirent.h>
 #include <string.h>
+#include <signal.h>
 #include "mountwatch.h"
 #include "config.h"
 #include "package.h"
 #include "dbp.h"
 #include "comm.h"
 #include "loop.h"
+#include "state.h"
 
 FILE *dbp_error_log;
+static struct package_s *p_s;
+
+static void sleep_usec(int usec) {
+	#if 0
+	struct timespec ts;
+	ts.tv_sec = 0;
+	ts.tv_sec = usec * 1000;
+	nanosleep(&ts, NULL);
+	#else
+	usleep(usec);
+	#endif
+	return;
+}
+
+
+/* Responisble for saving all state when it's time to shut down */
+void shutdown(int signal) {
+	((void) signal);
+
+	fprintf(dbp_error_log, "Killing mountwatch...\n");
+	mountwatch_kill();
+	/* Wait for mountwatch threads to die */
+	while (!mountwatch_died())
+		sleep_usec(1000);
+	fprintf(dbp_error_log, "Killing dbus...\n");
+	comm_kill();
+	/* Wait for dbus thread to die */
+	while (!comm_died())
+		sleep_usec(1000);
+	fprintf(dbp_error_log, "Dumping state...\n");
+	state_dump(p_s);
+	exit(0);
+}
+
 
 static int daemon_nuke_dir(char *dir) {
 	DIR *d;
@@ -80,14 +116,33 @@ static int daemon_init() {
 }
 
 
+static void create_pidfile() {
+	FILE *fp;
+
+	if ((fp = fopen("/var/run/dbpd.pid", "w"))) {
+		fprintf(fp, "%i", getpid());
+		fclose(fp);
+	}
+
+	return;
+}
+
+void die(int signal) {
+	if (signal == SIGALRM)
+		exit(1);
+	exit(0);
+}
+
+
 int main(int argc, char **argv) {
 	struct mountwatch_change_s change;
 	struct package_s p;
-	int i;
+	int i, sig_parent = 0;
 	char *n;
 	pid_t procid;
 
 	dbp_error_log = stderr;
+	p_s = &p;
 	if (!config_init())
 		return -1;
 	if (!(dbp_error_log = fopen(config_struct.daemon_log, "w"))) {
@@ -97,15 +152,24 @@ int main(int argc, char **argv) {
 		setbuf(dbp_error_log, NULL);
 
 	p = package_init();
+	state_recover(&p);
 
 	if (argc > 1 && !strcmp(argv[1], "-d")) {	/* Daemonize */
+		sig_parent = 1;
 		if ((procid = fork()) < 0) {
 			fprintf(stderr, "Unable to fork();\n");
 			return 1;
 		}
 
-		if (procid)
+		if (procid) {
+			/* Make sure we don't get stuck forever... */
+			signal(SIGINT, die);
+			signal(SIGALRM, die);
+			alarm(5);
+			pause();
 			exit(0);
+		}
+
 		umask(0);
 		if (setsid() < 0) {
 			fprintf(stderr, "Unable to setsid()\n");
@@ -116,9 +180,19 @@ int main(int argc, char **argv) {
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
+		create_pidfile();
 	}
 	
 	comm_dbus_register(&p);
+	if (sig_parent)
+		kill(getppid(), SIGINT);
+
+	/* TODO: Replace with sigaction */
+	signal(SIGTERM, shutdown);
+	signal(SIGINT, shutdown);
+	signal(SIGHUP, shutdown);
+	signal(SIGUSR1, shutdown);
+	signal(SIGUSR2, shutdown);
 
 	if (!mountwatch_init())
 		exit(-1);

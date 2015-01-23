@@ -69,7 +69,7 @@ void add_meta(string path) {
 	try {
 		var src = File.new_for_path(path);
 		var dest = File.new_for_path(dest_path);
-		if (dest_path.has_prefix("__dbp__") && dest_path.has_suffix(".desktop"))
+		if (Path.get_basename(dest_path).has_prefix("__dbp__") && dest_path.has_suffix(".desktop"))
 			src.copy(dest, FileCopyFlags.NONE);
 		else
 			stderr.printf(_("Warning: Requested to copy a file that isn't a DBP .desktop file\n"));
@@ -84,7 +84,7 @@ void remove_meta(string path) {
 	string dest;
 
 	dest = desktop_path(path);
-	if (dest.has_prefix("__dbp__") && dest.has_suffix(".desktop"))
+	if (Path.get_basename(dest).has_prefix("__dbp__") && dest.has_suffix(".desktop"))
 		GLib.FileUtils.unlink(desktop_path(path));
 	else
 		stderr.printf("Warning: Requested to remove a file that isn't a DBP .desktop file\n");

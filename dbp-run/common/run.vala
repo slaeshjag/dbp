@@ -150,6 +150,9 @@ namespace Run {
 		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
 		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
 		
+		if (DBP.Config.config.run_script != null)
+			argv += DBP.Config.config.run_script;
+
 		argv += binary_path;
 		foreach(string s in args)
 			argv += s;
@@ -171,14 +174,19 @@ namespace Run {
 		bus.u_mount(mount_id);
 	}
 	
-	public void run_path(string path, string[] args) throws IOError, SpawnError {
+	public void run_path(string path_in, string[] args) throws IOError, SpawnError {
 		string pkg_id;
 		string error_code;
 		string actual_path;
 		string exec_name;
+		string path;
 		DBP.Meta.Package meta;
 		ExecLine exec;
-		
+	
+		if (path_in[0] != '/')
+			path = Path.build_filename(Environment.get_current_dir(), path_in, null);
+		else
+			path = path_in;
 		pkg_id = bus.register_path(path, out error_code);
 		if(pkg_id == "!")
 			throw new IOError.FAILED(error_code);

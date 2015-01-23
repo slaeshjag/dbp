@@ -1,0 +1,14 @@
+[Unit]
+Description=DragonBox Package Daemon
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/dbpd -d
+PIDFile=/var/run/dbpd.pid
+Restart=on-abort
+TimeoutStopSec=1
+ExecStartPost=-/usr/sbin/update-binfmts --import dbp.binfmt
+ExecStopPost=-/usr/sbin/update-binfmts --disable dbp.binfmt
+
+[Install]
+WantedBy=multi-user.target

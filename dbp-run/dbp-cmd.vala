@@ -14,6 +14,7 @@ void usage() {
 	stdout.printf(_("\tid		- Returns the pkgid for the package at <path>\n"));
 	stdout.printf(_("\tpath		- Returns the path for the package with id <pkgid>\n"));
 	stdout.printf(_("\tlist		- Lists all registered packages\n"));
+	stdout.printf(_("\tping		- Pings dbpd, exits with a failure if dbpd isn't running\n"));
 	stdout.printf("\n");
 	stdout.printf(_("pkgid is a unique ID that every valid package has\n"));
 	stdout.printf(_("A registered package have its executables and .desktop files exported\n"));
@@ -83,16 +84,25 @@ int main(string[] args) {
 				stdout.printf("%s\n", ret);
 				return 0;
 			case "register":
+				string path;
 				if (args.length == 2) {
 					stderr.printf(_("Error: A path to the package that is to be registered needs to be provided\n"));
 					return 1;
 				}
 				
-				ret2 = bus.register_path(args[2], out ret);
+				if (Path.is_absolute(args[2]))
+					path = args[2];
+				else
+					path = Path.build_path(Environment.get_current_dir(), args[2], null);
+				ret2 = bus.register_path(path, out ret);
+
 				if (int.parse(ret) < 0) {
-					/* TODO: print error */
-					/* Should probably return something else if it already was registered */
-					return 1;
+					if (int.parse(ret) == -1013)	/* Package already registered */
+						stderr.printf(_("Warning: Package with pkgid %s is already registered at %s\n"), ret2, bus.path_from_id(ret2));
+					else {
+						/* TODO: print error */
+						return 1;
+					}
 				}
 
 				stdout.printf("%s\n", ret2);
@@ -103,7 +113,10 @@ int main(string[] args) {
 					return 1;
 				}
 				
-				ret = bus.unregister_path(args[2]);
+				if (Path.is_absolute(args[2]))
+					ret = bus.unregister_path(args[2]);
+				else
+					ret = bus.unregister_path(Path.build_path(Environment.get_current_dir(), args[2], null));
 				if (int.parse(ret) < 0) {
 					stderr.printf(_("Warning: package %s isn't registered\n"), args[2]);
 					return 1;
@@ -146,6 +159,9 @@ int main(string[] args) {
 					stdout.printf("'%s' '%s' '%s'\n", reta[i*3], reta[i*3+1], reta[i*3+2]);
 				}
 
+				return 0;
+			case "ping":
+				bus.ping();
 				return 0;
 			case "help":
 				usage();

@@ -1,0 +1,103 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:		dbp
+# Required-Start:	$syslog dbus
+# Required-Stop:	$syslog dbus
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	DragonBox Package daemon
+# Description:		System daemon for auto-discovery
+#			and mounting of DragonBox Packages
+### END INIT INFO
+
+DAEMON=/usr/bin/dbpd
+NAME=dbp
+PIDFILE=/var/run/dbpd.pid
+DESC="DragonBox Package Daemon"
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+
+get_pid() {
+	cat "$PIDFILE"
+}
+
+
+dbpd_running() {
+	dbp-cmd ping
+	return $?
+}
+
+
+start_dbpd() {
+	if dbpd_running; then
+		log_succes_message "$DESC is already running"
+		return
+	fi
+
+	log_daemon_msg "Starting $DESC $NAME"
+	dbpd -d
+
+	if ! dbpd_running; then
+		log_failure_message "Can't start $DESC"
+		exit 1
+	fi
+	update-binfmts --import dbp.binfmt
+}
+
+stop_dbpd() {
+	if dbpd_running; then
+		log_daemon_msg "Stopping $NAME..."
+		kill -TERM `get_pid`
+		i=0
+		while [ $i -le 30 ]; do	## Wait at most appr. 3 seconds
+			if ! kill -0 `get_pid`; then
+				exit 0
+			fi
+			sleep 0.1
+			i=`expr $i + 1`
+		done
+
+		kill -KILL `get_pid`
+	fi
+	update-binfmts --disable dbp.binfmt
+}
+
+
+restart_dbpd() {
+	stop_dbpd
+	start_dbpd
+}
+
+
+status_dbpd() {
+	if dbpd_running; then
+		echo "Running"
+	else
+		echo "Stopped"
+		exit 1
+	fi
+}
+
+case "$1" in
+	start)
+	start_dbpd
+	;;
+	stop)
+	stop_dbpd
+	;;
+	restart)
+	restart_dbpd
+	;;
+	status)
+	status_dbpd
+	;;
+	*)
+	echo "Usage: $0 {start|stop|restart|status}"
+	exit 1
+	;;
+esac
+
+exit 0

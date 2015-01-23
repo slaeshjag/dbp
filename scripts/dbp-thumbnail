@@ -1,9 +1,9 @@
 #!/bin/bash
 
-icon=$(dbp-meta get $1 Icon)
-if [ "$icon" -eq "" ]; then
+icon=$(dbp-meta get "$1" Icon)
+if [ "$icon" == "" ]; then
 	exit 1
 fi
 
-unzip -p $1 "icons/$icon" > $2
+unzip -p "$1" "icons/$icon" > "$2"
 exit $?

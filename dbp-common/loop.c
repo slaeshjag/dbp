@@ -274,12 +274,12 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 			goto fail;
 
 	free(user_dir), user_dir = NULL;
-	free(img_dir), img_dir = NULL;
 	free(rodata_dir), rodata_dir = NULL;
 
 	if (mount("none", mount_path, DBP_UNIONFS_NAME, 0, mount_opt) < 0)
 		goto union_failed;
 
+	free(img_dir), img_dir = NULL;
 	free(mount_path), mount_path = NULL;
 	free(mount_opt);
 	return loop_n;
@@ -298,6 +298,7 @@ illegal_dirname:
 	goto fail;
 union_failed:
 	fprintf(dbp_error_log, "%s, %s\n", mount_opt, strerror(errno));
+	umount(img_dir);
 	ret = DBP_ERROR_UNION_FAILED;
 fail:
 	free(img_dir);

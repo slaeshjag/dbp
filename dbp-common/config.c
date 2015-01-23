@@ -85,10 +85,16 @@ int config_init() {
 	c.dbpout_prefix = config_request_entry(df, "dbpout_prefix");
 	c.dbpout_suffix = config_request_entry(df, "dbpout_suffix");
 	c.daemon_log = config_request_entry(df, "daemon_log");
+	c.state_file = config_request_entry(df, "state_file");
 
 	c.exec_template = config_request_entry(df, "exec_template");
 
 	c.per_user_appdata = config_get_bool(df, "per_user_appdata");
+
+	/* Optional key */
+	c.run_script = desktop_lookup(df, "run_script", "", "Package Daemon Config");
+	if (c.run_script)
+		c.run_script = strdup(c.run_script);
 
 	desktop_free(df);
 	config_struct = c;
