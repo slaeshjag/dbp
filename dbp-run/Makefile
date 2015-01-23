@@ -19,4 +19,4 @@ all:
 	@echo "Done."
 
 clean:
-	@echo " Nothing needs to be done to clean dbp-run-vala/"
+	@echo " Nothing needs to be done to clean dbp-run/"

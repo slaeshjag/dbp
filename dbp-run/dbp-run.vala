@@ -20,9 +20,10 @@ int main(string[] args) {
 		log_output = false,
 		chdir = false
 	};
+	ErrorLog errorlog;	
 	bus = null;
 	
-	ErrorLog.init(ref args);
+	errorlog = new ErrorLog(ref args);
 	
 	
 	Intl.setlocale(LocaleCategory.MESSAGES, "");
@@ -33,7 +34,7 @@ int main(string[] args) {
 	try {
 		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
 	} catch(Error e) {
-		ErrorLog.display(e.message);
+		errorlog.display(e.message);
 		return 1;
 	}
 	
@@ -74,7 +75,7 @@ int main(string[] args) {
 	try {
 		Run.run(argv[0], argv[1], argv[2:argv.length], config.log_output, config.chdir);
 	} catch(Error e) {
-		ErrorLog.display(e.message);
+		errorlog.display(e.message);
 		return 1;
 	}
 	
