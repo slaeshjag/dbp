@@ -23,7 +23,7 @@ public class ErrorLog {
 		_("This package lacks a default executable, and therefore cannot be executed directly."),
 		_("The program was killed by a signal"),
 		_("The program has crashed from a segmentation fault. This likely a bug in the program."),
-		_("The program exited abnormally for an unknown reason."),
+		_("The program exited abnormally for an unknown reason.")
 	};
 	
 	public ErrorLog(ref unowned string[] args) {
@@ -38,11 +38,27 @@ public class ErrorLog {
 	}
 	
 	public void display(string message) {
+		string error_msg, path, package_id;
+		if (Run.package_path == null)
+			path = _("Unknown");
+		else
+			path = Run.package_path;
+
+		if (Run.package_id == null)
+			package_id = _("Unknown");
+		else
+			package_id = Run.package_id;
+		
+		error_msg = _("Error: ") + message + "\n\n" + _("Path: ") + path + "\n" + _("Package ID: ") + package_id;
 		if(use_gui) {
-			var msgbox = new MessageDialog(null, DialogFlags.MODAL, MessageType.ERROR, ButtonsType.OK, _("Error: %s\n"), message);
-			msgbox.run();
+			if (int.parse(message) < 0)
+				display_errno(int.parse(message));
+			else {
+				MessageDialog msgbox = new MessageDialog(null, DialogFlags.MODAL, MessageType.ERROR, ButtonsType.OK, error_msg, message);
+				msgbox.run();
+			}
 		} else {
-			stdout.printf(_("Error: %s\n"), message);
+			stdout.printf(error_msg);
 		}
 	}
 }

@@ -59,7 +59,9 @@ int main(string[] args) {
 		usage();
 		return 1;
 	}
-	
+
+	Run.package_path = argv[0];
+
 	try {
 		Run.run_path(argv[0], argv[1:argv.length]);
 	} catch(Error e) {

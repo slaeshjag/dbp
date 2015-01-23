@@ -31,13 +31,6 @@ int main(string[] args) {
 	Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
 	DBP.Config.init();
 	
-	try {
-		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
-	} catch(Error e) {
-		errorlog.display(e.message);
-		return 1;
-	}
-	
 	parse_option = true;
 	foreach(string s in args[1:args.length]) {
 		if(s.length < 1 || s[0] != '-' || s[1] != '-')
@@ -67,11 +60,21 @@ int main(string[] args) {
 		}
 	}
 	
+	try {
+		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
+	} catch(Error e) {
+		errorlog.display(e.message);
+		return 1;
+	}
+	
+	
 	if(argv.length < 2) {
 		usage();
 		return 1;
 	}
 	
+	Run.package_id = argv[0];
+
 	try {
 		Run.run(argv[0], argv[1], argv[2:argv.length], config.log_output, config.chdir);
 	} catch(Error e) {

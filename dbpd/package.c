@@ -353,7 +353,7 @@ int package_register_path(struct package_s *p, const char *device, const char *p
 
 	if (!package_filename_interesting(path)) {
 		*pkg_id = strdup("!");
-		return 0;
+		return DBP_ERROR_BAD_FSIMG;
 	}
 
 	pthread_mutex_lock(&p->mutex);

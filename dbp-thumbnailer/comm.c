@@ -146,5 +146,3 @@ void comm_dbus_announce_error(uint32_t handle, const char *uri, enum ThumbError 
 	free(msgc);
 }
 
-
-

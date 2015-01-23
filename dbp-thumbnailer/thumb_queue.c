@@ -47,6 +47,7 @@ static struct ThumbMemBuffer load_icon(char *path) {
 	
 	tmb.data = NULL;
 	if (meta_package_open(path, &mp) < 0)
+		// Generate a thumb of a broken DBP?
 		return tmb;
 	if (!(icon = desktop_lookup(mp.df, "Icon", "", "Package Entry")))
 		goto error;
@@ -92,37 +93,43 @@ static char *locate_thumbnail_file(char *uri) {
 }
 
 
-static bool convert_image(struct ThumbMemBuffer buff, struct ThumbQueue *queue, char *url) {
+static bool convert_image(struct ThumbMemBuffer buff, struct ThumbQueue *queue, char *url, enum ThumbError *errp, char **errstrp) {
 	FILE *fp;
-	char *tmpname, atime[63], *thumb_file, *thumb_file_write;
+	char *tmpname, atime[63], *thumb_file, *thumb_file_write, *errmsg;
 	struct utimbuf newtime;
 	struct stat thumb, file;
 	enum ThumbError err;
+	bool error;
 	Imlib_Image *img;
+
+	error = false;
 
 	if (!(thumb_file = locate_thumbnail_file(queue->uri)))
 		goto error;
 	thumb_file_write = malloc(strlen(thumb_file) + 5);
 	sprintf(thumb_file_write, "%s.prt", thumb_file);
-	if (stat(url, &thumb) < 0) {
-		err = THUMB_ERROR_BAD_MIME;
-		goto error;
-	}
-	if (!stat(url, &file)) {
-		if (thumb.st_mtim.tv_sec >= file.st_mtim.tv_sec) {
-			goto exit;
-		}
-	}
+	if (stat(thumb_file, &thumb) < 0)
+		goto do_thumb;
 	
+	if (!stat(url, &file))
+		if (thumb.st_mtim.tv_sec >= file.st_mtim.tv_sec)
+			goto exit;
+	
+	do_thumb:
 	tmpname = tempnam(getenv("XDG_RUNTIME_DIR"), "thumb");
-	if (!(fp = fopen(tmpname, "w")))
+	if (!(fp = fopen(tmpname, "w"))) {
+		err = THUMB_ERROR_I_AM_A_TEAPOT;
+		errmsg = "Unable to create temporary thumbnail";
 		goto error;
+	}
 
 	fwrite(buff.data, buff.len, 1, buff.data);
 	fclose(fp);
 	
 	if (!(img = imlib_load_image_immediately(tmpname))) {
 		fprintf(stderr, "imlib failed to open\n");
+		err = THUMB_ERROR_BAD_DATA;
+		errmsg = "File contained an invalid icon";
 		goto error;
 	}
 
@@ -136,13 +143,20 @@ static bool convert_image(struct ThumbMemBuffer buff, struct ThumbQueue *queue, 
 	newtime.modtime = file.st_mtim.tv_sec;
 	utime(thumb_file_write, &newtime);
 
-	if (rename(thumb_file_write, thumb_file))
+	if (rename(thumb_file_write, thumb_file)) {
+		err = THUMB_ERROR_SAVE_ERROR;
+		errmsg = "Unable to rename thumbnail to final name";
 		goto error;
+	}
 	
 	goto exit;
 
 	error:
 	unlink(thumb_file_write);
+	*errp = err;
+	*errstrp = errmsg;
+	error = true;
+
 	/* TODO: Signal error */
 
 	exit:
@@ -151,29 +165,42 @@ static bool convert_image(struct ThumbMemBuffer buff, struct ThumbQueue *queue, 
 	free(tmpname);
 	free(thumb_file);
 	free(thumb_file_write);
+	return error;
 }
 
 
 static void create_thumbnail(struct ThumbQueue *queue) {
 	char *path;
 	struct ThumbMemBuffer buff;
+	enum ThumbError err;
+	char *errstr;
+
+	if (strcmp(queue->flavour, "normal")) {
+		err = THUMB_ERROR_BAD_TASTE;
+		errstr = "Unsupported flavour";
+		goto error;
+	}
 
 	buff.data = NULL;
 	if (!(path = strstr(queue->uri, "file://")))
 		path = queue->uri;
 	buff = load_icon(path);
 	if (!buff.data) {
-		
+		err = THUMB_ERROR_BAD_DATA;
+		errstr = "Package is invalid/didn't have an icon";
 		goto error;
 	}
-	if (!convert_image(buff, queue, path))
+	if (!convert_image(buff, queue, path, &err, &errstr))
 		goto error;
 	free(buff.data);
+	comm_dbus_announce_ready(queue->id, queue->uri);
 	goto exit;
 
 	error:
+	comm_dbus_announce_error(queue->id, queue->uri, err, errstr);
 
 	exit:
+	comm_dbus_announce_finished(queue->id);
 	free(buff.data);
 	return;
 
@@ -202,7 +229,7 @@ void *thumb_worker(void *bah) {
 				continue;
 			
 			comm_dbus_announce_started(this->id);
-			create_thumbnail(this->uri);
+			create_thumbnail(this);
 			clear_entry(this);
 		} while (this);
 	}
@@ -221,6 +248,7 @@ int thumb_queue(const char *uri, const char *flavour) {
 	thumb_state.last = new;
 	new->id = thumb_state.counter++;
 	pthread_mutex_unlock(&thumb_state.mutex);
+	return new->id;
 }
 
 

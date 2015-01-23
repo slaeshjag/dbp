@@ -1,5 +1,8 @@
 namespace Run {
 	const int appdata_mode = 0755;
+
+	string? package_path = null;
+	string? package_id = null;
 	
 	class OutputLogger {
 		int fd;
@@ -91,7 +94,7 @@ namespace Run {
 		
 		mountpoint = bus.mount_point_get(pkg_id);
 		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
-			throw new IOError.FAILED(_("Failed to find mountpoint"));
+			throw new IOError.FAILED(_("Failed to find the mountpoint that this package resides on"));
 		
 		if(DBP.Config.config.per_user_appdata) {
 			appdata = DBP.Config.config.data_directory + "_" + Environment.get_user_name();
@@ -102,17 +105,23 @@ namespace Run {
 		}
 	
 		if (DBP.Config.config.per_package_appdata) {
-			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata, appdata_name), appdata_mode);
+			var dir = Path.build_filename(mountpoint, appdata, appdata_name);
+			DirUtils.create_with_parents(dir, appdata_mode);
+			if (!FileUtils.test(dir, FileTest.IS_DIR))
+				throw new IOError.FAILED(_("Unable to create appdata directory") + " " + dir + "\n" + _("Make sure you have the file system permissions to create this directory"));
 			if (DBP.Config.config.create_rodata)
 				DirUtils.create_with_parents(Path.build_filename(mountpoint, roappdata, appdata_name), appdata_mode);
 		} else {
-			DirUtils.create_with_parents(Path.build_filename(mountpoint, appdata), appdata_mode);
+			var dir = Path.build_filename(mountpoint, appdata);
+			DirUtils.create_with_parents(dir, appdata_mode);
+			if (!FileUtils.test(dir, FileTest.IS_DIR))
+				throw new IOError.FAILED(_("Unable to create appdata directory") + " " + dir + "\n" + _("Make sure you have the file system permissions to create this directory"));
 			if (DBP.Config.config.create_rodata)
 				DirUtils.create_with_parents(Path.build_filename(mountpoint, roappdata), appdata_mode);
 		}
 	}
 	
-	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir) throws IOError, SpawnError {
+	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir) throws IOError, SpawnError, Error {
 		string mount_id;
 		string binary_path;
 		string ?cwd;
@@ -127,12 +136,17 @@ namespace Run {
 		
 		if (pkg_id == null)
 			return;
-		
-		pkgpath = bus.path_from_id(pkg_id);
-
+	
+		try {
+			pkgpath = bus.path_from_id(pkg_id);
+		} catch (Error e) {
+			throw new IOError.FAILED(_("Unable to connect to connect to dbpd, make sure dbpd is running\n\n" + e.message));
+		}
+	
 		if (pkgpath == null || pkgpath == "" || pkgpath == "!")
 			throw new IOError.FAILED(_("pkgid is not in the database"));
-		
+	
+		Run.package_path = pkgpath;
 		DBP.Meta.package_open(pkgpath, out pkg);
 		
 		if (!dependency_ok(pkg_id, pkg))
@@ -174,7 +188,7 @@ namespace Run {
 		bus.u_mount(mount_id);
 	}
 	
-	public void run_path(string path_in, string[] args) throws IOError, SpawnError {
+	public void run_path(string path_in, string[] args) throws IOError, SpawnError, Error {
 		string pkg_id;
 		string error_code;
 		string actual_path;
@@ -187,11 +201,18 @@ namespace Run {
 			path = Path.build_filename(Environment.get_current_dir(), path_in, null);
 		else
 			path = path_in;
-		pkg_id = bus.register_path(path, out error_code);
+
+		try {
+			pkg_id = bus.register_path(path, out error_code);
+		} catch (Error e) {
+			throw new IOError.FAILED(_("Unable to connect to connect to dbpd, make sure dbpd is running\n\n" + e.message));
+		}
 		if(pkg_id == "!")
 			throw new IOError.FAILED(error_code);
-	
+		
+		Run.package_id = pkg_id;
 		actual_path = bus.path_from_id(pkg_id);
+		Run.package_path = actual_path;
 		DBP.Meta.package_open(actual_path, out meta);
 		exec_name = meta.desktop_file.lookup("Exec", "", "Desktop Entry");
 		if (exec_name == null)
