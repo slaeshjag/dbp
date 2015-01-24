@@ -28,6 +28,7 @@ namespace Run {
 					break;
 				f.write(buf[0:bytes], 1);
 				stream.write(buf[0:bytes], 1);
+				stream.flush();
 			}
 			Posix.close(fd);
 			return 0;
