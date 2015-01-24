@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+void comm_dbus_register_thumbnailer();
 void comm_dbus_announce_started(uint32_t handle);
 void comm_dbus_announce_finished(uint32_t handle);
 void comm_dbus_announce_ready(uint32_t handle, const char *uri);

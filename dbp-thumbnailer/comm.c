@@ -11,6 +11,7 @@
 #include "util.h"
 
 DBusConnection *dbus_conn_handle;
+void comm_dbus_register_thumbnailer();
 
 void comm_dbus_unregister(DBusConnection *dc, void *n) {
 	(void) n;
@@ -23,7 +24,7 @@ void comm_dbus_unregister(DBusConnection *dc, void *n) {
 DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, void *n) {
 	DBusMessage *ndm;
 	DBusMessageIter iter;
-	const char *uri;
+	const char *uri, *flavour;
 	uint32_t ret;
 
 	if (!dbus_message_iter_init(dm, &iter)) {
@@ -35,7 +36,12 @@ DBusHandlerResult comm_dbus_msg_handler(DBusConnection *dc, DBusMessage *dm, voi
 
 	if (dbus_message_is_method_call(dm, DBP_DBUS_THUMB_PREFIX, "Queue")) {
 		dbus_message_iter_get_basic(&iter, &uri);
-		ret = thumb_queue(uri);
+		if (!dbus_message_iter_next(&iter) || !dbus_message_iter_next(&iter)) {
+			fprintf(stderr, "Bad queue command\n");
+			return DBUS_HANDLER_RESULT_HANDLED;
+		}
+		dbus_message_iter_get_basic(&iter, &flavour);
+		ret = thumb_queue(uri, flavour);
 		dbus_message_append_args(ndm, DBUS_TYPE_UINT32, &ret, DBUS_TYPE_INVALID);
 	} else if (dbus_message_is_method_call(dm, DBP_DBUS_THUMB_PREFIX, "Dequeue")) {
 		fprintf(stderr, "STUB: %s/Dequeue()\n", DBP_DBUS_THUMB_OBJECT);
@@ -74,6 +80,7 @@ void *comm_dbus_loop(void *n) {
 	if (!dbus_connection_register_object_path(dc, DBP_DBUS_THUMB_OBJECT, &vt, p))
 		fprintf(dbp_error_log, "Unable to register object path\n");
 	dbus_conn_handle = dc;
+	comm_dbus_register_thumbnailer();
 	while (dbus_connection_read_write_dispatch(dc, 100));
 
 	fprintf(dbp_error_log, "dbus exit\n");
@@ -146,3 +153,42 @@ void comm_dbus_announce_error(uint32_t handle, const char *uri, enum ThumbError 
 	free(msgc);
 }
 
+
+void comm_dbus_register_thumbnailer() {
+	char **uri_sch, **mime, *object;
+	DBusMessage *dm;
+	DBusPendingCall *pending;
+
+	uri_sch = malloc(sizeof(*uri_sch) * 2);
+	mime = malloc(sizeof(*mime) * 2);
+	*uri_sch = strdup("file");
+	*mime = strdup("application/x-dbp");
+	object = strdup(DBP_DBUS_THUMB_OBJECT);
+	uri_sch[1] = NULL;
+	mime[1] = NULL;
+
+	dm = dbus_message_new_method_call("org.freedesktop.thumbnails.Manager1", "/org/freedesktop/thumbnails/Manager1", "org.freedesktop.thumbnails.Manager1", "Register");
+	dbus_message_append_args(dm, DBUS_TYPE_STRING, &object, DBUS_TYPE_INVALID);
+	dbus_message_append_args(dm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &uri_sch, 1, DBUS_TYPE_INVALID);
+	dbus_message_append_args(dm, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &mime, 1, DBUS_TYPE_INVALID);
+	dbus_connection_send_with_reply(dbus_conn_handle, dm, &pending, 1000);
+	if (!pending) {
+		fprintf(stderr, "Unable to send registration message\n");
+		exit(1);
+	}
+
+	dbus_connection_flush(dbus_conn_handle);
+	dbus_pending_call_block(pending);
+	dbus_message_unref(dm);
+	if (!(dm = dbus_pending_call_steal_reply(pending))) {
+		dbus_pending_call_unref(pending);
+		fprintf(stderr, "No reply from org.freedesktop.thumbnails.Manager1, trying again in a second\n");
+		sleep(1);
+		return comm_dbus_register_thumbnailer();
+	}
+
+	dbus_pending_call_unref(pending);
+	dbus_message_unref(dm);
+
+	return;
+}

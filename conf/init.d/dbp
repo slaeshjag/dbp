@@ -37,6 +37,10 @@ start_dbpd() {
 		return
 	fi
 
+	## Make sure loop devices and aufs is present
+	modprobe loop
+	modprobe aufs
+
 	log_daemon_msg "Starting $DESC $NAME"
 	dbpd -d
 

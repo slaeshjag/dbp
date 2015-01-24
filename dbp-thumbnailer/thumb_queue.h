@@ -10,4 +10,7 @@ enum ThumbError {
 	THUMB_ERROR_BAD_TASTE,
 };
 
+int thumb_queue(const char *uri, const char *flavour);
+void thumb_queue_init();
+
 #endif
