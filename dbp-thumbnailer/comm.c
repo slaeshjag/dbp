@@ -80,7 +80,9 @@ void *comm_dbus_loop(void *n) {
 	if (!dbus_connection_register_object_path(dc, DBP_DBUS_THUMB_OBJECT, &vt, p))
 		fprintf(dbp_error_log, "Unable to register object path\n");
 	dbus_conn_handle = dc;
+	dbus_connection_read_write_dispatch(dc, 100);
 	comm_dbus_register_thumbnailer();
+	fprintf(stderr, "Thumbnailer registered\n");
 	while (dbus_connection_read_write_dispatch(dc, 100));
 
 	fprintf(dbp_error_log, "dbus exit\n");
