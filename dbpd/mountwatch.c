@@ -260,7 +260,7 @@ static void char_escape_path(char *in) {
 struct mountwatch_change_s mountwatch_diff() {
 	struct mountwatch_change_s change;
 	FILE *fp;
-	char mount[256], device[256];
+	char mount[256], device[256], fstype[128];
 	int i, n;
 
 	wait:
@@ -278,7 +278,7 @@ struct mountwatch_change_s mountwatch_diff() {
 
 	while (!feof(fp)) {
 		*mount = *device = 0;
-		fscanf(fp, "%256s %256s \n", device, mount);
+		fscanf(fp, "%256s %256s %128s\n", device, mount, fstype);
 		/* /proc/mounts escape space and possibly other chars with \octal notation */
 		char_escape_path(device);
 		char_escape_path(mount);
@@ -292,6 +292,19 @@ struct mountwatch_change_s mountwatch_diff() {
 		if (strstr(device, "/dev/loop") == device)
 			/* Loop-back devices should probably not be	*
 			** watched..					*/
+			continue;
+		/* TODO: Make this a list */
+		if (!strcmp(fstype, "proc"))
+			/* Don't search procfs, that's silly */
+			continue;
+		if (!strcmp(fstype, "devtmpfs"))
+			/* Don't search /dev */
+			continue;
+		if (!strcmp(fstype, "devpts"))
+			/* don't search /dev/pts */
+			continue;
+		if (!strcmp(fstype, "tmpfs"))
+			/* tmpfs probably won't have anything interesting anyway */
 			continue;
 
 		for (i = 0; i < mountwatch_struct.entries; i++) {
