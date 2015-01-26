@@ -277,7 +277,7 @@ struct mountwatch_change_s mountwatch_diff() {
 
 
 	while (!feof(fp)) {
-		*mount = *device = 0;
+		*mount = *device = *fstype = 0;
 		fscanf(fp, "%256s %256s %128s\n", device, mount, fstype);
 		/* /proc/mounts escape space and possibly other chars with \octal notation */
 		char_escape_path(device);
