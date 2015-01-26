@@ -267,10 +267,10 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 		if (S_ISDIR(st.st_mode))
 			rodata = 1;
 	if (!rodata)
-		if (!(mount_opt = dbp_string("br=%s:%s=ro", user_dir, img_dir)))
+		if (!(mount_opt = dbp_string("noplink,br=%s=rw+nolwh:%s=ro", user_dir, img_dir)))
 			goto fail;
 	if (rodata)
-		if (!(mount_opt = dbp_string("br=%s:%s=ro:%s=ro", user_dir, rodata_dir, img_dir)))
+		if (!(mount_opt = dbp_string("noplink,br=%s=rw+nolwh:%s=ro:%s=ro", user_dir, rodata_dir, img_dir)))
 			goto fail;
 
 	free(user_dir), user_dir = NULL;
