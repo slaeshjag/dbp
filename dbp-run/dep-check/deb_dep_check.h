@@ -3,7 +3,7 @@
 
 void deb_do_init();
 void deb_do_free();
-int deb_check_package(const char *pkgname, const char *arch_given);
+int dbp_deb_dep_check_check_package(const char *pkgname, const char *wanted_arch);
 
 
 #endif

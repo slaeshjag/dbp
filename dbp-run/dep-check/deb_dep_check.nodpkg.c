@@ -11,6 +11,6 @@ void dbp_deb_dep_check_do_free() {
 }
 
 
-int dbp_deb_dep_check_check_package(const char *pkgname) {
+int dbp_deb_dep_check_check_package(const char *pkgname, const char *wanted_arch) {
 	return 1;
 }

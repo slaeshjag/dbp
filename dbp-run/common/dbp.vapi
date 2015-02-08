@@ -115,7 +115,7 @@ namespace DBP {
 	namespace DebDepCheck {
 		void do_init();
 		void do_free();
-		bool check_package(string pkgname);
+		bool check_package(string pkgname, string package_arch);
 	}
 	
 	[CCode (cheader_filename = "meta.h")]

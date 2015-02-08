@@ -16,7 +16,8 @@ namespace DepCheck {
 		string[] missing = { };
 
 		foreach (string s in deps) {
-			if (!DBP.DebDepCheck.check_package(s))
+			/* TODO: send package arch instead of "any" */
+			if (!DBP.DebDepCheck.check_package(s, "any"))
 				missing += s;
 		}
 
