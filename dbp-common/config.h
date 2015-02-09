@@ -1,6 +1,7 @@
 #ifndef __CONFIG_H__
 #define	__CONFIG_H__
 
+#include "desktop.h"
 #define	CONFIG_FILE_PATH	"/etc/dbp/dbp_config.ini"
 
 struct config_s {
@@ -31,6 +32,8 @@ struct config_s {
 
 	char			*state_file;
 	char			*run_script;
+
+	struct desktop_file_s	*df;
 };
 
 

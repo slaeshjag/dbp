@@ -96,7 +96,9 @@ int config_init() {
 	if (c.run_script)
 		c.run_script = strdup(c.run_script);
 
-	desktop_free(df);
+	c.df = df;
+
+//	desktop_free(df);
 	config_struct = c;
 	return 1;
 }

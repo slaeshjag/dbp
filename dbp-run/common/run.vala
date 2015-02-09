@@ -37,15 +37,17 @@ namespace Run {
 
 	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg) throws IOError {
 		string[] sysdeps, dbpdeps, sysmissing, dbpmissing;
-		string sysdep, dbpdep;
+		string sysdep, dbpdep, pkgarch;
 		
-
 		sysdep = pkg.desktop_file.lookup("SysDependency", "", "Package Entry");
 		dbpdep = pkg.desktop_file.lookup("PkgDependency", "", "Package Entry");
+		pkgarch = pkg.desktop_file.lookup("Arch", "", "Package Entry");
+		if (pkgarch == null || pkgarch == "")
+			pkgarch = "any";
 
 		if (sysdep != null) {
 			sysdeps = sysdep.split(";");
-			sysmissing = DepCheck.check_sys_dep(sysdeps);
+			sysmissing = DepCheck.check_sys_dep(sysdeps, pkgarch);
 		} else
 			sysmissing = {};
 		
@@ -127,7 +129,7 @@ namespace Run {
 		string binary_path;
 		string ?cwd;
 		string[] argv = {};
-		string appdata_name, pkgpath;
+		string appdata_name, pkgpath, run_script, pkg_arch;
 		int outpipe, errpipe;
 		string outlogfile, errlogfile;
 		int pid;
@@ -157,15 +159,21 @@ namespace Run {
 		appdata_create(pkg_id, appdata_name);
 		
 		//TODO: validate pkg_id
-		
+		pkg_arch = pkg.desktop_file.lookup("Arch", "", "Package Entry");
+		if (pkg_arch == "any" || pkg_arch == null)
+			pkg_arch = "";
+		run_script = DBP.Config.config.df.lookup("run_script", pkg_arch, "Package Entry");
+		if (run_script == "")
+			run_script = null;
+
 		mount_id = bus.mount(pkg_id, "");
 		if(int.parse(mount_id) < 0)
 			throw new IOError.FAILED(mount_id);
-		
+	
 		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
 		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
 		
-		if (DBP.Config.config.run_script != null)
+		if (run_script != null)
 			argv += DBP.Config.config.run_script;
 
 		argv += binary_path;

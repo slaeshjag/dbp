@@ -11,13 +11,12 @@ namespace DepCheck {
 		return missing;
 	}
 
-	string[] check_sys_dep(string[] deps) {
+	string[] check_sys_dep(string[] deps, string pkgarch) {
 		DBP.DebDepCheck.do_init();
 		string[] missing = { };
 
 		foreach (string s in deps) {
-			/* TODO: send package arch instead of "any" */
-			if (!DBP.DebDepCheck.check_package(s, "any"))
+			if (!DBP.DebDepCheck.check_package(s, pkgarch))
 				missing += s;
 		}
 

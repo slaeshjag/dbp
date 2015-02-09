@@ -75,6 +75,8 @@ namespace DBP {
 			bool create_rodata;
 
 			string? run_script;
+
+			Desktop df;
 		}
 		
 		[CCode (cname = "config_struct")]

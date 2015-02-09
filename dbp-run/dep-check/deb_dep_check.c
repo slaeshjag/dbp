@@ -90,11 +90,12 @@ int dbp_deb_dep_check_check_package(const char *pkgname, const char *main_arch) 
 			ver_match = dpkg_version_compare(&pkg->pkg.installed.version, &in_ver);
 			//fprintf(stderr, "Version comparison: %i\n", ver_match);
 			free(pkgstr);
-			if ((ver_match & 1) && ver_match < 0)
+			/* TODO: Use dpkg built in functions for this when dpkg changes have calmed down */
+			if ((flags & 1) && ver_match < 0)
 				return 1;
-			if ((ver_match & 2) && !ver_match)
+			if ((flags & 2) && !ver_match)
 				return 1;
-			if ((ver_match & 4) && ver_match > 0)
+			if ((flags & 4) && ver_match > 0)
 				return 1;
 			return 0;
 		}
