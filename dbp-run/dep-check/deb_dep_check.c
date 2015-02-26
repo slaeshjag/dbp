@@ -8,13 +8,15 @@
 #include <dpkg/arch.h>
 #include <dpkg/dpkg-db.h>
 
+#if 0
 /* Defines for old versions of libdpkg (wheezy) */
 #ifndef DPKG_ARCH_NATIVE
 #define	DPKG_ARCH_NATIVE arch_native
 #endif
 
-#ifndef PKG_STAT_INSTALLED
+#ifndef enum pkgstatus
 #define	PKG_STAT_INSTALLED stat_installed
+#endif
 #endif
 
 
