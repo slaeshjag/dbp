@@ -122,9 +122,8 @@ static int package_id_lookup(struct package_s *p, const char *pkg_id) {
 
 /* If basename(3) didn't suck, this function wouldn't be needed */
 static const char *find_filename(const char *path) {
-	char *tmp = (char *) path;
-	while (strchr(tmp, '/') && (tmp = strchr(path, '/') + 1));
-	return tmp;
+	char *tmp;
+	return (tmp = strrchr(path, '/')) ? tmp + 1 : path;
 }
 
 

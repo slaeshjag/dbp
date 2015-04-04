@@ -32,3 +32,14 @@ keys in, for per-application use.
 * Maintainer		Doesn't really make sense for per-application, but the DBP-system doesn't care about it anyway
 * Version		Probably useful for versioning packages. Maybe that the DBP-system should keep track of this value? Should probably decide on a version format too. Either that, or I should make a libdbp that exposes all package information.
 
+
+### Code style for contributors
+Code style is not that strict, although I prefer that it's kept consistent.
+Indentation to be done with tabs (8 wide.)
+Opening curly brackers should be placed on the same line as the scope declaration. Spaces between
+function names/keywords and parathesis is optional. Spaces inside parenthesis is discouraged.
+Function names are snake case, defines and enum values are all caps snake case. Types (structs, enum types)
+are CamelCase. Variable names and labels are snake case.
+
+The recommended background music while hacking is doom/gothic metal, eg. Katatonia. That's
+the kind of general mood I'm in whenever I work on this anyway...

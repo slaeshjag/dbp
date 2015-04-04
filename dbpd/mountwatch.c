@@ -84,7 +84,7 @@ void *mountwatch_loop(void *null) {
 		to = get_timeout();
 		FD_ZERO(&watch);
 		FD_SET(mountfd, &watch);
-		if (select(mountfd + 1, NULL, NULL, &watch, &to) >= 0)
+		if (select(mountfd + 1, NULL, NULL, &watch, &to) > 0)
 			sem_post(&mountwatch_struct.changed);
 	}
 }
@@ -274,7 +274,6 @@ struct mountwatch_change_s mountwatch_diff() {
 		pthread_mutex_unlock(&mountwatch_struct.dir_watch_mutex);
 		return change;
 	}
-
 
 	while (!feof(fp)) {
 		*mount = *device = *fstype = 0;
