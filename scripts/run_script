@@ -5,4 +5,45 @@
 ##	environment override, and should as such only be for invoking user pre/post run
 ##	scripts, and the likes.
 
+# Set up a library directory
+lib_dir="$DBP_IMAGE_DIR/lib"
+if [[ ":$LD_LIBRARY_PATH:" != *":$lib_dir:"* ]]; then
+	export LD_LIBRARY_PATH="$lib_dir:$LD_LIBRARY_PATH"
+fi
+
+# source pre-run scripts
+if [ -a "$DBP_UNION_DIR/package.prerun" ]; then
+	. "$DBP_UNION_DIR/package.prerun"
+fi
+
+if [ -a "$DBP_UNION_DIR/package.user_prerun" ]; then
+	. "$DBP_UNION_DIR/package.user_prerun"
+fi
+
+if [ -a "$DBP_UNION_DIR/$DBP_EXEC.prerun" ]; then
+	. "$DBP_UNION_DIR/$DBP_EXEC.prerun"
+fi
+
+if [ -a "$DBP_UNION_DIR/$DBP_EXEC.user_prerun" ]; then
+	. "$DBP_UNION_DIR/$DBP_EXEC.user_prerun"
+fi
+
+# Execute the program
 "$@"
+
+# source post-run scripts
+if [ -a "$DBP_UNION_DIR/package.postrun" ]; then
+	. "$DBP_UNION_DIR/package.postrun"
+fi
+
+if [ -a "$DBP_UNION_DIR/package.user_postrun" ]; then
+	. "$DBP_UNION_DIR/package.user_postrun"
+fi
+
+if [ -a "$DBP_UNION_DIR/$DBP_EXEC.postrun" ]; then
+	. "$DBP_UNION_DIR/$DBP_EXEC.postrun"
+fi
+
+if [ -a "$DBP_UNION_DIR/$DBP_EXEC.user_postrun" ]; then
+	. "$DBP_UNION_DIR/$DBP_EXEC.user_postrun"
+fi

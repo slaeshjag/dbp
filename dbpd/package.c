@@ -56,6 +56,8 @@ static int package_find(struct package_s *p, const char *id) {
 
 static int package_id_validate(const char *pkg_id) {
 	int i;
+	if (!strcmp(pkg_id, "..") || !strcmp(pkg_id, "."))
+		return 0;
 
 	for (i = 0; pkg_id[i]; i++)
 		if (!(pkg_id[i] >= 'a' && pkg_id[i] <= 'z') && !(pkg_id[i] >= 'A' && pkg_id[i] <= 'Z')

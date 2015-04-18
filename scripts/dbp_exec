@@ -11,10 +11,15 @@
 # anything surrounded by an ! followed by % is replaced with
 # actual values by dbpd when the special folder is populated
 
+export DBP_IMAGE_DIR="`dbp-cfg image_mount_dir`/!%package_id!"
+
+# Only use this environment variable. The mechanism for determening the union mount
+# directory may change in the future
+export DBP_UNION_DIR="`dbp-cfg union_mount_dir`/!%package_id!"
+export DBP_EXEC="!%package_id!"
+
 if [ !%package_enviroment! == 1 ]; then
 	# This is where pre/post launch env setup should be done
-
-	union_dir="`dbp-cfg union_mount_dir`/!%package_id!"
 
 	# chdir is done by dbp-run, as the union mount might not exist before
 	# dbp-run is runned
