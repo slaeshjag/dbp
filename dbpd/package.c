@@ -139,7 +139,7 @@ static void package_desktop_write(struct package_s *p, int id, const char *fname
 	df = desktop_parse(data);
 
 	if ((sec = desktop_lookup_section(df, "Desktop Entry")) < 0)
-		goto desktop_free;
+		goto write;
 	if ((ent = desktop_lookup_entry(df, "Icon", "", sec)) < 0)
 		goto write;
 	
@@ -233,7 +233,7 @@ static void package_meta_exec_export(const char *exec, int env, struct package_s
 		return;
 	exec_tok = strdup(exec);
 	for (tok = strtok_r(exec_tok, ";", &saveptr); tok; tok = strtok_r(NULL, ";", &saveptr)) {
-		sprintf(path, "%s/%s", config_struct.exec_directory, find_filename(tok));
+		snprintf(path, PATH_MAX, "%s/%s", config_struct.exec_directory, find_filename(tok));
 		if (!access(path, F_OK)) {
 			fprintf(dbp_error_log, "Executable collision! %s already exists\n", path);
 			continue;
