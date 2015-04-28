@@ -143,12 +143,12 @@ static void package_desktop_write(struct package_s *p, int id, const char *fname
 	if ((ent = desktop_lookup_entry(df, "Icon", "", sec)) < 0)
 		goto write;
 	
-	sprintf(writename, "%s/%s%s_%s", config_struct.icon_directory, DBP_META_PREFIX, pkg_id, df->section[sec].entry[ent].value);
+	snprintf(writename, PATH_MAX, "%s/%s%s_%s", config_struct.icon_directory, DBP_META_PREFIX, pkg_id, df->section[sec].entry[ent].value);
 	free(df->section[sec].entry[ent].value);
 	df->section[sec].entry[ent].value = strdup(writename);
 
 	write:
-	sprintf(writename, "%s/%s%s_%s", config_struct.desktop_directory, DBP_META_PREFIX, pkg_id, fname);
+	snprintf(writename, PATH_MAX, "%s/%s%s_%s", config_struct.desktop_directory, DBP_META_PREFIX, pkg_id, fname);
 	if (!(fp = fopen(writename, "w")))
 		goto desktop_free;
 	desktop_write(df, writename);
@@ -280,7 +280,7 @@ static void package_meta_extract(const char *path, struct package_s *p, int id, 
 			archive_read_data(a, data, size);
 			data[size] = 0;
 			if (strstr(pathname, "icons/") == pathname) {
-				sprintf(writename, "%s/%s%s_%s", 
+				snprintf(writename, PATH_MAX, "%s/%s%s_%s", 
 				    config_struct.icon_directory, DBP_META_PREFIX, pkg_id,
 				    find_filename(pathname));
 				
@@ -384,7 +384,7 @@ static void package_crawl(struct package_s *p, const char *device, const char *p
 		if (!package_filename_interesting(dir.d_name))
 			continue;
 		name_buff = malloc(strlen(path) + 2 + strlen(dir.d_name));
-		sprintf(name_buff, "%s/%s", path, dir.d_name);
+		snprintf(name_buff, PATH_MAX, "%s/%s", path, dir.d_name);
 		package_register(p, name_buff, device, mount, &n);
 		free(name_buff);
 	}
@@ -406,7 +406,7 @@ void package_crawl_mount(struct package_s *p, const char *device, const char *pa
 
 	for (i = 0; i < config_struct.search_dirs; i++) {
 		new_path = realloc(new_path, strlen(path) + 2 + strlen(config_struct.search_dir[i]));
-		sprintf(new_path, "%s/%s", path, config_struct.search_dir[i]);
+		snprintf(new_path, PATH_MAX, "%s/%s", path, config_struct.search_dir[i]);
 		package_crawl(p, device, new_path, path);
 	}
 	
@@ -426,7 +426,7 @@ static void package_kill_prefix(const char *dir, const char *prefix, int meta) {
 		return;
 	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result))
 		if (strstr(de.d_name, prefix) == de.d_name) {
-			sprintf(full, "%s/%s", dir, de.d_name), unlink(full);
+			snprintf(full, PATH_MAX, "%s/%s", dir, de.d_name), unlink(full);
 			if (meta)
 				comm_dbus_announce_rem_meta(full);
 		}
@@ -438,7 +438,7 @@ static void package_kill_prefix(const char *dir, const char *prefix, int meta) {
 static void package_meta_remove(const char *pkg_id, int announce) {
 	char prefix[PATH_MAX];
 
-	sprintf(prefix, "%s%s_", DBP_META_PREFIX, pkg_id);
+	snprintf(prefix, PATH_MAX, "%s%s_", DBP_META_PREFIX, pkg_id);
 	package_kill_prefix(config_struct.icon_directory, prefix, 0);
 	package_kill_prefix(config_struct.desktop_directory, prefix, announce);
 

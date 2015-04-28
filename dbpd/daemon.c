@@ -58,7 +58,7 @@ static int daemon_nuke_dir(char *dir) {
 		return 0;
 	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result))
 		if (strstr(de.d_name, DBP_META_PREFIX) == de.d_name)
-			sprintf(path, "%s/%s", dir, de.d_name), unlink(path);
+			snprintf(path, PATH_MAX, "%s/%s", dir, de.d_name), unlink(path);
 	closedir(d);
 	return 1;
 }
@@ -73,7 +73,7 @@ static int daemon_nuke_execs() {
 	if (!(d = opendir(config_struct.exec_directory)))
 		return 0;
 	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result)) {
-		sprintf(path, "%s/%s", config_struct.exec_directory, de.d_name);
+		snprintf(path, PATH_MAX, "%s/%s", config_struct.exec_directory, de.d_name);
 		if (!(fp = fopen(path, "r")))
 			continue;
 		*buff = 0;
