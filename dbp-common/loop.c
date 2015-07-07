@@ -262,6 +262,8 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 		goto illegal_dirname;
 	if (strchr(user_dir, '=') || strchr(img_dir, '=') || strchr(rodata_dir, '='))
 		goto illegal_dirname;
+	if (strchr(user_dir, ',') || strchr(img_dir, ',') || strchr(rodata_dir, ','))
+		goto illegal_dirname;
 	
 	if (!stat(rodata_dir, &st))
 		if (S_ISDIR(st.st_mode))

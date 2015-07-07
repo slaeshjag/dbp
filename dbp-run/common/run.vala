@@ -162,7 +162,7 @@ namespace Run {
 		pkg_arch = pkg.desktop_file.lookup("Arch", "", "Package Entry");
 		if (pkg_arch == "any" || pkg_arch == null)
 			pkg_arch = "";
-		run_script = DBP.Config.config.df.lookup("run_script", pkg_arch, "Package Entry");
+		run_script = DBP.Config.config.df.lookup("run_script", pkg_arch, "Package Daemon Config");
 		if (run_script == "")
 			run_script = null;
 
