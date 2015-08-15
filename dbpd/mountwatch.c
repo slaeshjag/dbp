@@ -318,6 +318,16 @@ struct mountwatch_change_s mountwatch_diff() {
 					mountwatch_struct.entry[i].tag = 1;
 				} else
 					break;
+			} else if (!strcmp(mountwatch_struct.entry[i].device, device)) {
+				mountwatch_struct.entry[i].tag = 1;
+				if (strcmp(mountwatch_struct.entry[i].mount, mount)) {
+					mountwatch_inotify_remove(mountwatch_struct.entry[i].mount);
+					mountwatch_inotify_add(mount, device);
+					mountwatch_change_add(&change, mount, device, "", MOUNTWATCH_TAG_CHANGED);
+					free(mountwatch_struct.entry[i].device);
+					mountwatch_struct.entry[i].device = strdup(device);
+				} else
+					break;
 			}
 		}
 
