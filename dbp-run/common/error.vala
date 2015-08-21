@@ -14,7 +14,7 @@ public class ErrorLog {
 		_("You've attempted to launch a program from a package that could not be found in the local database. This is likely a bug."),
 		_("Unable to access the package filesystem. This DBP-file is likely corrupt."),
 		_("The meta-data in this package is malformed: Illegal character(s) was found in a generated mountpoint."),
-		_("Unable to set up AuFS union. This is likely a bug. This may temporarely be worked around by rebooting."),
+		_("Unable to set up AuFS union. This is likely a bug. This may temporarily be worked around by rebooting."),
 		_("Your user doesn't have the permissions needed to create the application data directory on the SD-card that this application is installed on."),
 		_("No default.desktop was found in the meta-data for this package."),
 		_("The package with this ID is already registered! This is not an error, and you shouldn't see this message."),

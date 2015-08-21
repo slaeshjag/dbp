@@ -33,12 +33,15 @@ struct config_s {
 	char			*state_file;
 	char			*run_script;
 
+	int			verbose_output;
+
 	struct desktop_file_s	*df;
 };
 
 
 int config_init();
 extern struct config_s config_struct;
+char *config_version_get();
 void config_expand_token(char ***target, int *targets, char *token);
 
 #endif

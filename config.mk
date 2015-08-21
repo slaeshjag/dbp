@@ -1,8 +1,9 @@
 # Project: pyra-hspkg
 # Makefile configurations
 
+include $(TOPDIR)/version.mk
+
 NAME		=	dbp
-VERSION		=	0.5
 
 #Uncomment to build dbp-run without dpkg dependency checking
 #BUILD_DPKG	=	NO

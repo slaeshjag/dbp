@@ -15,6 +15,8 @@ clean:
 	@echo
 	@echo " [ RM ] $(OBJFILES)"
 	@$(RM) $(OBJFILES)
+	@echo " [ RM ] $(LIB)"
+	@$(RM) $(LIB)
 	@echo "Done."
 	@echo 
 

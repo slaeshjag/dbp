@@ -151,6 +151,7 @@ int main(int argc, char **argv) {
 	} else
 		setbuf(dbp_error_log, NULL);
 
+	fprintf(dbp_error_log, "DBPd version %s starting...\n", config_version_get());
 	p = package_init();
 	state_recover(&p);
 

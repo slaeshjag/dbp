@@ -1,10 +1,16 @@
 #include <libintl.h>
 #include <locale.h>
+#include <stdio.h>
 #include "meta.h"
+#include "config.h"
 #define	_(STRING)	gettext(STRING)
 
+FILE *dbp_error_log;
 
 void usage() {
+	fprintf(stdout, _("Extracts meta keys from a DBP\n"));
+	fprintf(stdout, _("By Steven Arnow, 2015, version %s\n"), config_version_get());
+	fprintf(stdout, "\n");
 	fprintf(stdout, _("Usage:\n"));
 	fprintf(stdout, _("dbp-meta list <path-to-dbp>			- lists all meta keys for the package\n"));
 	fprintf(stdout, _("dbp-meta get <path-to-dbp> <key> [locale]	- Returns the value of meta-key <key>\n"));
@@ -17,6 +23,7 @@ int main(int argc, char **argv) {
 
 	setlocale(LC_ALL, "");
 	textdomain("dbp-run");
+	dbp_error_log = stderr;
 
 	if (argc <3) {
 		usage();

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+echo "CFLAGS += -DVERSION=\\\"0.6.`git log | grep Date | wc -l`-`git branch | awk '{ print $2 }'`\\\"" > version.mk

@@ -6,6 +6,16 @@
 
 struct config_s config_struct;
 
+#ifndef VERSION
+#define	VERSION "0.6-untracked"
+#endif
+
+
+char *config_version_get() {
+	return VERSION;
+}
+
+
 static char *config_request_entry(struct desktop_file_s *df, const char *key) {
 	const char *tmp = desktop_lookup(df, key, "", "Package Daemon Config");
 
@@ -38,6 +48,8 @@ int config_get_bool(struct desktop_file_s *df, const char *key) {
 	int ret;
 	
 	tmp = config_request_entry(df, key);
+	if (!tmp)
+		return 0;
 	ret = !strcmp(tmp, "yes");
 	free(tmp);
 	return ret;
@@ -95,6 +107,8 @@ int config_init() {
 	c.run_script = desktop_lookup(df, "run_script", "", "Package Daemon Config");
 	if (c.run_script)
 		c.run_script = strdup(c.run_script);
+
+	c.verbose_output = config_get_bool(df, "verbose_debug_output");
 
 	c.df = df;
 
