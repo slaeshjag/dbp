@@ -3,7 +3,7 @@ extern const string GETTEXT_PACKAGE;
 
 void usage() {
 	stdout.printf(_("Usage: dbp-cmd <command> [arg]\n"));
-	stdout.printf(_("Executes a command dbpd system call\n"));
+	stdout.printf(_("Executes a dbpd system call, version %s\n"), DBP.Config.version());
 	stdout.printf(_("List of valid commands:\n"));
 	stdout.printf(_("\tmount	- Mounts a package so that it can be executed. Takes pkgid.\n"));
 	stdout.printf(_("\t		  Returns a token that you use to unmount the package\n"));

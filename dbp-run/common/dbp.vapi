@@ -87,6 +87,8 @@ namespace DBP {
 	
 		[CCode (cname = "config_init")]
 		void init();
+		[CCode (cname = "config_version_get")]
+		public unowned string version();
 	}
 
 	[CCode (cheader_filename = "desktop.h", cname = "struct desktop_file_s", free_function = "desktop_free")]

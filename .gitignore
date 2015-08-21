@@ -10,4 +10,5 @@
 *.orig
 *.local
 *.remote
+version.mk
 build/

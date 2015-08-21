@@ -1,7 +1,7 @@
 # Project: pyra-hspkg
 # Makefile configurations
 
-include $(TOPDIR)/version.mk
+-include $(TOPDIR)/version.mk
 
 NAME		=	dbp
 

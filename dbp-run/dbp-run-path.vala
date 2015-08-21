@@ -6,6 +6,8 @@ struct Config {
 }
 
 void usage() {
+	stdout.printf(_("Runs a DBP file's default application\n"));
+	stdout.printf(_("Version %s\n"), DBP.Config.version());
 	stdout.printf(_("Usage: dbp-run-path [--gui-errors] <path to .dbp> [arg1] [arg2] ...\n"));
 }
 

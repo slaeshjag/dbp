@@ -9,6 +9,8 @@ struct Config {
 }
 
 void usage() {
+	stdout.printf(_("Runs a registered DBP by its id\n"));
+	stdout.printf(_("Version %s\n"), DBP.Config.version());
 	stdout.printf(_("Usage: dbp-run [--gui-errors] [--log-output] [--chdir] <package id> <executable> [arg1] [arg2] ...\n"));
 }
 
