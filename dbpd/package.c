@@ -335,14 +335,14 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	}
 
 	package_meta_extract(path, p, id, !strcmp(p->entry[id].desktop, "desk"));
-	fprintf(dbp_error_log, "Registered package %s\n", pkg_id);
+	fprintf(dbp_error_log, "Registered package %s at '%s'\n", pkg_id, path);
 	
 	mp.df = desktop_free(mp.df);
 
 	return id;
 
 	error:
-	fprintf(dbp_error_log, "An error occured while registering a package %s\n", pkg_id);
+	fprintf(dbp_error_log, "An error occured while registering a package %s at '%s'\n", pkg_id, path);
 	if (mp.df)
 		mp.df = desktop_free(mp.df);
 	return errid;
@@ -450,6 +450,8 @@ static void package_kill(struct package_s *p, int entry) {
 	int i;
 	char ulinkpath[PATH_MAX];
 
+	if (config_struct.verbose_output)
+		fprintf(dbp_error_log, "Package at '%s' released\n", p->entry[entry].path);
 	
 	package_meta_remove(p->entry[entry].id, !strcmp(p->entry[entry].desktop, "desk"));
 	for (i = 0; i < p->entry[entry].execs; i++) {
@@ -478,6 +480,7 @@ static void package_kill(struct package_s *p, int entry) {
 void package_release_path(struct package_s *p, const char *path) {
 	int i;
 	pthread_mutex_lock(&p->mutex);
+
 	if (strstr(path, "//") == path) path++;
 	for (i = 0; i < p->entries; i++)
 		if (!strcmp(p->entry[i].path, path)) {
@@ -494,9 +497,16 @@ void package_release_mount(struct package_s *p, const char *device) {
 	int i;
 
 	pthread_mutex_lock(&p->mutex);
+
+	fprintf(dbp_error_log, "Umount '%s'\n", device);
+
 	for (i = 0; i < p->entries; i++) {
-		if (strcmp(p->entry[i].device, device))
+		if (strcmp(p->entry[i].device, device)) {
+			if (config_struct.verbose_output)
+				fprintf(dbp_error_log, "Package '%s' does not reside on '%s', it's on '%s', skipping\n", p->entry[i].path, device, p->entry[i].device);
 			continue;
+		}
+
 		package_kill(p, i);
 	}
 
