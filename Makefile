@@ -20,8 +20,8 @@ all:
 	+@make -C dbp-common/
 	@echo " [ CD ] dbpd/"
 	+@make -C dbpd/
-	@echo " [ CD ] dbp-thumbnailer/"
-	+@make -C dbp-thumbnailer/
+#	@echo " [ CD ] dbp-thumbnailer/"
+#	+@make -C dbp-thumbnailer/
 	@echo " [ CD ] dbp-run/"
 	+@make -C dbp-run/
 	@echo " [ CD ] dbp-cfg/"
