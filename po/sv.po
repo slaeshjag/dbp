@@ -6,26 +6,32 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: DBP-system v0.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-23 11:02+0100\n"
-"PO-Revision-Date: 2015-01-23 11:04+0100\n"
+"POT-Creation-Date: 2015-08-26 23:00+0200\n"
+"PO-Revision-Date: 2015-08-26 23:25+0100\n"
 "Last-Translator: Steven Arnow <s@rdw.se>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.10\n"
 
 #: dbp-run/dbp-cmd.vala:9
 #, c-format
 msgid "\t\t\t  Returns a token that you use to unmount the package\n"
-msgstr "\t\t\t  Returnerar ett monterings-ID som används för att avmontera paketet\n"
+msgstr ""
+"\t\t\t  Returnerar ett monterings-ID som används för att avmontera paketet\n"
 
 #: dbp-run/dbp-cmd.vala:11
 #, c-format
-msgid "\tgetmount\t- Returns the mountpoint for the media the package is on. Takes pkgid\n"
-msgstr "\tgetmount\t- Returnerar monteringspunkten för mediat paketet ligger på. Inparameter: paket-ID\n"
+msgid ""
+"\tgetmount\t- Returns the mountpoint for the media the package is on. Takes "
+"pkgid\n"
+msgstr ""
+"\tgetmount\t- Returnerar monteringspunkten för mediat paketet ligger på. "
+"Inparameter: paket-ID\n"
 
 #: dbp-run/dbp-cmd.vala:14
 #, c-format
@@ -40,7 +46,8 @@ msgstr "\tlist\t\t- Lista alla paket registrerade i databasen\n"
 #: dbp-run/dbp-cmd.vala:8
 #, c-format
 msgid "\tmount\t- Mounts a package so that it can be executed. Takes pkgid.\n"
-msgstr "\tmount\t- Monterar ett paket så att det kan köras. Inparameter: paket-ID.\n"
+msgstr ""
+"\tmount\t- Monterar ett paket så att det kan köras. Inparameter: paket-ID.\n"
 
 #: dbp-run/dbp-cmd.vala:15
 #, c-format
@@ -50,61 +57,98 @@ msgstr "\tpath\t\t- Returnerar sökvägen till paketet <paket-ID>\n"
 #: dbp-run/dbp-cmd.vala:17
 #, c-format
 msgid "\tping\t\t- Pings dbpd, exits with a failure if dbpd isn't running\n"
-msgstr "\tping\t\t- Skickar ett testpaket till dbpd, avslutar med en felkod om dbpd inte kör\n"
+msgstr ""
+"\tping\t\t- Skickar ett testpaket till dbpd, avslutar med en felkod om dbpd "
+"inte kör\n"
 
 #: dbp-run/dbp-cmd.vala:12
 #, c-format
-msgid "\tregister\t- Register a package in the database. Takes path to package file\n"
-msgstr "\tregister\t- Registrerar ett paket i databasen. Inparameter: sökväg till paketfilen\n"
+msgid ""
+"\tregister\t- Register a package in the database. Takes path to package "
+"file\n"
+msgstr ""
+"\tregister\t- Registrerar ett paket i databasen. Inparameter: sökväg till "
+"paketfilen\n"
 
 #: dbp-run/dbp-cmd.vala:10
 #, c-format
-msgid "\tumount\t- Unmounts the package if no other instance is using it. Takes mount token\n"
-msgstr "\tumount\t- Avmonterar paketet om ingen annan instans använder det. Inparameter: monterings-ID\n"
+msgid ""
+"\tumount\t- Unmounts the package if no other instance is using it. Takes "
+"mount token\n"
+msgstr ""
+"\tumount\t- Avmonterar paketet om ingen annan instans använder det. "
+"Inparameter: monterings-ID\n"
 
 #: dbp-run/dbp-cmd.vala:13
 #, c-format
-msgid "\tunregister\t- Unregisters a package in the database. Takes path to package file\n"
-msgstr "\tunregister\t- Avregistrerar ett paket ur databasen. Inparameter: Sökväg till paketfilen\n"
+msgid ""
+"\tunregister\t- Unregisters a package in the database. Takes path to package "
+"file\n"
+msgstr ""
+"\tunregister\t- Avregistrerar ett paket ur databasen. Inparameter: Sökväg "
+"till paketfilen\n"
 
 #: dbp-run/dbp-cmd.vala:20
 #, c-format
 msgid "A registered package have its executables and .desktop files exported\n"
-msgstr "Ett registrerat paket har sina körbara filer och .desktop-startare installerade\n"
+msgstr ""
+"Ett registrerat paket har sina körbara filer och .desktop-startare "
+"installerade\n"
 
 #: dbp-run/common/error.vala:21
-msgid "An unhandled error has occured. This is just a placehoder that you shouldn't see."
-msgstr ""
+msgid ""
+"An unhandled error has occured. This is just a placehoder that you shouldn't "
+"see."
+msgstr "Ett oväntat fel har inträffat."
 
 #: dbp-run/common/error.vala:8
-msgid "An unknown internal error has occured. This is only supposed to be a placeholder. You should examine the DBP System daemon log-file for further information."
+msgid ""
+"An unknown internal error has occured. This is only supposed to be a "
+"placeholder. You should examine the DBP System daemon log-file for further "
+"information."
 msgstr ""
+"Ett oväntat fel har inträffat. Det här är ett temporärt medelande som "
+"används under utveckling. Undersök loggfilerna för DBP-demonen för vidare "
+"information."
 
-#: dbp-run/dbp-cmd.vala:39
-#: dbp-run/dbp-cmd.vala:175
-#: dbp-run/dbp-desktopd.vala:50
-#: dbp-run/dbp-desktopd.vala:118
+#: dbp-cfg/main.c:14 dbp-meta/dbp-meta.c:12
+#, c-format
+msgid "By Steven Arnow, 2015, version %s\n"
+msgstr "Av Steven Arnow, 2015, version %s\n"
+
+#: dbp-run/common/error.vala:52
+#, fuzzy
+msgid "Error: "
+msgstr "Fel: %s\n"
+
+#: dbp-run/dbp-cmd.vala:39 dbp-run/dbp-cmd.vala:175
+#: dbp-run/dbp-desktopd.vala:50 dbp-run/dbp-desktopd.vala:118
 #: dbp-run/dbp-desktopd.vala:141
-#: dbp-run/common/error.vala:42
-#: dbp-run/common/error.vala:45
 #, c-format
 msgid "Error: %s\n"
 msgstr "Fel: %s\n"
 
 #: dbp-run/dbp-cmd.vala:89
 #, c-format
-msgid "Error: A path to the package that is to be registered needs to be provided\n"
+msgid ""
+"Error: A path to the package that is to be registered needs to be provided\n"
 msgstr "Fel: En sökväg till paketet som skall registreras behövs\n"
 
 #: dbp-run/dbp-cmd.vala:112
 #, c-format
-msgid "Error: A path to the package that is to be unregistered needs to be provided\n"
+msgid ""
+"Error: A path to the package that is to be unregistered needs to be "
+"provided\n"
 msgstr "Fel: En sökväg till paketet som skall avregistreras behövs\n"
 
 #: dbp-run/dbp-cmd.vala:128
 #, c-format
-msgid "Error: A path to the package that pkgid is to be returned for needs to be provided\n"
-msgstr "Fel: En sökväg till paketet behövs för att paket-ID skall kunna hittas i databasen\n"
+msgid ""
+"Error: A path to the package that pkgid is to be returned for needs to be "
+"provided\n"
+msgstr ""
+"Fel: En sökväg till paketet behövs för att paket-ID skall kunna hittas i "
+"databasen\n"
 
 #: dbp-run/dbp-cmd.vala:142
 #, c-format
@@ -113,8 +157,12 @@ msgstr "Fel: Ett paket-ID behövs för att returnera sökvägen till paketet\n"
 
 #: dbp-run/dbp-desktopd.vala:25
 #, c-format
-msgid "Error: Guessed $HOME/Desktop, which doesn't exist. Configure $XDG_DESKTOP_DIR properly, kthx?\n"
-msgstr "Fel: Gissade på $HOME/Desktop, men denna katalog existerar inte. Sätt $XDG_DESKTOP_DIR till att peka på din skrivbordsmapp.\n"
+msgid ""
+"Error: Guessed $HOME/Desktop, which doesn't exist. Configure "
+"$XDG_DESKTOP_DIR properly, kthx?\n"
+msgstr ""
+"Fel: Gissade på $HOME/Desktop, men denna katalog existerar inte. Sätt "
+"$XDG_DESKTOP_DIR till att peka på din skrivbordsmapp.\n"
 
 #: dbp-run/dbp-cmd.vala:170
 #, fuzzy, c-format
@@ -146,37 +194,50 @@ msgstr "Fel: Den nödvändiga variabeln $HOME är inte satt\n"
 msgid "Error: Unable to locate your home directory\n"
 msgstr "Fel: Kunde inte lokalisera din hemkatalog\n"
 
-#: dbp-meta/dbp-meta.c:56
+#: dbp-meta/dbp-meta.c:63
 #, fuzzy, c-format
 msgid "Error: Unknown option '%s'\n"
 msgstr "Fel: okänd kommandoparameter '%s'\n"
 
 #: dbp-run/dbp-cmd.vala:75
 #, c-format
-msgid "Error: You must provide a pkgid from which the mount point is resolved\n"
-msgstr "Fel: För att hitta monteringspunkten ett paket finns på behövs ett paket-ID\n"
+msgid ""
+"Error: You must provide a pkgid from which the mount point is resolved\n"
+msgstr ""
+"Fel: För att hitta monteringspunkten ett paket finns på behövs ett paket-ID\n"
 
-#: dbp-meta/dbp-meta.c:42
+#: dbp-meta/dbp-meta.c:49
 #, c-format
 msgid "Error: You need to specify the meta key to extract\n"
 msgstr "Fel: Du behöver specificera meta-nyckeln att hämta värde från\n"
 
-#: dbp-run/dbp-run-path.vala:46
-#: dbp-run/dbp-run.vala:58
+#: dbp-run/dbp-run-path.vala:48 dbp-run/dbp-run.vala:53
 #, c-format
 msgid "Error: unknown option '%s'\n"
 msgstr "Fel: okänd kommandoparameter '%s'\n"
 
 #: dbp-run/dbp-cmd.vala:6
-#, c-format
-msgid "Executes a command dbpd system call\n"
+#, fuzzy, c-format
+msgid "Executes a dbpd system call, version %s\n"
 msgstr "Kör ett systemanrop till dbpd\n"
 
-#: dbp-run/common/run.vala:94
-msgid "Failed to find mountpoint"
+#: dbp-cfg/main.c:13
+#, c-format
+msgid "Extracts configuration keys out of the DBP config\n"
+msgstr ""
+"Extraherar konfigurationsnycklar från DBP-systemets konfigurationsfil\n"
+
+#: dbp-meta/dbp-meta.c:11
+#, c-format
+msgid "Extracts meta keys from a DBP\n"
+msgstr "Extraherar meta-nycklar från en DBP-fil\n"
+
+#: dbp-run/common/run.vala:100
+#, fuzzy
+msgid "Failed to find the mountpoint that this package resides on"
 msgstr "Kunde inte hitta monteringspunkten"
 
-#: dbp-cfg/main.c:28
+#: dbp-cfg/main.c:40
 #, c-format
 msgid "Key '%s' doesn't exist in config\n"
 msgstr "Kunde ej hitta nyckeln '%s' i konfigurationen\n"
@@ -186,11 +247,17 @@ msgstr "Kunde ej hitta nyckeln '%s' i konfigurationen\n"
 msgid "List of valid commands:\n"
 msgstr "Giltiga kommandon:\n"
 
+#: dbp-run/common/run.vala:114 dbp-run/common/run.vala:121
+msgid "Make sure you have the file system permissions to create this directory"
+msgstr ""
+"Kontrollera att du har de nödvändiga rättigheterna för att skapa den här "
+"mappen"
+
 #: dbp-run/common/error.vala:19
 msgid "No default.desktop was found in the meta-data for this package."
-msgstr ""
+msgstr "Filen default.desktop kunde ej hittas i paketets metadata."
 
-#: dbp-run/common/run.vala:56
+#: dbp-run/common/run.vala:62
 #, c-format
 msgid ""
 "Package '%s' is missing some of its dependencies\n"
@@ -199,95 +266,171 @@ msgstr ""
 "Paketet '%s' saknar några av sina beroenden\n"
 "\n"
 
-#: dbp-run/common/run.vala:58
+#: dbp-run/common/error.vala:52
+msgid "Package ID: "
+msgstr "Paket-ID:"
+
+#: dbp-run/common/error.vala:52
+msgid "Path: "
+msgstr "Sökväg:"
+
+#: dbp-run/common/run.vala:64
 msgid "Removable packages: "
 msgstr "Flyttbara paket: "
 
-#: dbp-run/common/run.vala:63
+#: dbp-run/dbp-run-path.vala:9
+#, c-format
+msgid "Runs a DBP file's default application\n"
+msgstr "Kör en DBP-fils standardvalsapplikation\n"
+
+#: dbp-run/dbp-run.vala:12
+#, c-format
+msgid "Runs a registered DBP by its id\n"
+msgstr "Kör en i DBP-systemet registrerad paketfil baserat på sitt ID-nummer\n"
+
+#: dbp-run/common/run.vala:69
 msgid "System packages: "
 msgstr "Systempaket: "
 
 #: dbp-run/common/error.vala:7
 msgid "The DBP System Daemon is not responding. Make sure it's running"
-msgstr ""
+msgstr "DBP-systemets demon svarar inte. Kontrollera att den körs"
 
 #: dbp-run/common/error.vala:11
-msgid "The DBP System Daemon was unable to assign the package file to a device node. ioctl failed."
+msgid ""
+"The DBP System Daemon was unable to assign the package file to a device "
+"node. ioctl failed."
 msgstr ""
+"DBP-systemet kunde inte tilldela paketfilen på en enhetsnod (device node): "
+"ioctl misslyckades."
 
-#: dbp-run/common/run.vala:67
-msgid "The application may or may not work at all without these. It is recommended that you use a package manager to install the missing dependencies."
-msgstr "Programmet kanske inte fungerar över huvud taget utan dessa paket. Du bör installera dessa med en pakethanterare."
+#: dbp-run/common/run.vala:73
+msgid ""
+"The application may or may not work at all without these. It is recommended "
+"that you use a package manager to install the missing dependencies."
+msgstr ""
+"Programmet kanske inte fungerar över huvud taget utan dessa paket. Du bör "
+"installera dessa med en pakethanterare."
 
 #: dbp-run/common/error.vala:16
-msgid "The meta-data in this package is malformed: Illegal character(s) was found in a generated mountpoint."
+msgid ""
+"The meta-data in this package is malformed: Illegal character(s) was found "
+"in a generated mountpoint."
 msgstr ""
+"Paketfilens meta-data är defekt: Otillåtna tecken detekterades i den "
+"genererade monteringspunkten."
 
 #: dbp-run/common/error.vala:12
 msgid "The package file could not be opened. Make sure it's still accessable."
-msgstr ""
+msgstr "Paketfilen kunde inte öppnas. Kontrollera att den är åtkomlig."
 
 #: dbp-run/common/error.vala:20
-msgid "The package with this ID is already registered! This is not an error, and you shouldn't see this message."
+msgid ""
+"The package with this ID is already registered! This is not an error, and "
+"you shouldn't see this message."
 msgstr ""
+"En paketfil med detta ID är redan registrerad! Det här är inte ett fel, och "
+"du bör inte se det här meddelandet."
 
 #: dbp-run/common/error.vala:26
 msgid "The program exited abnormally for an unknown reason."
-msgstr ""
+msgstr "Programmet avslutades på ett onormalt sätt av en okänd anledning."
 
 #: dbp-run/common/error.vala:25
-msgid "The program has crashed from a segmentation fault. This likely a bug in the program."
+msgid ""
+"The program has crashed from a segmentation fault. This likely a bug in the "
+"program."
 msgstr ""
+"Programmet krashade med ett segmenteringsfel. Det här är sannolikt ett fel i "
+"programmet."
 
 #: dbp-run/common/error.vala:24
 msgid "The program was killed by a signal"
-msgstr ""
+msgstr "Programmet slogs ihjäl av en signal"
 
-#: dbp-run/common/error.vala:9
-#: dbp-run/common/error.vala:10
-msgid "The system has ran out of loopback device nodes. Try closing some applications and try again."
+#: dbp-run/common/error.vala:9 dbp-run/common/error.vala:10
+msgid ""
+"The system has ran out of loopback device nodes. Try closing some "
+"applications and try again."
 msgstr ""
+"Systemet har slut på slingenheter (loop devices.) Prova att stänga några "
+"program och försök igen."
 
 #: dbp-run/common/error.vala:23
-msgid "This package lacks a default executable, and therefore cannot be executed directly."
+msgid ""
+"This package lacks a default executable, and therefore cannot be executed "
+"directly."
 msgstr ""
+"Paketfilen saknar ett standardvalsprogram, och kan därför inte exekveras "
+"direkt."
 
 #: dbp-run/common/error.vala:15
-msgid "Unable to access the package filesystem. This DBP-file is likely corrupt."
-msgstr ""
+msgid ""
+"Unable to access the package filesystem. This DBP-file is likely corrupt."
+msgstr "Kunde ej läsa paketfilens filsystem. Paketfilen är antagligen trasig."
 
 #: dbp-run/common/error.vala:13
-msgid "Unable to allocate system resources. You're probably out of RAM. Close some programs and try again."
+msgid ""
+"Unable to allocate system resources. You're probably out of RAM. Close some "
+"programs and try again."
 msgstr ""
+"Kunde inte allokera systemresurser. Systemet har antagligen slut på "
+"arbetsminne. Stäng några program och försök igen."
 
-#: dbp-run/common/run.vala:198
+#: dbp-run/common/run.vala:146 dbp-run/common/run.vala:217
+msgid ""
+"Unable to connect to connect to dbpd, make sure dbpd is running\n"
+"\n"
+msgstr ""
+"Kunde en ansluta till DBP-demonen. Kontrollera att den körs\n"
+"\n"
+
+#: dbp-run/common/run.vala:114 dbp-run/common/run.vala:121
+#, fuzzy
+msgid "Unable to create appdata directory"
+msgstr "Fel: Kunde inte lokalisera din hemkatalog\n"
+
+#: dbp-run/common/run.vala:228
 msgid "Unable to extract exec from package meta data"
 msgstr "Kunde inte extrahera den körbara filen från paketets metadata."
 
-#: dbp-cfg/main.c:23
+#: dbp-cfg/main.c:35
 #, fuzzy, c-format
 msgid "Unable to open config file %s\n"
 msgstr "Kunde inte öppna paketet %s\n"
 
-#: dbp-meta/dbp-meta.c:27
+#: dbp-meta/dbp-meta.c:34
 #, c-format
 msgid "Unable to open package %s\n"
 msgstr "Kunde inte öppna paketet %s\n"
 
 #: dbp-run/common/error.vala:22
-msgid "Unable to read meta-data from package. The package file is likely corrupt. Try re-downloading it."
+msgid ""
+"Unable to read meta-data from package. The package file is likely corrupt. "
+"Try re-downloading it."
 msgstr ""
+"Kunde inte läsa metadata från paketfilen. Paketet är antagligen trasigt. "
+"Ladda ner paketet på nytt och försök igen."
 
 #: dbp-run/common/error.vala:17
-msgid "Unable to set up AuFS union. This is likely a bug. This may temporarely be worked around by rebooting."
+msgid ""
+"Unable to set up AuFS union. This is likely a bug. This may temporarily be "
+"worked around by rebooting."
 msgstr ""
+"Kunde inte sätta upp en AuFS-union. Det här är antagligen ett problem i DBP-"
+"systemet. Problemet kanske kan åtgärdas temporärt genom att starta om "
+"systemet."
 
-#: dbp-meta/dbp-meta.c:8
+#: dbp-run/common/error.vala:43 dbp-run/common/error.vala:48
+msgid "Unknown"
+msgstr "Ökänd"
+
+#: dbp-meta/dbp-meta.c:14
 #, c-format
 msgid "Usage:\n"
 msgstr "Användning:\n"
 
-#: dbp-cfg/main.c:18
+#: dbp-cfg/main.c:16
 #, c-format
 msgid "Usage: %s <config key>\n"
 msgstr "Användning: %s <konfigurationsnyckel>\n"
@@ -297,20 +440,30 @@ msgstr "Användning: %s <konfigurationsnyckel>\n"
 msgid "Usage: dbp-cmd <command> [arg]\n"
 msgstr "Användning: dbp-cmd <kommando> [argument]\n"
 
-#: dbp-run/dbp-run.vala:12
+#: dbp-run/dbp-run.vala:14
 #, c-format
-msgid "Usage: dbp-run [--gui-errors] [--log-output] [--chdir] <package id> <executable> [arg1] [arg2] ...\n"
+msgid ""
+"Usage: dbp-run [--gui-errors] [--log-output] [--chdir] <package id> "
+"<executable> [arg1] [arg2] ...\n"
 msgstr "Användning: dbp-run-path [--gui-errors] <paket-ID> [arg1] [arg2] ...\n"
 
-#: dbp-run/dbp-run-path.vala:9
+#: dbp-run/dbp-run-path.vala:11
 #, c-format
 msgid "Usage: dbp-run-path [--gui-errors] <path to .dbp> [arg1] [arg2] ...\n"
-msgstr "Användning: dbp-run-path [--gui-errors] <sökväg till .dbp> [arg1] [arg2] ...\n"
+msgstr ""
+"Användning: dbp-run-path [--gui-errors] <sökväg till .dbp> [arg1] "
+"[arg2] ...\n"
+
+#: dbp-run/dbp-run-path.vala:10 dbp-run/dbp-run.vala:13
+#, c-format
+msgid "Version %s\n"
+msgstr "Version %s\n"
 
 #: dbp-run/dbp-desktopd.vala:14
 #, c-format
 msgid "Warning: $XDG_DESKTOP_DIR is not set. Guessing $HOME/Desktop..\n"
-msgstr "Varning: Variabeln $XDG_DESKTOP_DIR är inte satt, gissar på $HOME/Desktop…\n"
+msgstr ""
+"Varning: Variabeln $XDG_DESKTOP_DIR är inte satt, gissar på $HOME/Desktop…\n"
 
 #: dbp-run/dbp-cmd.vala:101
 #, fuzzy, c-format
@@ -320,7 +473,8 @@ msgstr "Varning: Paketet %s var inte registrerat\n"
 #: dbp-run/dbp-desktopd.vala:75
 #, c-format
 msgid "Warning: Requested to copy a file that isn't a DBP .desktop file\n"
-msgstr "Varning: Fick förfrågan att kopiera en fil som inte är en DBP-skrivbordsfil\n"
+msgstr ""
+"Varning: Fick förfrågan att kopiera en fil som inte är en DBP-skrivbordsfil\n"
 
 #: dbp-run/dbp-cmd.vala:121
 #, c-format
@@ -328,29 +482,43 @@ msgid "Warning: package %s isn't registered\n"
 msgstr "Varning: Paketet %s var inte registrerat\n"
 
 #: dbp-run/common/error.vala:14
-msgid "You've attempted to launch a program from a package that could not be found in the local database. This is likely a bug."
+msgid ""
+"You've attempted to launch a program from a package that could not be found "
+"in the local database. This is likely a bug."
 msgstr ""
+"Du har försökt att starta ett program som inte är registrerat i den lokala "
+"databasen. Det här är antagligen ett fel i DBP-systemet."
 
 #: dbp-run/common/error.vala:18
-msgid "Your user doesn't have the permissions needed to create the application data directory on the SD-card that this application is installed on."
+msgid ""
+"Your user doesn't have the permissions needed to create the application data "
+"directory on the SD-card that this application is installed on."
 msgstr ""
+"Du saknar behörighet att skapa appdata-mappen på mediat som det här "
+"programmet är installerat på."
 
-#: dbp-meta/dbp-meta.c:10
+#: dbp-meta/dbp-meta.c:16
 #, c-format
-msgid "dbp-meta get <path-to-dbp> <key> [locale]\t- Returns the value of meta-key <key>\n"
-msgstr "dbp-meta get <sökväg till dbp> <nyckel> [språk]\t- Returnerar värdet på meta-nyckeln <nyckel>\n"
+msgid ""
+"dbp-meta get <path-to-dbp> <key> [locale]\t- Returns the value of meta-key "
+"<key>\n"
+msgstr ""
+"dbp-meta get <sökväg till dbp> <nyckel> [språk]\t- Returnerar värdet på meta-"
+"nyckeln <nyckel>\n"
 
-#: dbp-meta/dbp-meta.c:9
+#: dbp-meta/dbp-meta.c:15
 #, c-format
-msgid "dbp-meta list <path-to-dbp>\t\t\t- lists all meta keys for the package\n"
-msgstr "dbp-meta list <sökväg till dbp>\t\t\t- listar alla nyckel-värde-par i metadatan för paketet\n"
+msgid ""
+"dbp-meta list <path-to-dbp>\t\t\t- lists all meta keys for the package\n"
+msgstr ""
+"dbp-meta list <sökväg till dbp>\t\t\t- listar alla nyckel-värde-par i "
+"metadatan för paketet\n"
 
 #: dbp-run/dbp-cmd.vala:19
 #, c-format
 msgid "pkgid is a unique ID that every valid package has\n"
 msgstr "Paket-ID är ett unikt ID som varje giltigt paket har\n"
 
-#: dbp-run/common/run.vala:134
+#: dbp-run/common/run.vala:150
 msgid "pkgid is not in the database"
 msgstr "Kunde inte hitta paket-ID:t i databasen"
-
