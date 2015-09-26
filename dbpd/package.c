@@ -500,7 +500,7 @@ void package_release_mount(struct package_s *p, const char *device) {
 
 	fprintf(dbp_error_log, "Umount '%s'\n", device);
 
-	for (i = 0; i < p->entries; i++) {
+	for (i = 0; i < ((volatile int) p->entries); i++) {
 		if (strcmp(p->entry[i].device, device)) {
 			if (config_struct.verbose_output)
 				fprintf(dbp_error_log, "Package '%s' does not reside on '%s', it's on '%s', skipping\n", p->entry[i].path, device, p->entry[i].device);
@@ -508,6 +508,8 @@ void package_release_mount(struct package_s *p, const char *device) {
 		}
 
 		package_kill(p, i);
+		i--;
+
 	}
 
 	pthread_mutex_unlock(&p->mutex);
