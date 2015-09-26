@@ -495,12 +495,21 @@ void package_release_path(struct package_s *p, const char *path) {
 
 void package_release_mount(struct package_s *p, const char *device) {
 	int i;
+	void *last = NULL;
 
 	pthread_mutex_lock(&p->mutex);
 
 	fprintf(dbp_error_log, "Umount '%s'\n", device);
 
 	for (i = 0; i < ((volatile int) p->entries); i++) {
+		// ID won't change if we failed to kill it last time, and we don't alloc any new
+		// ID's somewhere else while this loop is running, since the struct is locked
+		if (p->entry[i].id == last) {
+			fprintf(dbp_error_log, "Package '%s' seems unkillable for now\n", p->entry[i].id);
+			continue;	// Unkillable, for some reason
+		}
+
+		last = p->entry[i].id;
 		if (strcmp(p->entry[i].device, device)) {
 			if (config_struct.verbose_output)
 				fprintf(dbp_error_log, "Package '%s' does not reside on '%s', it's on '%s', skipping\n", p->entry[i].path, device, p->entry[i].device);
