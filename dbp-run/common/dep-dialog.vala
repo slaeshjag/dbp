@@ -2,7 +2,7 @@
 //extern const string GETTEXT_PACKAGE;
 
 
-public class DepWarning : Gtk.Box {
+private class DepWarning : Gtk.Box {
 	Gtk.Label warning_msg;
 	Gtk.Image warning_icon;
 
@@ -17,21 +17,12 @@ public class DepWarning : Gtk.Box {
 		this.set_spacing(8);
 		this.pack_start(this.warning_icon, false, false, 16);
 		this.pack_start(this.warning_msg, true, false, 0);
-		this.warning_msg.width_chars = 30;
 		this.show_all();
-	}
-
-	public void arne() {
-		Gtk.Requisition min, nat;
-		this.warning_msg.get_preferred_size(out min, out nat);
-		stdout.printf("%i %i\n", min.height, nat.height);
-		stdout.printf(":: %i %i %s\n", this.warning_msg.margin_top, this.warning_msg.margin_bottom, this.warning_msg.vexpand?"true":"false");
-		stdout.printf("Allocated: %i\n", this.warning_msg.get_allocated_height());
 	}
 }
 
 
-public class DepListWidget : Gtk.Expander {
+private class DepListWidget : Gtk.Expander {
 	Gtk.ScrolledWindow scrollw;
 	Gtk.TreeView tree;
 
@@ -75,10 +66,19 @@ public class DepListDialog {
 	DepListWidget sysex;
 	DepListWidget dbpex;
 
+	public enum Result {
+		INSTALL,
+		ABORT,
+		LAUNCH,
+	}
+
 	public int run() {
-		dialog.run();
-		depwarn.arne();
-		return 0;
+		return dialog.run();
+	}
+
+	public void destroy() {
+		this.dialog.destroy();
+		this.dialog = null;
 	}
 
 	private void handle_collapse(Gtk.Expander ex, Gtk.Box box, bool sig) {
@@ -106,9 +106,9 @@ public class DepListDialog {
 		abort = new Gtk.Button.with_label(_("Abort launch"));
 		abort.always_show_image = true;
 		abort.set_image(new Gtk.Image.from_icon_name("gtk-no", Gtk.IconSize.BUTTON));
-		this.dialog.add_action_widget(install, 0);
-		this.dialog.add_action_widget(abort, 2);
-		this.dialog.add_action_widget(launch, 1);
+		this.dialog.add_action_widget(install, Result.INSTALL);
+		this.dialog.add_action_widget(abort, Result.ABORT);
+		this.dialog.add_action_widget(launch, Result.LAUNCH);
 		handle_collapse(this.sysex, this.dialog.get_content_area(), false);
 		handle_collapse(this.dbpex, this.dialog.get_content_area(), false);
 		this.sysex.activate.connect(() => {handle_collapse(this.sysex, this.dialog.get_content_area(), true);});

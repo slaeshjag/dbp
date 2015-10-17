@@ -35,7 +35,7 @@ namespace Run {
 		}
 	}
 
-	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg) throws IOError {
+	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg, bool gui_errors) throws IOError {
 		string[] sysdeps, dbpdeps, sysmissing, dbpmissing;
 		string sysdep, dbpdep, pkgarch;
 		
@@ -58,22 +58,30 @@ namespace Run {
 			dbpmissing = {};
 		if (dbpmissing.length > 0 || sysmissing.length > 0) {
 			string err;
+			
+			if (!gui_errors) {
+				err = _("Package '%s' is missing some of its dependencies\n\n").printf(pkg_id);
+				if (dbpmissing.length > 0) {
+					err = err + _("Removable packages: ");
+					err = err + string.joinv(", ", dbpmissing) + "\n\n";
+				}
 
-			err = _("Package '%s' is missing some of its dependencies\n\n").printf(pkg_id);
-			if (dbpmissing.length > 0) {
-				err = err + _("Removable packages: ");
-				err = err + string.joinv(", ", dbpmissing) + "\n\n";
+				if (sysmissing.length > 0) {
+					err = err + _("System packages: ");
+					err = err + string.joinv(", ", sysmissing) + "\n\n";
+				}
+
+				err = err + _("The application may or may not work at all without these. It is recommended that you use a package manager to install the missing dependencies.");
+
+				stdout.printf("%s\n", err);
+			} else {
+				/* TODO: Care about the users' selection */
+				DepListDialog dld;
+				dld = new DepListDialog(pkg_id, sysmissing, dbpmissing);
+				dld.run();
+				dld.destroy();
+				dld = null;
 			}
-
-			if (sysmissing.length > 0) {
-				err = err + _("System packages: ");
-				err = err + string.joinv(", ", sysmissing) + "\n\n";
-			}
-
-			err = err + _("The application may or may not work at all without these. It is recommended that you use a package manager to install the missing dependencies.");
-
-			stdout.printf("%s\n", err);
-			/* TODO: Ask the user what to do */
 		}
 			
 		return true;	
@@ -124,7 +132,7 @@ namespace Run {
 		}
 	}
 	
-	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir) throws IOError, SpawnError, Error {
+	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir, bool gui_errors) throws IOError, SpawnError, Error {
 		string mount_id;
 		string binary_path;
 		string ?cwd;
@@ -152,7 +160,7 @@ namespace Run {
 		Run.package_path = pkgpath;
 		DBP.Meta.package_open(pkgpath, out pkg);
 		
-		if (!dependency_ok(pkg_id, pkg))
+		if (!dependency_ok(pkg_id, pkg, gui_errors))
 			return;
 
 		appdata_name = resolve_appdata(pkg_id, pkg);

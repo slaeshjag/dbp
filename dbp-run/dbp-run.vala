@@ -78,7 +78,7 @@ int main(string[] args) {
 	Run.package_id = argv[0];
 
 	try {
-		Run.run(argv[0], argv[1], argv[2:argv.length], config.log_output, config.chdir);
+		Run.run(argv[0], argv[1], argv[2:argv.length], config.log_output, config.chdir, config.gui_errors);
 	} catch(Error e) {
 		errorlog.display(e.message);
 		return 1;
