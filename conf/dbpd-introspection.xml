@@ -1,0 +1,62 @@
+<node>
+	<interface name='de.dragonbox.PackageDaemon'>
+		<method name='Mount'>
+			<arg type='s' name='pkg_id' direction='in' />
+			<arg type='s' name='user' direction='in' />
+			<arg type='i' name='mount_handle' direction='out' />
+		</method>
+		<method name='UMount'>
+			<arg type='i' name='mount_handle' direction='in' />
+			<arg type='i' name='dummy' direction='out' />
+		</method>
+		<method name='MountPointGet'>
+			<arg type='s' name='pkg_id' direction='in' />
+			<arg type='i' name='error_code' direction='out' />
+			<arg type='s' name='mount_point' direction='out' />
+		</method>
+		<method name='RegisterPath'>
+			<arg type='s' name='path' direction='in' />
+			<arg type='i' name='error_code' direction='out' />
+			<arg type='s' name='pkg_id' direction='out' />
+		</method>
+		<method name='UnregisterPath'>
+			<arg type='s' name='path' direction='in' />
+			<arg type='i' name='error_code' direction='out' />
+		</method>
+		<method name='IdFromPath'>
+			<arg type='s' name='path' direction='in' />
+			<arg type='i' name='error_code' direction='out' />
+			<arg type='s' name='pkg_id' direction='out' />
+		</method>
+		<method name='PathFromId'>
+			<arg type='s' name='pkg_id' direction='in' />
+			<arg type='i' name='error_code' direction='out' />
+			<arg type='s' name='path' direction='out' />
+		</method>
+		<method name='Ping'>
+			<arg type='i' name='dummy' direction='out' />
+		</method>
+		<method name='PackageList'>
+			<arg type='as' name='path' direction='out' />
+			<arg type='as' name='pkg_id' direction='out' />
+			<arg type='is' name='show_on_desktop' direction='out' />
+		</method>
+		<signal name='NewMeta'>
+			<arg type='s' name='pkg_id' />
+		</signal>
+		<signal name='RemoveMeta'>
+			<arg type='s' name='pkg_id' />
+		</signal>
+		<signal name='NewPackage'>
+			<arg type='s' name='pkg_id' />
+		</signal>
+		<signal name='RemovePackage'>
+			<arg type='s' name='pkg_id' />
+		</signal>
+	</interface>
+	<interface name='org.freedesktop.DBus.Introspectable'>
+		<method name='Introspect'>
+			<arg type='s' name='introspect_data' direction='out' />
+		</method>
+	</interface>
+</node>

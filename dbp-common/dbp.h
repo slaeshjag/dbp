@@ -38,6 +38,8 @@
 #define	DBP_ERROR_SIGEXIT	-1017	/* Program problably died from a signal */
 #define	DBP_ERROR_SIGSEGV	-1018	/* Program died from segfault */
 #define	DBP_ERROR_MYSTKILL	-1019	/* Program died from unhandled reason */
+#define	DBP_ERROR_NOTFOUND	-1020	/* Generic parameter-not-found */
+#define	DBP_ERROR_NOTVALID	-1021	/* Generic invalid parameter (sanity check failed) */
 
 extern FILE *dbp_error_log;
 

@@ -35,7 +35,8 @@ namespace DBP {
 		NO_DEFAULTH,
 		SIGEXIT,
 		SIGSEGV,
-		MYSTKILL;
+		MYSTKILL,
+		NOTFOUND;
 		
 		public string error_string() {
 			//TODO: fix

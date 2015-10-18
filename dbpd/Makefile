@@ -3,6 +3,8 @@ include $(TOPDIR)/config.mk
 
 SRCFILES	=	$(wildcard *.c)
 OBJFILES	=	$(SRCFILES:.c=.o)
+CFLAGS		+=	`pkg-config glib-2.0 --cflags gio-unix-2.0`
+LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0`
 .PHONY: all clean
 
 all: $(OBJFILES) $(DEPENDS)
