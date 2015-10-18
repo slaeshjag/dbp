@@ -17,10 +17,10 @@ FILE *dbp_error_log;
 static struct package_s *p_s;
 
 static void sleep_usec(int usec) {
-	#if 0
+	#if 1
 	struct timespec ts;
 	ts.tv_sec = 0;
-	ts.tv_sec = usec * 1000;
+	ts.tv_nsec = usec * 1000;
 	nanosleep(&ts, NULL);
 	#else
 	usleep(usec);

@@ -124,6 +124,7 @@ struct DBPList *dbpmgr_server_package_list() {
 	int desktop;
 	struct DBPList *prev = NULL, *this = NULL;
 	SEND_MESSAGE("PackageList", NULL, NULL);
+	(void) reti;
 	g_variant_get(ret, "asasai", &path_iter, &id_iter, &desktop_iter);
 	while (g_variant_iter_loop(path_iter, "s", &path) && g_variant_iter_loop(id_iter, "s", &id) && g_variant_iter_loop(desktop_iter, "i", &desktop)) {
 		this = malloc(sizeof(*this));
@@ -150,10 +151,4 @@ int dbpmgr_server_connect() {
 	}
 
 	return dbpmgr_server_ping();
-}
-
-
-int main(int argc, char **argv) {
-	dbpmgr_server_connect();
-	return 0;
 }
