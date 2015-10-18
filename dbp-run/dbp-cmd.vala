@@ -16,7 +16,7 @@ void usage() {
 	stdout.printf(_("\tlist		- Lists all registered packages\n"));
 	stdout.printf(_("\tping		- Pings dbpd, exits with a failure if dbpd isn't running\n"));
 	stdout.printf("\n");
-	stdout.printf(_("pkgid is a unique ID that every valid package has\n"));
+	stdout.printf(_("pkgid is a unique ID that every valid package has.\n"));
 	stdout.printf(_("A registered package have its executables and .desktop files exported\n"));
 	return;
 }

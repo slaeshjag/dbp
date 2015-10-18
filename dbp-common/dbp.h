@@ -5,6 +5,7 @@
 
 #define	DBP_META_PREFIX		"__dbp__"
 
+#define	DBP_GETTEXT_DOMAIN	"dbp-run"
 #define	DBP_DBUS_CLIENT_PREFIX	"de.dragonbox.DBP.run"
 #define	DBP_DBUS_DAEMON_PREFIX	"de.dragonbox.PackageDaemon"
 #define	DBP_DBUS_DAEMON_OBJECT	"/de/dragonbox/PackageDaemon"

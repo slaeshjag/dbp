@@ -30,6 +30,9 @@ freely, subject to the following restrictions:
 #include "dbp.h"
 #include "dbpd-types.h"
 
+#include <libintl.h>
+#define	_(STRING)	dgettext(DBP_GETTEXT_DOMAIN, STRING)
+
 #define	SEND_MESSAGE(method, arg, retfail)																			\
 	GError *error = NULL;																					\
 	GVariant *ret;																						\
@@ -61,8 +64,8 @@ int dbpmgr_server_mount(const char *pkg_id, const char *user) {
 	return reti;
 }
 
-int dbpmgr_server_umount(const char *mount_ref) {
-	SEND_MESSAGE("UMount", g_variant_new("(s)", mount_ref), -1);
+int dbpmgr_server_umount(int mount_ref) {
+	SEND_MESSAGE("UMount", g_variant_new("(i)", mount_ref), -1);
 
 	g_variant_get(ret, "(i)", &reti);
 	g_variant_unref(ret);
@@ -73,7 +76,7 @@ int dbpmgr_server_umount(const char *mount_ref) {
 int dbpmgr_server_mountpoint_get(const char *pkg_id, char **mountpoint) {
 	char *mpoint = NULL;
 	SEND_MESSAGE("MountPointGet", g_variant_new("(s)", pkg_id), -1);
-	g_variant_get(ret, "(i)s", &reti, &mpoint);
+	g_variant_get(ret, "(is)", &reti, &mpoint);
 	*mountpoint = strdup(mpoint);
 	g_variant_unref(ret);
 
@@ -83,7 +86,7 @@ int dbpmgr_server_mountpoint_get(const char *pkg_id, char **mountpoint) {
 int dbpmgr_server_register_path(const char *path, char **pkg_id) {
 	char *id;
 	SEND_MESSAGE("RegisterPath", g_variant_new("(s)", path), -1);
-	g_variant_get(ret, "(i)s", &reti, &id);
+	g_variant_get(ret, "(is)", &reti, &id);
 	*pkg_id = strdup(id);
 	g_variant_unref(ret);
 
@@ -101,7 +104,7 @@ int dbpmgr_server_unregister_path(const char *pkg_id) {
 int dbpmgr_server_id_from_path(const char *path, char **pkg_id) {
 	char *id;
 	SEND_MESSAGE("IdFromPath", g_variant_new("(s)", path), -1);
-	g_variant_get(ret, "(i)s", &reti, &id);
+	g_variant_get(ret, "(is)", &reti, &id);
 	*pkg_id = strdup(id);
 	g_variant_unref(ret);
 	
@@ -111,7 +114,7 @@ int dbpmgr_server_id_from_path(const char *path, char **pkg_id) {
 int dbpmgr_server_path_from_id(const char *pkg_id, char **path) {
 	char *path_c;
 	SEND_MESSAGE("PathFromId", g_variant_new("(s)", pkg_id), -1);
-	g_variant_get(ret, "(i)s", &reti, &path_c);
+	g_variant_get(ret, "(is)", &reti, &path_c);
 	*path = strdup(path_c);
 	g_variant_unref(ret);
 
@@ -119,25 +122,38 @@ int dbpmgr_server_path_from_id(const char *pkg_id, char **path) {
 }
 
 struct DBPList *dbpmgr_server_package_list() {
-	GVariantIter *path_iter, *id_iter, *desktop_iter;
-	char *path, *id;
-	int desktop;
+	GVariantIter *iter;
+	char *path, *id, *desktop;
 	struct DBPList *prev = NULL, *this = NULL;
 	SEND_MESSAGE("PackageList", NULL, NULL);
 	(void) reti;
-	g_variant_get(ret, "asasai", &path_iter, &id_iter, &desktop_iter);
-	while (g_variant_iter_loop(path_iter, "s", &path) && g_variant_iter_loop(id_iter, "s", &id) && g_variant_iter_loop(desktop_iter, "i", &desktop)) {
+	g_variant_get(ret, "(a(sss))", &iter);
+	while (g_variant_iter_loop(iter, "(sss)", &path, &id, &desktop)) {
+		if (!strcmp(id, "!"))
+			continue;
 		this = malloc(sizeof(*this));
+		this->path = strdup(path);
+		this->id = strdup(id);
+		this->on_desktop = !strcmp(desktop, "desk");
 		this->next = prev;
-		this->path = strdup(path); this->id = strdup(id), this->on_desktop = desktop;
 		prev = this;
 	}
 
-	g_variant_iter_free(path_iter), g_variant_iter_free(id_iter), g_variant_iter_free(desktop_iter);
+	g_variant_iter_free(iter);
 	g_variant_unref(ret);
 	
 	return this;
 }
+
+
+void dbpmgr_server_package_list_free(struct DBPList *list) {
+	struct DBPList *old;
+	for (old = list; list; old = list, list = list->next, free(old)) {
+		free(list->path);
+		free(list->id);
+	}
+}
+
 
 int dbpmgr_server_connect() {
 	GError *error = NULL;

@@ -18,6 +18,9 @@ all:
 	@$(MKDIR) build/share/locale
 	@echo " [INIT] build/lib"
 	@$(MKDIR) build/lib
+	@echo " [INIT] build/include/dbpmgr"
+	@$(MKDIR) build/include
+	@$(MKDIR) build/include/dbpmgr
 	@echo " [ CD ] dbp-common/"
 	+@make -C dbp-common/
 	@echo " [ CD ] libdbpmgr/"

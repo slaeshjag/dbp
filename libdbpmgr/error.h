@@ -1,6 +1,6 @@
 /*
 Copyright (c) 2015 Steven Arnow <s@rdw.se>
-'dbpd-dbus-client.h' - This file is part of libdbpmgr
+'error.h' - This file is part of libdbpmgr
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -22,24 +22,10 @@ freely, subject to the following restrictions:
 	distribution.
 */
 
-#ifndef __DBPMGR_DBPD_DBUS_CLIENT_H__
-#define __DBPMGR_DBPD_DBUS_CLIENT_H__
+#ifndef __DBPMGR_ERROR_H__
+#define __DBPMGR_ERROR_H__
 
-#include <dbpmgr/dbpd-types.h>
-
-/* Connect must be called before any dbpd calls can be made */
-int dbpmgr_server_connect();
-
-int dbpmgr_server_ping();
-int dbpmgr_server_mount(const char *pkg_id, const char *user);
-int dbpmgr_server_umount(int mount_ref);
-int dbpmgr_server_mountpoint_get(const char *pkg_id, char **mountpoint);
-int dbpmgr_server_register_path(const char *path, char **pkg_id);
-int dbpmgr_server_unregister_path(const char *pkg_id);
-int dbpmgr_server_id_from_path(const char *path, char **pkg_id);
-int dbpmgr_server_path_from_id(const char *pkg_id, char **path);
-struct DBPList *dbpmgr_server_package_list();
-void dbpmgr_server_package_list_free(struct DBPList *list);
+const char *dbpmgr_error_lookup(int error);
 
 
 #endif

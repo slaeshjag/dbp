@@ -20,8 +20,8 @@ all:
 	@$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c  $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
 	@echo " [VALA] dbp-desktopd.vala"
 	@$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
-	@echo " [VALA] dbp-cmd.vala"
-	@$(VALAC) -o $(BINPATH)/dbp-cmd $(VALAPKG) $(VALAFLAGS) $(VALASTATICLIBS) dbp-cmd.vala common/dbp-bus.vala common/logging.c $(LIBS)
+	#@echo " [VALA] dbp-cmd.vala"
+	#@$(VALAC) -o $(BINPATH)/dbp-cmd $(VALAPKG) $(VALAFLAGS) $(VALASTATICLIBS) dbp-cmd.vala common/dbp-bus.vala common/logging.c $(LIBS)
 	@echo "Done."
 
 clean:

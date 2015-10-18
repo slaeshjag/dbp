@@ -46,7 +46,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		VALIDATE_NOT_NULL(arg1);
 
 		mpoint = package_mount_get(p, arg1);
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", mpoint?1:DBP_ERROR_BAD_PKG_ID, mpoint?mpoint:"!"));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", mpoint?1:DBP_ERROR_BAD_PKG_ID, mpoint?mpoint:"!"));
 	} else if (!g_strcmp0(method_name, "RegisterPath")) {
 		char *pkg_id, *mount, *dev;
 		int ret;
@@ -55,7 +55,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 
 		util_lookup_mount(arg1, &mount, &dev);
 		ret = package_register_path(p, dev, arg1, mount, &pkg_id);
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", ret, pkg_id?pkg_id:"!"));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", ret, pkg_id?pkg_id:"!"));
 		free(dev), free(mount), free(pkg_id);
 	} else if (!g_strcmp0(method_name, "UnregisterPath")) {
 		g_variant_get(parameters, "(s)", &arg1);	/* Path to unregister */
@@ -69,35 +69,35 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		g_variant_get(parameters, "(s)", &arg1);	/* Path to resolve ID from */
 		VALIDATE_NOT_NULL(arg1);
 		ret = package_id_from_path(p, arg1);
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", ret?1:DBP_ERROR_NOTFOUND, ret?ret:"!"));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", ret?1:DBP_ERROR_NOTFOUND, ret?ret:"!"));
 		free(ret);
 	} else if (!g_strcmp0(method_name, "PathFromId")) {
 		char *ret;
 		g_variant_get(parameters, "(s)", &arg1);	/* PAckage Id to resolve path from */
 		VALIDATE_NOT_NULL(arg1);
 		ret = package_path_from_id(p, arg1);
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", ret?1:DBP_ERROR_BAD_PKG_ID, ret?ret:"!"));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", ret?1:DBP_ERROR_BAD_PKG_ID, ret?ret:"!"));
 	} else if (!g_strcmp0(method_name, "Ping")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 1));
 	} else if (!g_strcmp0(method_name, "PackageList")) {
 		int i;
-		GVariantBuilder *path, *id, *desktop;
+		GVariantBuilder *builder;
 
-		path = g_variant_builder_new(G_VARIANT_TYPE("as"));
-		id = g_variant_builder_new(G_VARIANT_TYPE("as"));
-		desktop = g_variant_builder_new(G_VARIANT_TYPE("ai"));
+		builder = g_variant_builder_new(G_VARIANT_TYPE("a(sss)"));
 		pthread_mutex_lock(&p->mutex);
 		
 		for (i = 0; i < p->entries; i++) {
-			g_variant_builder_add(path, "s", p->entry[i].path);
-			g_variant_builder_add(id, "s", p->entry[i].id);
-			g_variant_builder_add(desktop, "i", !strcmp(p->entry[i].desktop, "desk"));
+			g_variant_builder_add(builder, "(sss)", p->entry[i].path, p->entry[i].id, p->entry[i].desktop);
+		}
+
+		if (!p->entries) {
+			g_variant_builder_add(builder, "(sss)", "/dev/null", "!", "nodesk");
 		}
 		
 		pthread_mutex_unlock(&p->mutex);
 		
-		g_dbus_method_invocation_return_value(inv, g_variant_new("asasai", 1, path, id, desktop));
-		g_variant_builder_unref(path), g_variant_builder_unref(id), g_variant_builder_unref(desktop);
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(a(sss))", builder));
+		g_variant_builder_unref(builder);
 	} else if (!g_strcmp0(method_name, "Introspect")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("s", introspection_xml));
 	} else {
