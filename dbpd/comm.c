@@ -26,22 +26,23 @@ static gchar *introspection_xml;
 
 /* This amount of arguments just makes me think of FailAPI32... */
 static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const gchar *object_path, const gchar *interface_name, const char *method_name, GVariant *parameters, GDBusMethodInvocation *inv, gpointer user_data) {
+	(void) conn; (void) *sender; (void) object_path; (void) interface_name; (void) user_data;
 	gchar *arg1 = NULL, *arg2 = NULL;
 	gint argi = -1;
 
 
 	if (!g_strcmp0(method_name, "Mount")) {
-		g_variant_get(parameters, "(&s&s)", &arg1, &arg2); /* pkg_id, user */
+		g_variant_get(parameters, "(ss)", &arg1, &arg2); /* pkg_id, user */
 		VALIDATE_NOT_NULL(arg1);
 		VALIDATE_NOT_NULL(arg2);
 
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", package_run(p, arg1, arg2)));
 	} else if (!g_strcmp0(method_name, "UMount")) {
-		g_variant_get(parameters, "(&i)", &argi);	/* Mount ref number */
+		g_variant_get(parameters, "(i)", &argi);	/* Mount ref number */
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", package_stop(p, (int) argi)));
 	} else if (!g_strcmp0(method_name, "MountPointGet")) {
 		char *mpoint;
-		g_variant_get(parameters, "(&s)", &arg1); /* pkg_id */
+		g_variant_get(parameters, "(s)", &arg1); /* pkg_id */
 		VALIDATE_NOT_NULL(arg1);
 
 		mpoint = package_mount_get(p, arg1);
@@ -49,7 +50,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 	} else if (!g_strcmp0(method_name, "RegisterPath")) {
 		char *pkg_id, *mount, *dev;
 		int ret;
-		g_variant_get(parameters, "(&s)", &arg1);	/* Path to package to register */
+		g_variant_get(parameters, "(s)", &arg1);	/* Path to package to register */
 		VALIDATE_NOT_NULL(arg1);
 
 		util_lookup_mount(arg1, &mount, &dev);
@@ -57,7 +58,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", ret, pkg_id?pkg_id:"!"));
 		free(dev), free(mount), free(pkg_id);
 	} else if (!g_strcmp0(method_name, "UnregisterPath")) {
-		g_variant_get(parameters, "(&s)", &arg1);	/* Path to unregister */
+		g_variant_get(parameters, "(s)", &arg1);	/* Path to unregister */
 		VALIDATE_NOT_NULL(arg1);
 
 		package_release_path(p, arg1);
@@ -65,41 +66,41 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 1));
 	} else if (!g_strcmp0(method_name, "IdFromPath")) {
 		char *ret;
-		g_variant_get(parameters, "(&s)", &arg1);	/* Path to resolve ID from */
+		g_variant_get(parameters, "(s)", &arg1);	/* Path to resolve ID from */
 		VALIDATE_NOT_NULL(arg1);
 		ret = package_id_from_path(p, arg1);
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", ret?1:DBP_ERROR_NOTFOUND, ret?ret:"!"));
 		free(ret);
 	} else if (!g_strcmp0(method_name, "PathFromId")) {
 		char *ret;
-		g_variant_get(parameters, "(&s)", &arg1);	/* PAckage Id to resolve path from */
+		g_variant_get(parameters, "(s)", &arg1);	/* PAckage Id to resolve path from */
 		VALIDATE_NOT_NULL(arg1);
 		ret = package_path_from_id(p, arg1);
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)s", ret?1:DBP_ERROR_BAD_PKG_ID, ret?ret:"!"));
 	} else if (!g_strcmp0(method_name, "Ping")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 1));
 	} else if (!g_strcmp0(method_name, "PackageList")) {
-		char **path, **id;
-		int *desktop, i;
+		int i;
+		GVariantBuilder *path, *id, *desktop;
 
+		path = g_variant_builder_new(G_VARIANT_TYPE("as"));
+		id = g_variant_builder_new(G_VARIANT_TYPE("as"));
+		desktop = g_variant_builder_new(G_VARIANT_TYPE("ai"));
 		pthread_mutex_lock(&p->mutex);
-		path = malloc(sizeof(*path) * p->entries);
-		id = malloc(sizeof(*id) * p->entries);
-		desktop = malloc(sizeof(*path) * p->entries);
 		
 		for (i = 0; i < p->entries; i++) {
-			path[i] = p->entry[i].path;
-			id[i] = p->entry[i].id;
-			desktop[i] = !strcmp(p->entry[i].desktop, "desk");
+			g_variant_builder_add(path, "s", p->entry[i].path);
+			g_variant_builder_add(id, "s", p->entry[i].id);
+			g_variant_builder_add(desktop, "i", !strcmp(p->entry[i].desktop, "desk"));
 		}
-
-		g_dbus_method_invocation_return_value(inv, g_variant_new("asasai", 1, path, id, desktop));
+		
 		pthread_mutex_unlock(&p->mutex);
-
-		free(path), free(id), free(desktop);
+		
+		g_dbus_method_invocation_return_value(inv, g_variant_new("asasai", 1, path, id, desktop));
+		g_variant_builder_unref(path), g_variant_builder_unref(id), g_variant_builder_unref(desktop);
 	} else if (!g_strcmp0(method_name, "Introspect")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("s", introspection_xml));
-	}else {
+	} else {
 		fprintf(dbp_error_log, "Bad method call %s\n", (const char *) method_name);
 		return;
 	}
@@ -138,11 +139,13 @@ void comm_dbus_announce_rem_package(const char *id) {
 }
 
 static GVariant *vtab_get_prop(GDBusConnection *conn, const gchar *sender, const gchar *object_path, const gchar *interface_name, const char *property_name, GError **error, gpointer user_data) {
+	(void) conn; (void) sender; (void) object_path; (void) interface_name; (void) property_name; (void) user_data;
 	g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Properties unsupported\n");
 	return NULL;
 }
 
 static gboolean vtab_set_prop(GDBusConnection *conn, const gchar *sender, const gchar *object_path, const gchar *interface_name, const char *property_name, GVariant *value, GError **error, gpointer user_data) {
+	(void) conn; (void) sender; (void) object_path; (void) interface_name; (void) property_name; (void) value; (void) user_data;
 	g_set_error(error, G_IO_ERROR, G_IO_ERROR_FAILED, "Properties unsupported\n");
 	return 1;
 }
@@ -152,10 +155,12 @@ static const GDBusInterfaceVTable iface_vtable = {
 	vtab_method_call,
 	vtab_get_prop,
 	vtab_set_prop,
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 
 static void on_bus_acquired(GDBusConnection *conn, const gchar *name, gpointer user_data) {
+	(void) conn; (void) name; (void) user_data;
 	if (g_dbus_connection_register_object(conn, DBP_DBUS_DAEMON_OBJECT, introspection_data->interfaces[0], &iface_vtable, NULL, NULL, NULL) <= 0) {
 		fprintf(dbp_error_log, "Unable to register object %s on system bus\n", DBP_DBUS_DAEMON_OBJECT);
 		daemon_exit_error = true;
@@ -168,6 +173,9 @@ static void on_bus_acquired(GDBusConnection *conn, const gchar *name, gpointer u
 
 
 static void on_name_lost(GDBusConnection *conn, const gchar *name, gpointer user_data) {
+	(void) name;
+	(void) user_data;
+	(void) conn;
 	fprintf(dbp_error_log, "Unable to register bus %s on system bus\n", DBP_DBUS_DAEMON_PREFIX);
 	daemon_exit_error = true;
 	g_main_loop_quit(loop);
@@ -176,6 +184,9 @@ static void on_name_lost(GDBusConnection *conn, const gchar *name, gpointer user
 
 
 static void on_name_acquired(GDBusConnection *conn, const gchar *name, gpointer user_data) {
+	(void) conn;
+	(void) name;
+	(void) user_data;
 	return;
 }
 
