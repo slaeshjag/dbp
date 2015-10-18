@@ -8,6 +8,8 @@ NAME		=	dbp
 #Uncomment to build dbp-run without dpkg dependency checking
 #BUILD_DPKG	=	NO
 DAEMONBIN	=	"$(TOPDIR)/build/bin/$(NAME)d"
+LIBBINFILE	=	"lib$(NAME)mgr.so"
+LIBBIN		=	"$(TOPDIR)/build/lib/$(LIBBINFILE)"
 RUNNERBIN	=	"$(TOPDIR)/build/bin/$(NAME)-run-old"
 CONFIGBIN	=	"$(TOPDIR)/build/bin/$(NAME)-cfg"
 METABIN		=	"$(TOPDIR)/build/bin/$(NAME)-meta"

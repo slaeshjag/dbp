@@ -16,8 +16,12 @@ all:
 	@echo " [INIT] build/share/locale"
 	@$(MKDIR) build/share/
 	@$(MKDIR) build/share/locale
+	@echo " [INIT] build/lib"
+	@$(MKDIR) build/lib
 	@echo " [ CD ] dbp-common/"
 	+@make -C dbp-common/
+	@echo " [ CD ] libdbpmgr/"
+	+@make -C libdbpmgr/
 	@echo " [ CD ] dbpd/"
 	+@make -C dbpd/
 #	@echo " [ CD ] dbp-thumbnailer/"
@@ -42,6 +46,8 @@ clean:
 	+@$(RM) build/
 	@echo " [ CD ] dbp-common/"
 	+@make -C dbp-common/ clean
+	@echo " [ CD ] libdbpmgr/"
+	+@make -C libdbpmgr/ clean
 	@echo " [ CD ] dbpd/"
 	+@make -C dbpd/ clean
 	@echo " [ CD ] dbp-thumbnailer/"
