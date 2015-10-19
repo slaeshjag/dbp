@@ -26,6 +26,7 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "dbp.h"
 #include "dbpd-types.h"
@@ -44,6 +45,13 @@ freely, subject to the following restrictions:
 	}
 
 static GDBusConnection *conn;
+static GMainLoop *loop;
+static pthread_t th;
+
+static gint name_watcher = 0;
+static gint subscription = 0;
+static void *user_data;
+static void (*user_signal_handler)(const char *signal, const char *value, void *data);
 
 int dbpmgr_server_ping() {
 	SEND_MESSAGE("Ping", NULL, -1);
@@ -152,6 +160,43 @@ void dbpmgr_server_package_list_free(struct DBPList *list) {
 		free(list->path);
 		free(list->id);
 	}
+}
+
+static void signal_act(GDBusConnection *dconn, const gchar *sender, const gchar *object, const gchar *interface, const gchar *signal, GVariant *param, gpointer udata) {
+	(void) dconn; (void) sender; (void) object; (void) interface; (void) udata;
+	char *arg = NULL;
+
+	g_variant_get(param, "(s)", &arg);
+	if (arg)
+		user_signal_handler(signal, arg, user_data);
+}
+
+static void name_known(GDBusConnection *dconn, const gchar *name, const gchar *name_owner, gpointer user_data) {
+	fprintf(stderr, "Got name\n");
+	(void) name; (void) user_data;
+	subscription = g_dbus_connection_signal_subscribe(dconn, name_owner, DBP_DBUS_DAEMON_PREFIX, NULL, DBP_DBUS_DAEMON_OBJECT, NULL, G_DBUS_SIGNAL_FLAGS_NONE, signal_act, NULL, NULL);
+	fprintf(stderr, "Got subscription: %i\n", subscription);
+}
+
+static void name_vanished(GDBusConnection *dconn, const gchar *name, gpointer user_data) {
+	(void) name; (void) user_data;
+	g_dbus_connection_signal_unsubscribe(dconn, subscription), subscription = 0;
+}
+
+static void *handle_main_loop(void *data) {
+	(void) data;
+	g_main_loop_run(loop);
+	pthread_exit(NULL);
+	
+}
+
+void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, const char *value, void *data), void *data) {
+	user_data = data;
+	user_signal_handler = signal_handler;
+
+	name_watcher = g_bus_watch_name(G_BUS_TYPE_SYSTEM, DBP_DBUS_DAEMON_PREFIX, G_BUS_NAME_WATCHER_FLAGS_NONE, name_known, name_vanished, NULL, NULL);
+	loop = g_main_loop_new(NULL, false);
+	pthread_create(&th, NULL, handle_main_loop, NULL);
 }
 
 

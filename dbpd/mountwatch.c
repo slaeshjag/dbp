@@ -200,7 +200,7 @@ static void mountwatch_inotify_handle(struct mountwatch_change_s *change) {
 		next_buff = buff;
 		for (;;) {
 			ie = (void *) next_buff;
-			name = next_buff + ie->len;
+			name = ie->name;
 			if (ie->len > 0) {
 				if ((ientry = mountwatch_path_lookup_entry(ie->wd)) < 0)
 					goto no;
