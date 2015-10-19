@@ -13,15 +13,17 @@ LIBBIN		=	"$(TOPDIR)/build/lib/$(LIBBINFILE)"
 RUNNERBIN	=	"$(TOPDIR)/build/bin/$(NAME)-run-old"
 CONFIGBIN	=	"$(TOPDIR)/build/bin/$(NAME)-cfg"
 METABIN		=	"$(TOPDIR)/build/bin/$(NAME)-meta"
+CMDBIN		=	"$(TOPDIR)/build/bin/$(NAME)-cmd"
 THUMBBIN	=	"$(TOPDIR)/build/bin/$(NAME)-thumbnailer"
 LIB		=	"$(TOPDIR)/dbp-common/dbp-common.a"
 LIBINC		=	"-I$(TOPDIR)/dbp-common" "-I$(TOPDIR)/build/include"
 PREFIX		+=	/usr/local
 
+LDPATH		+=	"-L$(TOPDIR)/build/lib"
 DBGFLAGS	=	-O0 -g -D__DEBUG__
 #DBGFLAGS	=	-O3 -g
-CFLAGS		+=	-Wall -Wextra -D_XOPEN_SOURCE=700 -std=c99 $(INCS) $(DBGFLAGS) `pkg-config --cflags dbus-1`
-LDFLAGS		+=	$(LIB) -larchive -lpthread -ldbus-1
+CFLAGS		+=	-Wall -Wextra -D_XOPEN_SOURCE=700 -std=c99 $(INCS) $(DBGFLAGS)
+LDFLAGS		+=	$(LIB) -larchive -lpthread
 RM		=	rm -fR
 MKDIR		=	mkdir -p
 CP		=	cp

@@ -46,7 +46,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		VALIDATE_NOT_NULL(arg1);
 
 		mpoint = package_mount_get(p, arg1);
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", mpoint?1:DBP_ERROR_BAD_PKG_ID, mpoint?mpoint:"!"));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", mpoint?1:DBP_ERROR_NOTFOUND, mpoint?mpoint:"!"));
 	} else if (!g_strcmp0(method_name, "RegisterPath")) {
 		char *pkg_id, *mount, *dev;
 		int ret;
@@ -61,9 +61,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		g_variant_get(parameters, "(s)", &arg1);	/* Path to unregister */
 		VALIDATE_NOT_NULL(arg1);
 
-		package_release_path(p, arg1);
-		/* TODO: Return error if path is not registered */
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 1));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", package_release_path(p, arg1)));
 	} else if (!g_strcmp0(method_name, "IdFromPath")) {
 		char *ret;
 		g_variant_get(parameters, "(s)", &arg1);	/* Path to resolve ID from */
@@ -76,7 +74,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		g_variant_get(parameters, "(s)", &arg1);	/* PAckage Id to resolve path from */
 		VALIDATE_NOT_NULL(arg1);
 		ret = package_path_from_id(p, arg1);
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", ret?1:DBP_ERROR_BAD_PKG_ID, ret?ret:"!"));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", ret?1:DBP_ERROR_NOTFOUND, ret?ret:"!"));
 	} else if (!g_strcmp0(method_name, "Ping")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 1));
 	} else if (!g_strcmp0(method_name, "PackageList")) {

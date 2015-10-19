@@ -3,6 +3,9 @@
 #include <time.h>
 #include <archive.h>
 #include <archive_entry.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 
 int meta_package_open(const char *path, struct meta_package_s *mp) {
@@ -10,6 +13,7 @@ int meta_package_open(const char *path, struct meta_package_s *mp) {
 	struct archive_entry *ae;
 	int errid, found, size;
 	char *data;
+	struct stat statbuf;
 
 	mp->df = NULL;
 
@@ -17,7 +21,7 @@ int meta_package_open(const char *path, struct meta_package_s *mp) {
 		return DBP_ERROR_NO_MEMORY;
 	archive_read_support_format_zip(a);
 	if (archive_read_open_filename(a, path, 512) != ARCHIVE_OK) {
-		errid = DBP_ERROR_BAD_META;
+		errid = (stat(path, &statbuf) || S_ISREG(statbuf.st_mode)) ? DBP_ERROR_NO_PKG_ACCESS : DBP_ERROR_BAD_META;
 		goto error;
 	}
 

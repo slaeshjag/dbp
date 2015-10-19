@@ -354,7 +354,7 @@ int package_register_path(struct package_s *p, const char *device, const char *p
 
 	if (!package_filename_interesting(path)) {
 		*pkg_id = strdup("!");
-		return DBP_ERROR_BAD_FSIMG;
+		return DBP_ERROR_BADEXT;
 	}
 
 	pthread_mutex_lock(&p->mutex);
@@ -477,19 +477,19 @@ static void package_kill(struct package_s *p, int entry) {
 }
 
 
-void package_release_path(struct package_s *p, const char *path) {
-	int i;
+int package_release_path(struct package_s *p, const char *path) {
+	int i, killed = 0;
 	pthread_mutex_lock(&p->mutex);
 
 	if (strstr(path, "//") == path) path++;
 	for (i = 0; i < p->entries; i++)
 		if (!strcmp(p->entry[i].path, path)) {
-			package_kill(p, i);
+			package_kill(p, i), killed = 1;
 			break;
 		}
 	pthread_mutex_unlock(&p->mutex);
 	
-	return;
+	return killed?killed:DBP_ERROR_NOTFOUND;
 }
 
 
@@ -620,7 +620,7 @@ char *package_mount_get(struct package_s *p, const char *pkg_id) {
 
 	if ((i = package_find(p, pkg_id)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
-		return strdup("!");
+		return NULL;
 	}
 
 	path = strdup(p->entry[i].mount);
@@ -638,7 +638,7 @@ char *package_id_from_path(struct package_s *p, const char *path) {
 	for (i = 0; i < p->entries; i++)
 		if (!strcmp(p->entry[i].path, path))
 			break;
-	id = strdup(i == p->entries ? "!" : p->entry[i].id);
+	id = (i == p->entries) ? NULL : strdup(p->entry[i].id);
 	pthread_mutex_unlock(&p->mutex);
 	return id;
 }
@@ -680,7 +680,7 @@ char *package_path_from_id(struct package_s *p, const char *id) {
 	pthread_mutex_lock(&p->mutex);
 	
 	if ((i = package_find(p, id)) < 0)
-		ret = strdup("!");
+		ret = NULL;
 	else
 		ret = strdup(p->entry[i].path);
 	pthread_mutex_unlock(&p->mutex);

@@ -61,7 +61,6 @@ static void cmd_umount(int argc, char **argv) {
 		exit(1);
 	}
 
-	printf("%i\n", ret);
 	exit(0);
 }
 
@@ -105,7 +104,6 @@ static void cmd_unregister_path(int argc, char **argv) {
 		exit(1);
 	}
 
-	printf("%i\n", ret);
 	exit(0);
 }
 
@@ -141,7 +139,8 @@ static void cmd_path_from_id(int argc, char **argv) {
 
 static void cmd_package_list(int argc, char **argv) {
 	struct DBPList *list, *next;
-	
+
+	(void) argc; (void) argv;
 	list = dbpmgr_server_package_list();
 	for (next = list; next; next = next->next)
 		printf("'%s' '%s' %s\n", next->path, next->id, next->on_desktop?"desktop":"nodesktop");

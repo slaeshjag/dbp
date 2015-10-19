@@ -73,5 +73,7 @@ const char *dbpmgr_error_lookup(int error) {
 		return _("Could not find one or more resource specified in the given parameter(s).");
 	if (error == DBP_ERROR_NOTVALID)
 		return _("One or more parameters contains malformed data that can not be processed.");
+	if (error == DBP_ERROR_BADEXT)
+		return _("The given file does not have a recognized file extension.");
 	return _("An unknown error occured.");
 }
