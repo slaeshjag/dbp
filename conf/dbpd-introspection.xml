@@ -37,9 +37,7 @@
 			<arg type='i' name='dummy' direction='out' />
 		</method>
 		<method name='PackageList'>
-			<arg type='as' name='path' direction='out' />
-			<arg type='as' name='pkg_id' direction='out' />
-			<arg type='is' name='show_on_desktop' direction='out' />
+			<arg type='a(sss)' name='entry' direction='out' />
 		</method>
 		<signal name='NewMeta'>
 			<arg type='s' name='pkg_id' />
@@ -54,7 +52,7 @@
 			<arg type='s' name='pkg_id' />
 		</signal>
 	</interface>
-	<interface name='org.freedesktop.DBus.Introspectable'>
+	<interface name='org.FreeDesktop.DBus.Introspectable'>
 		<method name='Introspect'>
 			<arg type='s' name='introspect_data' direction='out' />
 		</method>
