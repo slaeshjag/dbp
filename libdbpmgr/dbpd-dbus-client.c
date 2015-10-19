@@ -54,7 +54,7 @@ static void *user_data;
 static void (*user_signal_handler)(const char *signal, const char *value, void *data);
 
 int dbpmgr_server_ping() {
-	SEND_MESSAGE("Ping", NULL, -1);
+	SEND_MESSAGE("Ping", NULL, DBP_ERROR_NO_REPLY);
 
 	g_variant_get(ret, "(i)", &reti);
 	g_variant_unref(ret);
@@ -64,7 +64,7 @@ int dbpmgr_server_ping() {
 
 
 int dbpmgr_server_mount(const char *pkg_id, const char *user) {
-	SEND_MESSAGE("Mount", g_variant_new("(ss)", pkg_id, user), -1);
+	SEND_MESSAGE("Mount", g_variant_new("(ss)", pkg_id, user), DBP_ERROR_NO_REPLY);
 
 	g_variant_get(ret, "(i)", &reti);
 	g_variant_unref(ret);
@@ -73,7 +73,7 @@ int dbpmgr_server_mount(const char *pkg_id, const char *user) {
 }
 
 int dbpmgr_server_umount(int mount_ref) {
-	SEND_MESSAGE("UMount", g_variant_new("(i)", mount_ref), -1);
+	SEND_MESSAGE("UMount", g_variant_new("(i)", mount_ref), DBP_ERROR_NO_REPLY);
 
 	g_variant_get(ret, "(i)", &reti);
 	g_variant_unref(ret);
@@ -83,7 +83,7 @@ int dbpmgr_server_umount(int mount_ref) {
 
 int dbpmgr_server_mountpoint_get(const char *pkg_id, char **mountpoint) {
 	char *mpoint = NULL;
-	SEND_MESSAGE("MountPointGet", g_variant_new("(s)", pkg_id), -1);
+	SEND_MESSAGE("MountPointGet", g_variant_new("(s)", pkg_id), DBP_ERROR_NO_REPLY);
 	g_variant_get(ret, "(is)", &reti, &mpoint);
 	*mountpoint = strdup(mpoint);
 	g_variant_unref(ret);
@@ -93,7 +93,7 @@ int dbpmgr_server_mountpoint_get(const char *pkg_id, char **mountpoint) {
 
 int dbpmgr_server_register_path(const char *path, char **pkg_id) {
 	char *id;
-	SEND_MESSAGE("RegisterPath", g_variant_new("(s)", path), -1);
+	SEND_MESSAGE("RegisterPath", g_variant_new("(s)", path), DBP_ERROR_NO_REPLY);
 	g_variant_get(ret, "(is)", &reti, &id);
 	*pkg_id = strdup(id);
 	g_variant_unref(ret);
@@ -102,7 +102,7 @@ int dbpmgr_server_register_path(const char *path, char **pkg_id) {
 }
 
 int dbpmgr_server_unregister_path(const char *pkg_id) {
-	SEND_MESSAGE("UnregisterPath", g_variant_new("(s)", pkg_id), -1);
+	SEND_MESSAGE("UnregisterPath", g_variant_new("(s)", pkg_id), DBP_ERROR_NO_REPLY);
 	g_variant_get(ret, "(i)", &reti);
 	g_variant_unref(ret);
 
@@ -111,7 +111,7 @@ int dbpmgr_server_unregister_path(const char *pkg_id) {
 
 int dbpmgr_server_id_from_path(const char *path, char **pkg_id) {
 	char *id;
-	SEND_MESSAGE("IdFromPath", g_variant_new("(s)", path), -1);
+	SEND_MESSAGE("IdFromPath", g_variant_new("(s)", path), DBP_ERROR_NO_REPLY);
 	g_variant_get(ret, "(is)", &reti, &id);
 	*pkg_id = strdup(id);
 	g_variant_unref(ret);
@@ -121,7 +121,7 @@ int dbpmgr_server_id_from_path(const char *path, char **pkg_id) {
 
 int dbpmgr_server_path_from_id(const char *pkg_id, char **path) {
 	char *path_c;
-	SEND_MESSAGE("PathFromId", g_variant_new("(s)", pkg_id), -1);
+	SEND_MESSAGE("PathFromId", g_variant_new("(s)", pkg_id), DBP_ERROR_NO_REPLY);
 	g_variant_get(ret, "(is)", &reti, &path_c);
 	*path = strdup(path_c);
 	g_variant_unref(ret);
@@ -217,7 +217,7 @@ int dbpmgr_server_connect() {
 		if (!conn) {
 			fprintf(stderr, "Unable to connect to DBus system bus: %s\n", error->message);
 			g_error_free(error);
-			return -1;
+			return DBP_ERROR_NO_REPLY;
 		}
 	}
 

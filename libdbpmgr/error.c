@@ -29,6 +29,7 @@ freely, subject to the following restrictions:
 
 
 const char *dbpmgr_error_lookup(int error) {
+	fprintf(stderr, "Decoding %i\n", error);
 	if (error == DBP_ERROR_NO_REPLY)
 		return _("The DBP System Daemon is not responding. Make sure it's running");
 	if (error == DBP_ERROR_INTERNAL_MSG)

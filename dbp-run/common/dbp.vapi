@@ -13,9 +13,9 @@ namespace DBP {
 		public const string DAEMON_PREFIX;
 		public const string DAEMON_OBJECT;
 	}
-	
+
 	[CCode (cname = "int", cprefix = "DBP_ERROR_", has_type_id = false)]
-	enum Error {
+	enum ErrorEnum {
 		NO_REPLY,
 		INTERNAL_MSG,
 		NO_LOOP,
@@ -136,7 +136,12 @@ namespace DBP {
 		int package_open(string path, out Package mp);
 	}
 
-	
+	[CCode (cheader_filename = "dbpmgr/dbpmgr.h", cprefix = "dbpmgr_error_")]
+	namespace Error {
+		[CCode (cname = "dbpmgr_error_lookup")]
+		unowned string lookup(int error);
+	}
+
 	[CCode (cheader_filename = "dbpmgr/dbpmgr.h", cprefix = "dbpmgr_server_")]
 	namespace ServerAPI {
 		[CCode (cname = "dbpmgr_server_connect")]

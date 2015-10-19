@@ -3,8 +3,9 @@ namespace DepCheck {
 		string[] missing = { };
 		foreach (string s in dep) {
 			/* check if the package is present */
-			string path = bus.path_from_id(s);
-			if (path == "" || path == "!" || path == null)
+			string path;
+			int err = DBP.ServerAPI.path_from_id(s, out path);
+			if (err < 0)
 				missing += s;
 		}
 

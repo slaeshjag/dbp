@@ -23,7 +23,6 @@ int main(string[] args) {
 		chdir = false
 	};
 	ErrorLog errorlog;	
-	bus = null;
 	
 	errorlog = new ErrorLog(ref args);
 	
@@ -62,10 +61,9 @@ int main(string[] args) {
 		}
 	}
 	
-	try {
-		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
-	} catch(Error e) {
-		errorlog.display(e.message);
+	int err;
+	if ((err = DBP.ServerAPI.connect()) < 0) {
+		errorlog.display(DBP.Error.lookup(err));
 		return 1;
 	}
 	

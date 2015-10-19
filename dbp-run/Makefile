@@ -18,10 +18,10 @@ all:
 	@$(VALAC) -o $(BINPATH)/dbp-run $(VALAPKG) $(VALAFLAGS) dbp-run.vala common/*.vala -X common/*.c $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
 	@echo " [VALA] dbp-run-path.vala"
 	@$(VALAC) -o $(BINPATH)/dbp-run-path $(VALAPKG) $(VALAFLAGS) dbp-run-path.vala common/*.vala -X common/*.c  $(DEPCHECKSRC) $(VALASTATICLIBS) $(LIBS) $(DEPCHECKLIBS)
-	@echo " [VALA] dbp-desktopd.vala"
-	@$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
+	@#echo " [VALA] dbp-desktopd.vala"
+	@#$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/*.c $(VALASTATICLIBS) $(LIBS)
 	@echo "Done."
-	@$(VALAC) -o $(BINPATH)/dbp-apitest $(VALAPKG) $(VALAFLAGS) apitest.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
+	@$(VALAC) -o $(BINPATH)/dbp-apitest $(VALAPKG) $(VALAFLAGS) apitest.vala common/*.c $(VALASTATICLIBS) $(LIBS)
 
 clean:
 	@echo " Nothing needs to be done to clean dbp-run/"

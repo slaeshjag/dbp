@@ -100,12 +100,12 @@ namespace Run {
 
 	void appdata_create(string pkg_id, string appdata_name) throws IOError {
 		string mountpoint;
+		int error_ret;
 		string appdata, roappdata;
 		
 		
-		mountpoint = bus.mount_point_get(pkg_id);
-		if(mountpoint == null || mountpoint == "" || mountpoint == "!")
-			throw new IOError.FAILED(_("Failed to find the mountpoint that this package resides on"));
+		if ((error_ret = DBP.ServerAPI.mountpoint_get(pkg_id, out mountpoint)) < 0)
+			throw new IOError.FAILED(DBP.Error.lookup(error_ret));
 		
 		if(DBP.Config.config.per_user_appdata) {
 			appdata = DBP.Config.config.data_directory + "_" + Environment.get_user_name();
@@ -133,7 +133,7 @@ namespace Run {
 	}
 	
 	public void run(string pkg_id, string exec, string[] args, bool log, bool chdir, bool gui_errors) throws IOError, SpawnError, Error {
-		string mount_id;
+		int mount_id;
 		string binary_path;
 		string ?cwd;
 		string[] argv = {};
@@ -142,20 +142,16 @@ namespace Run {
 		string outlogfile, errlogfile;
 		int pid;
 		int info;
+		int error_ret;
 		DBP.Meta.Package pkg;
 		OutputLogger stdoutlogger, stderrlogger;
 		
 		if (pkg_id == null)
 			return;
 	
-		try {
-			pkgpath = bus.path_from_id(pkg_id);
-		} catch (Error e) {
-			throw new IOError.FAILED(_("Unable to connect to connect to dbpd, make sure dbpd is running\n\n" + e.message));
+		if ((error_ret = DBP.ServerAPI.path_from_id(pkg_id, out pkgpath)) < 0) {
+			throw new IOError.FAILED(DBP.Error.lookup(error_ret));
 		}
-	
-		if (pkgpath == null || pkgpath == "" || pkgpath == "!")
-			throw new IOError.FAILED(_("pkgid is not in the database"));
 	
 		Run.package_path = pkgpath;
 		DBP.Meta.package_open(pkgpath, out pkg);
@@ -174,9 +170,8 @@ namespace Run {
 		if (run_script == "")
 			run_script = null;
 
-		mount_id = bus.mount(pkg_id, "");
-		if(int.parse(mount_id) < 0)
-			throw new IOError.FAILED(mount_id);
+		if ((mount_id = DBP.ServerAPI.mount(pkg_id, "")) < 0)
+			throw new IOError.FAILED(DBP.Error.lookup(mount_id));
 	
 		binary_path = Path.build_filename(DBP.Config.config.union_mount, pkg_id, exec);
 		cwd = chdir ? Path.build_filename(DBP.Config.config.union_mount, pkg_id) : null;
@@ -202,15 +197,15 @@ namespace Run {
 			Process.spawn_sync(cwd, argv, null, SpawnFlags.CHILD_INHERITS_STDIN, null, null, null);
 		}
 		
-		bus.u_mount(mount_id);
+		DBP.ServerAPI.umount(mount_id);
 	}
 	
 	public void run_path(string path_in, string[] args) throws IOError, SpawnError, Error {
 		string pkg_id;
-		string error_code;
 		string actual_path;
 		string exec_name;
 		string path;
+		int error_ret;
 		DBP.Meta.Package meta;
 		ExecLine exec;
 	
@@ -219,16 +214,13 @@ namespace Run {
 		else
 			path = path_in;
 
-		try {
-			pkg_id = bus.register_path(path, out error_code);
-		} catch (Error e) {
-			throw new IOError.FAILED(_("Unable to connect to connect to dbpd, make sure dbpd is running\n\n" + e.message));
-		}
-		if(pkg_id == "!")
-			throw new IOError.FAILED(error_code);
+		if ((error_ret = DBP.ServerAPI.register_path(path, out pkg_id)) < 0 && error_ret != DBP.ErrorEnum.PKG_REG)
+			throw new IOError.FAILED(DBP.Error.lookup(error_ret));
 		
 		Run.package_id = pkg_id;
-		actual_path = bus.path_from_id(pkg_id);
+
+		// TODO: Should really check for errors here //
+		DBP.ServerAPI.path_from_id(pkg_id, out actual_path);
 		Run.package_path = actual_path;
 		DBP.Meta.package_open(actual_path, out meta);
 		exec_name = meta.desktop_file.lookup("Exec", "", "Desktop Entry");
@@ -238,7 +230,7 @@ namespace Run {
 		exec.append(args);
 		exec.run(false);
 		
-		if(int.parse(error_code) != DBP.Error.PKG_REG)
-			bus.unregister_path(path);
+		if(error_ret != DBP.ErrorEnum.PKG_REG)
+			DBP.ServerAPI.unregister_path(path);
 	}
 }

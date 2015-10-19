@@ -14,11 +14,11 @@ void usage() {
 int main(string[] args) {
 	string[] argv = {};
 	bool parse_option;
+	int error_ret;
 	Config config = Config() {
 		gui_errors = false
 	};
 	ErrorLog errorlog;
-	bus = null;
 	
 	errorlog = new ErrorLog(ref args);
 	
@@ -27,10 +27,8 @@ int main(string[] args) {
 	Intl.bind_textdomain_codeset(GETTEXT_PACKAGE, "utf-8"); 
 	DBP.Config.init();
 	
-	try {
-		bus = Bus.get_proxy_sync(BusType.SYSTEM, DBP.DBus.DAEMON_PREFIX, DBP.DBus.DAEMON_OBJECT);
-	} catch(Error e) {
-		errorlog.display(e.message);
+	if ((error_ret = DBP.ServerAPI.connect()) < 0) {
+		errorlog.display(DBP.Error.lookup(error_ret));
 		return 1;
 	}
 	
