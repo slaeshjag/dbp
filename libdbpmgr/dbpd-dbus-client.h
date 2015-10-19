@@ -40,6 +40,7 @@ int dbpmgr_server_id_from_path(const char *path, char **pkg_id);
 int dbpmgr_server_path_from_id(const char *pkg_id, char **path);
 struct DBPList *dbpmgr_server_package_list();
 void dbpmgr_server_package_list_free(struct DBPList *list);
+void dbpmgr_server_package_list_free_one(struct DBPList *list);
 
 void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, const char *value, void *data), void *data);
 

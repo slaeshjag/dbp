@@ -135,4 +135,39 @@ namespace DBP {
 		[CCode (cname = "meta_package_open")]
 		int package_open(string path, out Package mp);
 	}
+
+	
+	[CCode (cheader_filename = "dbpmgr/dbpmgr.h", cprefix = "dbpmgr_server_")]
+	namespace ServerAPI {
+		[CCode (cname = "dbpmgr_server_connect")]
+		int connect();
+		[CCode (cname = "dbpmgr_server_ping")]
+		int ping();
+		[CCode (cname = "dbpmgr_server_mount")]
+		int mount(string pkg_id, string user);
+		[CCode (cname = "dbpmgr_server_umount")]
+		int umount(int mount_ref);
+		[CCode (cname = "dbpmgr_server_mountpoint_get")]
+		int mountpoint_get(string pkg_id, out string mountpoint);
+		[CCode (cname = "dbpmgr_server_register_path")]
+		int register_path(string path, out string pkg_id);
+		[CCode (cname = "dbpmgr_server_unregister_path")]
+		int unregister_path(string path);
+		[CCode (cname = "dbpmgr_server_id_from_path")]
+		int id_from_path(string path, out string id);
+		[CCode (cname = "dbpmgr_server_path_from_id")]
+		int path_from_id(string id, out string path);
+		
+		[CCode (cheader_filename = "dbpmgr/dbpmgr.h", cname = "struct DBPList", free_function = "dbpmgr_server_package_list_free")]
+		[Compact]
+		public class PackageList {
+			[CCode (cname = "dbpmgr_server_package_list")]
+			public PackageList();
+			public unowned PackageList next;
+			public string id;
+			public string path;
+			public bool on_desktop;
+		}
+
+	}
 }

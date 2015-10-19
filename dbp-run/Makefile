@@ -1,8 +1,8 @@
 VALAC = valac
 VALAPKG = --pkg=gio-2.0 --target-glib 2.32 --pkg glib-2.0 --pkg=gtk+-3.0 --pkg=posix --pkg=dbp
-VALAFLAGS = --vapidir=./common -X -I../dbp-common --thread -X -DGETTEXT_PACKAGE=\"dbp-run\"
+VALAFLAGS = --vapidir=./common -X -I../dbp-common -X -I../build/include --thread -X -DGETTEXT_PACKAGE=\"dbp-run\" -X -L../build/lib
 VALASTATICLIBS = -X ../dbp-common/dbp-common.a
-LIBS = -X -larchive -X -ldpkg
+LIBS = -X -larchive -X -ldpkg -X -ldbpmgr
 
 ifeq ($(BUILD_DPKG), NO)
 	DEPCHECKLIBS =
@@ -21,6 +21,7 @@ all:
 	@echo " [VALA] dbp-desktopd.vala"
 	@$(VALAC) -o $(BINPATH)/dbp-desktopd $(VALAPKG) $(VALAFLAGS) dbp-desktopd.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
 	@echo "Done."
+	@$(VALAC) -o $(BINPATH)/dbp-apitest $(VALAPKG) $(VALAFLAGS) apitest.vala common/dbp-bus.vala common/*.c $(VALASTATICLIBS) $(LIBS)
 
 clean:
 	@echo " Nothing needs to be done to clean dbp-run/"

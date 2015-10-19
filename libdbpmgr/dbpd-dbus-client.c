@@ -153,14 +153,17 @@ struct DBPList *dbpmgr_server_package_list() {
 	return this;
 }
 
+void dbpmgr_server_package_list_free_one(struct DBPList *list) {
+	free(list->path);
+	free(list->id);
+	free(list);
+}
 
 void dbpmgr_server_package_list_free(struct DBPList *list) {
 	struct DBPList *old;
-	for (old = list; list; old = list, list = list->next, free(old)) {
-		free(list->path);
-		free(list->id);
-	}
+	for (old = list; list; old = list, list = list->next, dbpmgr_server_package_list_free_one(old));
 }
+
 
 static void signal_act(GDBusConnection *dconn, const gchar *sender, const gchar *object, const gchar *interface, const gchar *signal, GVariant *param, gpointer udata) {
 	(void) dconn; (void) sender; (void) object; (void) interface; (void) udata;
