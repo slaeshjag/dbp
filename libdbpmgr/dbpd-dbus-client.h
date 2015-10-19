@@ -43,5 +43,6 @@ void dbpmgr_server_package_list_free(struct DBPList *list);
 void dbpmgr_server_package_list_free_one(struct DBPList *list);
 
 void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, const char *value, void *data), void *data);
+void dbpmgr_server_signal_listen_sync(void (*signal_handler)(const char *signal, const char *value, void *data), void *data);
 
 #endif

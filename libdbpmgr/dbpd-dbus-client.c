@@ -191,6 +191,15 @@ static void *handle_main_loop(void *data) {
 	
 }
 
+void dbpmgr_server_signal_listen_sync(void (*signal_handler)(const char *signal, const char *value, void *data), void *data) {
+	user_data = data;
+	user_signal_handler = signal_handler;
+
+	name_watcher = g_bus_watch_name(G_BUS_TYPE_SYSTEM, DBP_DBUS_DAEMON_PREFIX, G_BUS_NAME_WATCHER_FLAGS_NONE, name_known, name_vanished, NULL, NULL);
+	loop = g_main_loop_new(NULL, false);
+	g_main_loop_run(loop);
+}
+
 void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, const char *value, void *data), void *data) {
 	user_data = data;
 	user_signal_handler = signal_handler;
