@@ -109,12 +109,9 @@ void comm_dbus_announce(const char *name, const char *signame) {
 	GError *local_error = NULL;
 
 	if (!dconn) {
-		fprintf(stderr, "Waiting for connection...\n");
 		sleep(2);
-		if (!dconn) {
-			fprintf(stderr, "Announce failed\n");
+		if (!dconn)
 			return;
-		}
 	}
 	
 	g_dbus_connection_emit_signal(dconn, NULL, DBP_DBUS_DAEMON_OBJECT, DBP_DBUS_DAEMON_PREFIX, signame, g_variant_new("(s)", name), &local_error);

@@ -172,10 +172,8 @@ static void signal_act(GDBusConnection *dconn, const gchar *sender, const gchar 
 }
 
 static void name_known(GDBusConnection *dconn, const gchar *name, const gchar *name_owner, gpointer user_data) {
-	fprintf(stderr, "Got name\n");
 	(void) name; (void) user_data;
 	subscription = g_dbus_connection_signal_subscribe(dconn, name_owner, DBP_DBUS_DAEMON_PREFIX, NULL, DBP_DBUS_DAEMON_OBJECT, NULL, G_DBUS_SIGNAL_FLAGS_NONE, signal_act, NULL, NULL);
-	fprintf(stderr, "Got subscription: %i\n", subscription);
 }
 
 static void name_vanished(GDBusConnection *dconn, const gchar *name, gpointer user_data) {
