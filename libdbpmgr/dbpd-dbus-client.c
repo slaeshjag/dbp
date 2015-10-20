@@ -46,7 +46,7 @@ freely, subject to the following restrictions:
 
 static GDBusConnection *conn;
 static GMainLoop *loop;
-static pthread_t th;
+pthread_t server_signal_th;
 
 static gint name_watcher = 0;
 static gint subscription = 0;
@@ -206,7 +206,7 @@ void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, cons
 
 	name_watcher = g_bus_watch_name(G_BUS_TYPE_SYSTEM, DBP_DBUS_DAEMON_PREFIX, G_BUS_NAME_WATCHER_FLAGS_NONE, name_known, name_vanished, NULL, NULL);
 	loop = g_main_loop_new(NULL, false);
-	pthread_create(&th, NULL, handle_main_loop, NULL);
+	pthread_create(&server_signal_th, NULL, handle_main_loop, NULL);
 }
 
 

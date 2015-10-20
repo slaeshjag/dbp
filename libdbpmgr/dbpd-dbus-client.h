@@ -26,6 +26,7 @@ freely, subject to the following restrictions:
 #define __DBPMGR_DBPD_DBUS_CLIENT_H__
 
 #include <dbpmgr/dbpd-types.h>
+#include <pthread.h>
 
 /* Connect must be called before any dbpd calls can be made */
 int dbpmgr_server_connect();
@@ -41,6 +42,10 @@ int dbpmgr_server_path_from_id(const char *pkg_id, char **path);
 struct DBPList *dbpmgr_server_package_list();
 void dbpmgr_server_package_list_free(struct DBPList *list);
 void dbpmgr_server_package_list_free_one(struct DBPList *list);
+
+
+/* When using async thread listening, this thread runs the dbus main loop */
+extern pthread_t server_signal_th;
 
 void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, const char *value, void *data), void *data);
 void dbpmgr_server_signal_listen_sync(void (*signal_handler)(const char *signal, const char *value, void *data), void *data);
