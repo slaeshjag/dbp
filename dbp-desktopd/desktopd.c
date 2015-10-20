@@ -11,8 +11,8 @@
 #include <dbpmgr/dbpmgr.h>
 #include "config.h"
 
-#define	HAS_SUFFIX(str, suffix)		(strlen((suffix)) > strlen((str)) && strcmp((str) + strlen((suffix)), suffix))
-#define	HAS_PREFIX(str, prefix)		(strstr((str), (prefix)) == (prefix))
+#define	HAS_SUFFIX(str, suffix)		(strlen((suffix)) < strlen((str)) && !strcmp((str) + strlen((str)) - strlen((suffix)), suffix))
+#define	HAS_PREFIX(str, prefix)		(strstr((str), (prefix)) == (str))
 
 static char *desktop_directory = NULL;
 FILE *dbp_error_log;
@@ -34,7 +34,7 @@ static char *find_desktop() {
 		return free(desktop_dir), NULL;
 	}
 
-	return desktop_dir;
+	return desktop_path;
 }
 
 static void nuke_desktop(char *desktop) {
@@ -82,7 +82,7 @@ static void add_meta(const char *path, int thread) {
 	if (HAS_PREFIX(base_comp, "__dbp__") && HAS_SUFFIX(base_comp, ".desktop")) {
 		copy_file(path, desktop_path, thread);
 	} else
-		fprintf(stderr, "WARNING: Requested to copy a file that isn't a DBP .desktop file\n");
+		fprintf(stderr, "WARNING: Requested to copy a file that isn't a DBP .desktop file: %s\n", base_comp);
 	free(desktop_path), free(base);
 }
 
@@ -91,12 +91,12 @@ static void remove_meta(const char *path) {
 	
 	desktop_copy = strdup(path); desktop_base = basename(desktop_copy);
 	asprintf(&target, "%s/%s", desktop_directory, desktop_base);
-	free(desktop_copy);
-	if (HAS_PREFIX(target, "__dbp__") && HAS_SUFFIX(target, ".desktop"))
+	if (HAS_PREFIX(desktop_base, "__dbp__") && HAS_SUFFIX(desktop_base, ".desktop"))
 		unlink(target);
 	else
 		fprintf(stderr, "WARNING: Requested to remove a file that isn't a DBP .desktop file\n");
 	free(target);
+	free(desktop_copy);
 	return;
 }
 
@@ -113,7 +113,7 @@ static void add_package_meta(char *pkg_id) {
 	}
 
 	for (readdir_r(dir_s, &ent, &result); result; readdir_r(dir_s, &ent, &result)) {
-		if (HAS_PREFIX(ent.d_name, "__dbp__") && HAS_SUFFIX(ent.d_name, ".desktop")) {
+		if (HAS_PREFIX(ent.d_name, prefix) && HAS_SUFFIX(ent.d_name, ".desktop")) {
 			asprintf(&source, "%s/%s", config_struct.desktop_directory, ent.d_name);
 			add_meta(source, 0);
 			free(source);

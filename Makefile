@@ -41,7 +41,7 @@ all:
 	+@make -C dbp-desktopd/
 	
 	@echo " [POT ] po/dbp-run.pot"
-	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c
+	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c dbp-cmd/*.c dbp-thumbnailer/*.c
 	@echo " [ CD ] po/"
 	+@make -C po/
 	
