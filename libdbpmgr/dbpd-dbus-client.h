@@ -25,7 +25,7 @@ freely, subject to the following restrictions:
 #ifndef __DBPMGR_DBPD_DBUS_CLIENT_H__
 #define __DBPMGR_DBPD_DBUS_CLIENT_H__
 
-#include <dbpmgr/dbpd-types.h>
+#include <dbpmgr/types.h>
 #include <pthread.h>
 
 /* Connect must be called before any dbpd calls can be made */

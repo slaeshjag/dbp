@@ -26,7 +26,8 @@ freely, subject to the following restrictions:
 #define __DBPMGR_DBPMGR_H__
 
 #include <dbpmgr/error.h>
-#include <dbpmgr/dbpd-types.h>
+#include <dbpmgr/types.h>
 #include <dbpmgr/dbpd-dbus-client.h>
+#include <dbpmgr/dependencies.h>
 
 #endif

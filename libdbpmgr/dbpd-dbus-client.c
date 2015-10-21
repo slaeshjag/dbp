@@ -29,7 +29,7 @@ freely, subject to the following restrictions:
 #include <pthread.h>
 
 #include "dbp.h"
-#include "dbpd-types.h"
+#include "types.h"
 
 #include <libintl.h>
 #define	_(STRING)	dgettext(DBP_GETTEXT_DOMAIN, STRING)

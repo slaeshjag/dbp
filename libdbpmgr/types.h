@@ -12,4 +12,17 @@ struct DBPList {
 };
 
 
+struct DBPDepend {
+	char			*pkg_name;
+	struct {
+		char		*lt;
+		char		*lteq;
+		char		*eq;
+		char		*gt;
+		char		*gteq;
+	} version;
+	char			*arch;
+};
+
+
 #endif
