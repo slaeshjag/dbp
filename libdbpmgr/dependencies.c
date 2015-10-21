@@ -69,7 +69,7 @@ struct DBPDepend *dbpmgr_depend_parse(const char *package_string) {
 				version->version.eq = strndup(next + 1, len - 1);
 		} else if (!strncmp(next, ">=", 2)) {
 			if (!version->version.gteq)
-				version->version.gteq = strndup(next + 2, len - 1);
+				version->version.gteq = strndup(next + 2, len - 2);
 		} else if (!strncmp(next, ">", 1)) {
 			if (!version->version.gt)
 				version->version.gt = strndup(next + 1, len - 1);
