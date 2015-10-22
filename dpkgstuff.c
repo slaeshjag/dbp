@@ -24,7 +24,7 @@ struct DPackageVersion {
 	char			*rev;
 };
 
-static char char_to_index[256];
+static char char_to_index[128];
 static int lookup_size = 0;
 
 #define	IS_END(c)	(isdigit((c)) || !(c))
@@ -181,6 +181,7 @@ char *load_database() {
 	return dbstr;
 }
 
+#define	TREE_LOOKUP(c)	((unsigned char )char_to_index[((unsigned char) (c)) & 0x7F])
 
 struct DPackageNode *package_tree_populate(struct DPackageNode *root, struct DPackage *entry, int name_index) {
 	if (!entry)
@@ -192,12 +193,12 @@ struct DPackageNode *package_tree_populate(struct DPackageNode *root, struct DPa
 	if (!root->lookup)
 		entry->next = root->list, root->list = entry, root->list_size++;
 	else
-		return root->lookup[char_to_index[entry->name[name_index]]] = package_tree_populate(root->lookup[char_to_index[entry->name[name_index]]], entry, name_index + 1), root;
+		return root->lookup[TREE_LOOKUP(entry->name[name_index])] = package_tree_populate(root->lookup[TREE_LOOKUP(entry->name[name_index])], entry, name_index + 1), root;
 	if (root->list_size > 25) {	// Arbitrary value for when a list is "big"
 		struct DPackage *next, *this;
 		root->lookup = calloc(sizeof(*(root->lookup)), lookup_size);
 		for (this = root->list; this; this = next)
-			next = this->next, root->lookup[char_to_index[this->name[name_index]]] = package_tree_populate(root->lookup[char_to_index[this->name[name_index]]], this, name_index + 1);
+			next = this->next, root->lookup[TREE_LOOKUP(this->name[name_index])] = package_tree_populate(root->lookup[TREE_LOOKUP(this->name[name_index])], this, name_index + 1);
 		root->list = NULL, root->list_size = 0;
 	}
 	return root;
