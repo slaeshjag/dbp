@@ -9,7 +9,7 @@ LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0` -Wl,-soname,$(LIBBINFILE)
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(LIBBIN)"
-	@$(CC) $(CFLAGS) -o $(LIBBIN) $(OBJFILES) $(LIB) $(LDFLAGS) -ldpkg
+	@$(CC) $(CFLAGS) -o $(LIBBIN) $(OBJFILES) $(LIB) $(LDFLAGS)
 	@echo " [COPY] Headers into build directory"
 	@$(CP) *.h $(TOPDIR)/build/include/dbpmgr/
 	@echo "Done."

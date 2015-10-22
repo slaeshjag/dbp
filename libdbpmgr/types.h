@@ -15,10 +15,10 @@ enum DBPMgrDependVersionCheck {
 };
 
 struct DBPList {
-	struct DBPList		*next;
-	char			*id;
-	char			*path;
-	bool			on_desktop;
+	struct DBPList			*next;
+	char				*id;
+	char				*path;
+	bool				on_desktop;
 };
 
 
@@ -26,6 +26,21 @@ struct DBPDepend {
 	char			*pkg_name;
 	char			*version[DBPMGR_DEPEND_VERSION_CHECKS];
 	char			*arch;
+};
+
+struct DBPDependDPackage {
+	char				*name;
+	char				*version;
+	char				*arch;
+	struct DBPDependDPackage	*next;
+
+};
+
+struct DBPDependDPackageNode {
+	struct DBPDependDPackage	*match;
+	struct DBPDependDPackageNode	**lookup;
+	struct DBPDependDPackage	*list;
+	int				list_size;
 };
 
 

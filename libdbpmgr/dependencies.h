@@ -34,5 +34,8 @@ void dbpmgr_depend_free(struct DBPDepend *dep);
 void dbpmgr_depend_version_result_compare(int result, enum DBPMgrDependVersionCheck check);
 void dbpmgr_depend_cleanup();
 
+/* After doing package dependency checking, run free to unload databases */
+void dbpmgr_depend_free();
+struct DBPDependDPackage *dbpmgr_depend_debian_next(const char *pkg_name, struct DBPDependDPackageNode *prev);
 
 #endif

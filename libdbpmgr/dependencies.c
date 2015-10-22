@@ -22,24 +22,24 @@ freely, subject to the following restrictions:
 	distribution.
 */
 
+#define	_BSD_SOURCE
 
+#include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-#ifndef __NO_DEBIAN_DEPENDS
-	#define	LIBDPKG_VOLATILE_API
-	#include <dpkg/dpkg.h>
-	#include <dpkg/arch.h>
-	#include <dpkg/dpkg-db.h>
-
-	static bool dpkg_init = false;
-#endif
-
-// Not needed
 #include "types.h"
 
-static char *default_arch;
+
+static void free_list(struct DBPDependDPackage *list);
+static char *default_arch = NULL;
+
+struct DPackageVersion {
+	char			*epoch;
+	char			*main;
+	char			*rev;
+};
 
 /* I am so, so  sorry about this */
 
@@ -55,17 +55,19 @@ static char *find_next_version_param(char *ver) {
 	return ver[i]?&ver[i]:NULL;
 }
 
-
-void dbpmgr_depend_free(struct DBPDepend *dep) {
-	int i;
-	if (!dep)
-		return;
-	free(dep->arch), free(dep->pkg_name);
-	for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++)
-		free(dep->version[i]);
-	free(dep);
+bool dbpmgr_depend_version_result_compare(int result, enum DBPMgrDependVersionCheck check) {
+	if (DBPMGR_DEPEND_VERSION_CHECK_LTEQ == check)
+		return result <= 0;
+	if (DBPMGR_DEPEND_VERSION_CHECK_GTEQ == check)
+		return result >= 0;
+	if (DBPMGR_DEPEND_VERSION_CHECK_LT == check)
+		return result < 0;
+	if (DBPMGR_DEPEND_VERSION_CHECK_EQ == check)
+		return result == 0;
+	if (DBPMGR_DEPEND_VERSION_CHECK_GT == check)
+		return result > 0;
+	return 0;
 }
-
 
 struct DBPDepend *dbpmgr_depend_parse(const char *package_string) {
 	struct DBPDepend *version;
@@ -73,7 +75,6 @@ struct DBPDepend *dbpmgr_depend_parse(const char *package_string) {
 	const char *comparisons[DBPMGR_DEPEND_VERSION_CHECKS] = { "<=", ">=", "<", "=", ">" };
 	int i;
 
-	#warning Load a default arch
 	version = calloc(sizeof(*version), 1);
 	if (strchr(package_string, '<') || strchr(package_string, '=') || strchr(package_string, '>')) {
 		if ((tmp = strchr(package_string, '<')))
@@ -103,7 +104,7 @@ struct DBPDepend *dbpmgr_depend_parse(const char *package_string) {
 			len = find_next_version_param(next) - next;
 		else
 			len = strlen(next);
-	
+		
 		for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++)
 			if (!strncmp(next, comparisons[i], strlen(comparisons[i]))) {
 				if (!version->version[i])
@@ -115,101 +116,316 @@ struct DBPDepend *dbpmgr_depend_parse(const char *package_string) {
 	return version;
 }
 
-bool dbpmgr_depend_version_result_compare(int result, enum DBPMgrDependVersionCheck check) {
-	if (DBPMGR_DEPEND_VERSION_CHECK_LTEQ == check)
-		return result <= 0;
-	if (DBPMGR_DEPEND_VERSION_CHECK_GTEQ == check)
-		return result >= 0;
-	if (DBPMGR_DEPEND_VERSION_CHECK_LT == check)
-		return result < 0;
-	if (DBPMGR_DEPEND_VERSION_CHECK_EQ == check)
-		return result == 0;
-	if (DBPMGR_DEPEND_VERSION_CHECK_GT == check)
-		return result > 0;
+static char char_to_index[128];
+static int lookup_size = 0;
+static struct DBPDependDPackageNode *debian_root = NULL;
+
+#define	IS_END(c)	(isdigit((c)) || !(c))
+
+/* I have no idea what I'm doing... */
+static int compare_substring(char *s1, char *s2) {
+	int i;
+
+	for (i = 0; !IS_END(s1[i]) && !IS_END(s2[i]); i++) {
+		if (s1[i] == s2[i])
+			continue;
+		if (s1[i] == '~')
+			return -1;
+		if (s2[i] == '~')
+			return 1;
+		/* TODO: Find out if this is supposed to be case insensitive or not... */
+		if (!isalpha(s1[i])) {
+			if (!isalpha(s2[i]))
+				return s1[i] < s2[i] ? -1 : 1;
+			return -1;
+		}
+		
+		if (isalpha(s1[i])) {
+			if (isalpha(s2[i]))
+				return s1[i] < s2[i] ? -1 : 1;
+			return 1;
+		}
+
+	}
+
+	if (IS_END(s1[i]) && IS_END(s2[i]))
+		return 0;
+	if (IS_END(s1[i]))
+		return s2[i] != '~' ? -1 : 1;
+	if (IS_END(s2[i]))
+		return s1[i] != '~' ? 1 : -1;
+	/* All cases handled */
 	return 0;
 }
 
 
-#ifndef __NO_DEBIAN_DEPENDS
+static struct DPackageVersion version_decode(char *version) {
+	struct DPackageVersion pv = { NULL, NULL, NULL };
+	char *t;
 
-static void debian_check_do_init() {
-	push_error_context();
-	dpkg_db_set_dir(NULL);
-	modstatdb_open(msdbrw_readonly);
+	if ((t = strchr(version, ':')))
+		pv.epoch = strndup(version, t - version), version = t + 1;
+	else
+		pv.epoch = strdup("0");
+	if ((t = strchr(version, '-'))) {
+		for (; strchr(t, '-'); t = strchr(t, '-') + 1);
+		pv.rev = strdup(t);
+		pv.main = strndup(version, t - version - 1);
+	} else {
+		if (*version)
+			pv.main = strdup(version);
+		else
+			pv.main = strdup("0");
+		pv.rev = strdup("0");
+	}
+	return pv;
+}
+
+static void version_free(struct DPackageVersion pv) {
+	free(pv.epoch);
+	free(pv.main);
+	free(pv.rev);
+}
+
+static char *find_next_nonumeric(char *s) {
+	while (isdigit(*s))
+		s++;
+	return s;
+}
+
+static char *find_next_numeric(char *s) {
+	while (!isdigit(*s) && *s)
+		s++;
+	return s;
+}
+
+static int compare_version_string(char *s1, char *s2) {
+	int n1, n2;
+
+	while (*s1 && *s2) {
+		n1 = n2 = 0;
+		sscanf(s1, "%i", &n1);
+		sscanf(s2, "%i", &n2);
+		if (n1 < n2)
+			return -1;
+		if (n1 > n2)
+			return 1;
+		s1 = find_next_nonumeric(s1);
+		s2 = find_next_nonumeric(s2);
+		if ((n1 = compare_substring(s1, s2)))
+			return n1;
+		s1 = find_next_numeric(s1);
+		s2 = find_next_numeric(s2);
+	}
+
+	if (!*s1 && *s2)
+		return *s2 == '~' ? 1 : -1;
+	if (*s1 && !*s2)
+		return *s1 == '~' ? -1 : 1;
+
+	return 0;
 }
 
 
-static void debian_check_do_free() {
-	if (!dpkg_init)
+int dbpmgr_depend_compare_version(char *ver1, char *ver2) {
+	struct DPackageVersion v1, v2;
+	int i;
+
+	v1 = version_decode(ver1);
+	v2 = version_decode(ver2);
+	
+	if (atoi(v1.epoch) != atoi(v2.epoch))
+		return atoi(v1.epoch) < atoi(v2.epoch) ? -1 : 1;
+	i = compare_version_string(v1.main, v2.main);
+	if (!i)
+		i = compare_version_string(v1.rev, v2.rev);
+	version_free(v1);
+	version_free(v2);
+	return i;
+}
+
+
+static void init_conv_table() {
+	int i, j;
+
+	memset(char_to_index, 0, 256);
+	for (i = 0, j = 1; i <= 'z' - 'a'; i++, j++)
+		char_to_index['a' + i] = j;
+	for (i = 0; i <= '9' - '0'; i++, j++)
+		char_to_index['0' + i] = j;
+	char_to_index['+'] = j++;
+	char_to_index['-'] = j++;
+	char_to_index['.'] = j++;
+	lookup_size = j;
+}
+
+static char *load_debian_database() {
+	FILE *fp;
+	int length;	/* If the package database is > 2 GB, the user have bigger problems... */
+	char *dbstr;
+
+	if (!(fp = fopen("/var/lib/dpkg/status", "r")))
+		return NULL;
+	fseek(fp, 0, SEEK_END), length = ftell(fp), rewind(fp);
+	if ((dbstr = malloc(length + 1)))
+		fread(dbstr, length, 1, fp), dbstr[length] = 0;
+
+	fclose(fp);
+	return dbstr;
+}
+
+#define	TREE_LOOKUP(c)	((unsigned char )char_to_index[((unsigned char) (c)) & 0x7F])
+
+static struct DBPDependDPackageNode *package_tree_populate(struct DBPDependDPackageNode *root, struct DBPDependDPackage *entry, int name_index) {
+	if (!entry)
+		return root;
+	if (!root)
+		root = calloc(sizeof(*root), 1);
+	if (!entry->name[name_index])
+		return entry->next = root->match, root->match = entry, root;
+	if (!root->lookup)
+		entry->next = root->list, root->list = entry, root->list_size++;
+	else
+		return root->lookup[TREE_LOOKUP(entry->name[name_index])] = package_tree_populate(root->lookup[TREE_LOOKUP(entry->name[name_index])], entry, name_index + 1), root;
+	if (root->list_size > 25) {	// Arbitrary value for when a list is "big"
+		struct DBPDependDPackage *next, *this;
+		root->lookup = calloc(sizeof(*(root->lookup)), lookup_size);
+		for (this = root->list; this; this = next)
+			next = this->next, root->lookup[TREE_LOOKUP(this->name[name_index])] = package_tree_populate(root->lookup[TREE_LOOKUP(this->name[name_index])], this, name_index + 1);
+		root->list = NULL, root->list_size = 0;
+	}
+	return root;
+}
+
+#define	IS_KEY(token, key)	(!strncmp(token, key, strlen(key)))
+#define	COPY_VALUE(token, key)	(strdup(token + strlen(key)))
+
+static struct DBPDependDPackageNode *build_database() {
+	char *db, *tok, *save;
+	struct DBPDependDPackageNode *root = NULL;
+	struct DBPDependDPackage *this = NULL;
+	bool installed = false;
+
+	if (!(db = load_debian_database()))
+		return NULL;
+	for (save = db, tok = strsep(&save, "\n"); tok; tok = strsep(&save, "\n")) {
+		if (!*tok) {
+			if (!installed)
+				free_list(this);
+			else
+				root = package_tree_populate(root, this, 0);
+			this = NULL, installed = false;
+			continue;
+		}
+		
+		if (!this)
+			this = calloc(sizeof(*this), 1);
+		if (IS_KEY(tok, "Package: "))
+			this->name = COPY_VALUE(tok, "Package: ");
+		else if (IS_KEY(tok, "Architecture: "))
+			this->arch = COPY_VALUE(tok, "Architecture: ");
+		else if (IS_KEY(tok, "Version: "))
+			this->version = COPY_VALUE(tok, "Version: ");
+		else if (IS_KEY(tok, "Status: "))
+			installed = !!strstr(tok, "installed");
+	}
+
+	if (this)
+		root = package_tree_populate(root, this, 0), this = NULL;
+
+	free(db);
+	return root;
+}
+
+static void free_list(struct DBPDependDPackage *list) {
+	struct DBPDependDPackage *next;
+	if (!list)
 		return;
-	modstatdb_done();
-	pop_error_context(ehflag_normaltidy);
+	next = list->next;
+	free(list->name), free(list->arch), free(list->version), free(list);
+	free_list(next);
 }
+
+static void free_node(struct DBPDependDPackageNode *node) {
+	int i;
+	if (!node)
+		return;
+	free_list(node->match);
+	if (node->lookup)
+		for (i = 0; i < lookup_size; i++)
+			free_node(node->lookup[i]);
+	free(node->lookup);
+	free_list(node->list);
+	free(node);
+}
+
+static void dbpmgr_depend_init() {
+	if (debian_root)
+		return;
+	init_conv_table();
+	debian_root = build_database();
+}
+
+void dbpmgr_depend_free() {
+	free_node(debian_root), debian_root = NULL;
+}
+
+void dbpmgr_depend_arch_set(const char *arch) {
+	free(default_arch), default_arch = strdup(arch);
+}
+
+static struct DBPDependDPackage *debian_find_list(const char *pkg_name, struct DBPDependDPackageNode *node, int name_index) {
+	if (!node)
+		return NULL;
+	if (!pkg_name[name_index])
+		return node->match;
+	if (!node->lookup)
+		return node->list;
+	return debian_find_list(pkg_name, node->lookup[TREE_LOOKUP(pkg_name[name_index])], name_index + 1);
+}
+
+struct DBPDependDPackage *dbpmgr_depend_debian_next(const char *pkg_name, struct DBPDependDPackage *prev) {
+	dbpmgr_depend_init();
+	
+	if (!prev)
+		prev = debian_find_list(pkg_name, debian_root, 0);
+	else
+		prev = prev->next;
+	for (; prev; prev = prev->next)
+		if (!strcmp(prev->name, pkg_name))
+			return prev;
+	return NULL;
+}
+
 
 bool dbpmgr_depend_debian_check(const char *package_string) {
-	struct pkgset *pkg;
-	struct dpkg_arch *arch;
-	struct dpkg_version in_ver[DBPMGR_DEPEND_VERSION_CHECKS];
-	struct dpkg_error err;
-	int ver_match, i;
+	int i, ver_match;
 	struct DBPDepend *dep;
+	struct DBPDependDPackage *pkg;
 
-
-	if (!dpkg_init)
-		debian_check_do_init();
-	
 	if (!package_string)
 		return true;
 	dep = dbpmgr_depend_parse(package_string);
-	for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++) {
-		dpkg_version_blank(&in_ver[i]);
-		if (dep->version[i])
-			if (parseversion(&in_ver[i], dep->version[i], &err)) {
-				fprintf(stderr, "Invalid package version in package\n");
-				return false;
-			}
-	}
-
-	pkg = pkg_db_find_set(dep->pkg_name);
-	if (!pkg)
-		return (dbpmgr_depend_free(dep), false);
 	
-	for (; pkg; pkg = pkg->next) {
+	for (pkg = dbpmgr_depend_debian_next(dep->pkg_name, NULL); pkg; pkg = dbpmgr_depend_debian_next(dep->pkg_name, pkg)) {
 		//fprintf(stderr, "pkg=%s\n", pkgstr);
 		if (strcmp(pkg->name, dep->pkg_name))
 			continue;
-		if (pkg->pkg.status != PKG_STAT_INSTALLED)
+		if (strcmp(pkg->arch, "any") && strcmp(pkg->arch, "all") && strcmp(pkg->arch, dep->arch) && strcmp(dep->arch, "any"))
 			continue;
-		for (arch = (struct dpkg_arch *) pkg->pkg.installed.arch; arch; arch = (struct dpkg_arch *) arch->next) {
-			if (strcmp(arch->name, "any") && strcmp(arch->name, "all") && strcmp(arch->name, dep->arch) && strcmp(dep->arch, "any"))
+		//fprintf(stderr, "Arch: %s\n", arch->name);
+		for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++) {
+			if (!dep->version[i])
 				continue;
-			//fprintf(stderr, "Arch: %s\n", arch->name);
-			for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++) {
-				if (!dep->version[i])
-					continue;
-				ver_match = dpkg_version_compare(&pkg->pkg.installed.version, &in_ver[i]);
-				if (!dbpmgr_depend_version_result_compare(ver_match, i))
-					return dbpmgr_depend_free(dep), false;
-			}
+			ver_match = dbpmgr_depend_compare_version(pkg->version, dep->version[i]);
+			if (!dbpmgr_depend_version_result_compare(ver_match, i))
+				return dbpmgr_depend_free(dep), false;
 		}
+		dbpmgr_depend_free(dep);
+		return true;
 	}
 
 	dbpmgr_depend_free(dep);
-	return true;
+	return false;
 }
 
-#else
-bool dbpmgr_depend_debian_check(const char *package_string) {
-	// This might be a bit optimistic
-	return true;
-}
-
-static void debian_check_do_free() {
-	return;
-}
-
-#endif
-
-void dbpmgr_depend_cleanup() {
-	debian_check_do_free();
-}
