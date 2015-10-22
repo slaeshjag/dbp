@@ -13,15 +13,15 @@ namespace DepCheck {
 	}
 
 	string[] check_sys_dep(string[] deps, string pkgarch) {
-		DBP.DebDepCheck.do_init();
+//		DBP.DebDepCheck.do_init();
 		string[] missing = { };
 
 		foreach (string s in deps) {
-			if (!DBP.DebDepCheck.check_package(s, pkgarch))
+			if (!DBP.Depend.debian_check(s))
 				missing += s;
 		}
 
-		DBP.DebDepCheck.do_free();
+//		DBP.DebDepCheck.do_free();
 		return missing;
 	}
 }

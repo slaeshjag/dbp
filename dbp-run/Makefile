@@ -6,10 +6,10 @@ LIBS = -X -larchive -X -ldpkg -X -ldbpmgr
 
 ifeq ($(BUILD_DPKG), NO)
 	DEPCHECKLIBS =
-	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/deb_dep_check.nodpkg.c
+	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala
 else
 	DEPCHECKLIBS = -X -ldpkg
-	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala -X dep-check/deb_dep_check.c
+	DEPCHECKSRC = -X -I./dep-check dep-check/*.vala
 endif
 BINPATH = ../build/bin
 

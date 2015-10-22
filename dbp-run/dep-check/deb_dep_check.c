@@ -8,6 +8,8 @@
 #include <dpkg/arch.h>
 #include <dpkg/dpkg-db.h>
 
+#include <dbpmgr/dbpmgr.h>
+
 #if 0
 /* Defines for old versions of libdpkg (wheezy) */
 #ifndef DPKG_ARCH_NATIVE
@@ -33,31 +35,6 @@ void dbp_deb_dep_check_do_free() {
 }
 
 
-/* Returns flags of what version differences are ok */
-static int extract_version_arch(char *pkgstr, char **version, char **arch, const char *main_arch) {
-	char *verb, *tmp;
-	int ver_flag = 0;
-
-	if (strchr(pkgstr, '<') || !strchr(pkgstr, '=') || !strchr(pkgstr, '>')) {
-		if ((tmp = strchr(pkgstr, '<')))
-			ver_flag |= 1, verb = tmp;
-		if ((tmp = strchr(pkgstr, '=')))
-			ver_flag |= 2, verb = verb>tmp?tmp:verb;
-		if ((tmp = strchr(pkgstr, '>')))
-			ver_flag |= 4, verb = verb>tmp?tmp:verb;
-	}
-
-	for (*verb = 0, verb++; *verb != '<' && *verb != '=' && *verb != '>' && *verb; verb++);
-	*version = verb;
-
-	if ((tmp = strchr(pkgstr, ':')))
-		*arch = tmp + 1, *tmp = 0;
-	else
-		*arch = (char *) main_arch;
-	return ver_flag;
-}
-
-
 int dbp_deb_dep_check_check_package(const char *pkgname, const char *main_arch) {
 	struct pkgset *pkg;
 	struct dpkg_arch *arch;
@@ -65,7 +42,8 @@ int dbp_deb_dep_check_check_package(const char *pkgname, const char *main_arch) 
 	struct dpkg_error err;
 	int flags, ver_match;
 	char *pkgstr, *version, *pkg_arch;
-	
+
+	fprintf(stderr, "%s %s\n", pkgname, main_arch);
 	dpkg_version_blank(&in_ver);
 	if (parseversion(&in_ver, version, &err)) {
 		fprintf(stderr, "Invalid package version in package\n");

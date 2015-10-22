@@ -141,6 +141,12 @@ namespace DBP {
 		[CCode (cname = "dbpmgr_error_lookup")]
 		unowned string lookup(int error);
 	}
+	
+	[CCode (cheader_filename = "dbpmgr/dbpmgr.h")]
+	namespace Depend {
+		[CCode (cname = "dbpmgr_depend_debian_check")]
+		bool debian_check(string? package_string);
+	}
 
 	[CCode (cheader_filename = "dbpmgr/dbpmgr.h", cprefix = "dbpmgr_server_")]
 	namespace ServerAPI {
@@ -173,6 +179,8 @@ namespace DBP {
 			public string path;
 			public bool on_desktop;
 		}
+
+
 
 	}
 }

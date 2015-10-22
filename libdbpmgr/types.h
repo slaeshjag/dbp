@@ -4,6 +4,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/* XXX: No NOT add fields here, it will break the API */
+enum DBPMgrDependVersionCheck {
+	DBPMGR_DEPEND_VERSION_CHECK_LTEQ,
+	DBPMGR_DEPEND_VERSION_CHECK_GTEQ,
+	DBPMGR_DEPEND_VERSION_CHECK_LT,
+	DBPMGR_DEPEND_VERSION_CHECK_EQ,
+	DBPMGR_DEPEND_VERSION_CHECK_GT,
+	DBPMGR_DEPEND_VERSION_CHECKS
+};
+
 struct DBPList {
 	struct DBPList		*next;
 	char			*id;
@@ -14,13 +24,7 @@ struct DBPList {
 
 struct DBPDepend {
 	char			*pkg_name;
-	struct {
-		char		*lt;
-		char		*lteq;
-		char		*eq;
-		char		*gt;
-		char		*gteq;
-	} version;
+	char			*version[DBPMGR_DEPEND_VERSION_CHECKS];
 	char			*arch;
 };
 
