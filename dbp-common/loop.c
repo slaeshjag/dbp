@@ -335,7 +335,7 @@ int loop_umount(const char *pkg_id, int loop, const char *user, int prev_state) 
 
 	if (prev_state < -1)
 		goto img_path;
-	prev_state = -1;
+	prev_state = prev_state<0?prev_state:1;	// If this fails, we could still use the mount
 	if (umount(mount_path) < 0)
 		goto fail;
 	img_path:
