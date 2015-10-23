@@ -79,7 +79,6 @@ namespace Run {
 				DepListDialog dld;
 				dld = new DepListDialog(pkg_id, sysmissing, dbpmissing);
 				dld.run();
-				dld.destroy();
 				dld = null;
 			}
 		}

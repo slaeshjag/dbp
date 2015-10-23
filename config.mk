@@ -21,8 +21,8 @@ LIBINC		=	"-I$(TOPDIR)/dbp-common" "-I$(TOPDIR)/build/include"
 PREFIX		+=	/usr/local
 
 LDPATH		+=	"-L$(TOPDIR)/build/lib"
-DBGFLAGS	=	-O0 -g -D__DEBUG__
-#DBGFLAGS	=	-O3 -g
+#DBGFLAGS	=	-O0 -g -D__DEBUG__
+DBGFLAGS	=	-O3 -g
 CFLAGS		+=	-Wall -Wextra -D_XOPEN_SOURCE=700 -std=c99 $(INCS) $(DBGFLAGS)
 LDFLAGS		+=	$(LIB) -larchive -lpthread
 RM		=	rm -fR

@@ -73,12 +73,13 @@ public class DepListDialog {
 	}
 
 	public int run() {
-		return dialog.run();
-	}
-
-	public void destroy() {
-		this.dialog.destroy();
-		this.dialog = null;
+		int ret;
+		ret = dialog.run();
+		dialog.destroy();
+		dialog = null;
+		while (Gtk.events_pending())
+			Gtk.main_iteration();
+		return ret;
 	}
 
 	private void handle_collapse(Gtk.Expander ex, Gtk.Box box, bool sig) {

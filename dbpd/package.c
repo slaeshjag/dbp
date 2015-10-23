@@ -167,7 +167,7 @@ static void package_desktop_write(struct package_s *p, int id, const char *fname
 static void package_emit_exec(const char *path, const char *bin, int env, const char *id) {
 	FILE *fp, *out;
 	int sz, tok_var;
-	char *script, *saveptr, *tok;
+	char *script, *saveptr = NULL, *tok;
 
 	if (!(fp = fopen(config_struct.exec_template, "r"))) {
 		fprintf(dbp_error_log, "Unable to open exec template %s\n", config_struct.exec_template);
@@ -226,7 +226,7 @@ static void package_emit_exec(const char *path, const char *bin, int env, const 
 
 
 static void package_meta_exec_export(const char *exec, int env, struct package_s *p, int id) {
-	char path[PATH_MAX], *exec_tok, *saveptr, *tok;
+	char path[PATH_MAX], *exec_tok, *saveptr = NULL, *tok;
 	int exec_id;
 
 	if (!exec)
