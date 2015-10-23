@@ -18,7 +18,6 @@ DESKTOPBIN	=	"$(TOPDIR)/build/bin/$(NAME)-desktopd"
 THUMBBIN	=	"$(TOPDIR)/build/bin/$(NAME)-thumbnailer"
 LIB		=	"$(TOPDIR)/dbp-common/dbp-common.a"
 LIBINC		=	"-I$(TOPDIR)/dbp-common" "-I$(TOPDIR)/build/include"
-PREFIX		+=	/usr/local
 
 LDPATH		+=	"-L$(TOPDIR)/build/lib"
 #DBGFLAGS	=	-O0 -g -D__DEBUG__
@@ -29,6 +28,7 @@ RM		=	rm -fR
 MKDIR		=	mkdir -p
 CP		=	cp
 MV		=	mv
+PREFIX		?=	$(TOPDIR)/install
 
 ifneq ($(wildcard /etc/debian_version),) 
 	#Debian packaging
@@ -39,3 +39,6 @@ ifneq ($(wildcard /etc/debian_version),)
 	DEPS	=	libc6, libarchive13
 endif
 
+ifeq ($(STRIP_INSTALL), true)
+	STRIP_FLAG = -s
+endif
