@@ -28,6 +28,8 @@ struct package_s package_init() {
 	p.instance = NULL;
 	p.instances = 0;
 	p.run_cnt = 0;
+	p.purgatory = NULL;
+	p.purgatory_entries = 0;
 	return p;
 }
 
@@ -582,12 +584,14 @@ static int package_purgatory_add(struct package_s *p, const char *pkg_id, int lo
 	struct package_purgatory_s *new;
 	int id;
 
-	if (!(new = realloc(p->purgatory, (id = p->purgatory_entries++, p->purgatory_entries) * sizeof(*p->purgatory)))) {
+	id = p->purgatory_entries++;
+	if (!(new = realloc(p->purgatory, p->purgatory_entries * sizeof(*p->purgatory)))) {
 		fprintf(dbp_error_log, "ERROR: Can't allocate purgatory space, resources lost in the void. Why can't I hold all these memory blocks?\n");
 		p->purgatory_entries--;
 		return 0;
 	}
 
+	p->purgatory = new;
 	p->purgatory[id].reusable = reusable;
 	p->purgatory[id].loop_number = loop;
 	p->purgatory[id].package_id = strdup(pkg_id);
