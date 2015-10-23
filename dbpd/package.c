@@ -629,7 +629,7 @@ static void package_purgatory_reap(struct package_s *p, int id) {
 	p->purgatory[id].reusable = loop_umount(p->purgatory[id].package_id, p->purgatory[id].loop_number, NULL, p->purgatory[id].reusable);
 	if (!p->purgatory[id].reusable)
 		package_purgatory_remove(p, id);
-	else
+	else if (config_struct.verbose_output)
 		fprintf(dbp_error_log, "Unable to reap package %s in purgatory, reason %i\n", p->purgatory[id].package_id, p->purgatory[id].reusable);
 	return;
 }
