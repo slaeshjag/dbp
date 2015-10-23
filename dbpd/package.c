@@ -602,8 +602,8 @@ static int package_purgatory_add(struct package_s *p, const char *pkg_id, int lo
 
 static void package_purgatory_remove(struct package_s *p, int id) {
 	free(p->purgatory[id].package_id);
-	memmove(&p->purgatory[id], &p->purgatory[id + 1], (p->purgatory_entries - id) * sizeof(*p->purgatory));
 	p->purgatory_entries--;
+	memmove(&p->purgatory[id], &p->purgatory[id + 1], (p->purgatory_entries - id) * sizeof(*p->purgatory));
 	return;
 }
 
@@ -633,10 +633,10 @@ static int package_purgatory_reap(struct package_s *p, int id) {
 	p->purgatory[id].reusable = loop_umount(p->purgatory[id].package_id, p->purgatory[id].loop_number, NULL, p->purgatory[id].reusable);
 	if (!p->purgatory[id].reusable) {
 		package_purgatory_remove(p, id);
-		return 0;
+		return 1;
 	} else if (config_struct.verbose_output)
 		fprintf(dbp_error_log, "Unable to reap package %s in purgatory, reason %i\n", p->purgatory[id].package_id, p->purgatory[id].reusable);
-	return 1;
+	return 0;
 }
 
 void package_purgatory_check(struct package_s *p) {

@@ -10,13 +10,13 @@
 #include "util.h"
 #include "package.h"
 
-static GMainLoop *loop;
+static GMainLoop *loop = NULL;
 static GDBusConnection *dconn = NULL;
 static struct package_s *p;
 bool daemon_exit_error = false;
 bool daemon_exited = false;
 static GDBusNodeInfo *introspection_data = NULL;
-static gchar *introspection_xml;
+static gchar *introspection_xml = NULL;
 
 #define	VALIDATE_NOT_NULL(p) if (!(p)) {									\
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(%i)", DBP_ERROR_NOTVALID));	\
