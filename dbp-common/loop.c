@@ -333,7 +333,6 @@ int loop_umount(const char *pkg_id, int loop, const char *user, int prev_state) 
 	if (!(img_path = dbp_string("%s/%s", config_struct.img_mount, pkg_id)))
 		goto fail;
 
-	mount_path:
 	if (prev_state < -1)
 		goto img_path;
 	prev_state = -1;

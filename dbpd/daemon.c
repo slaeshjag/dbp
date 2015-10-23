@@ -223,6 +223,7 @@ int main(int argc, char **argv) {
 		}
 
 		mountwatch_change_free(change);
+		package_purgatory_check(&p);
 	}
 
 	(void) argc, (void) argv;

@@ -66,6 +66,7 @@ char *package_id_from_path(struct package_s *p, const char *path);
 char *package_appdata_from_id(struct package_s *p, const char *id);
 int package_deps_from_id(struct package_s *p, const char *id, char **sys, char **pkg);
 char *package_path_from_id(struct package_s *p, const char *id);
+void package_purgatory_check(struct package_s *p);
 
 
 #endif
