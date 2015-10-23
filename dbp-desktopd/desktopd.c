@@ -70,6 +70,8 @@ static void copy_file(const char *source, const char *destination, int thread) {
 		while (fwrite(buff, 1, fread(buff, 1, 8192, in), out) > 0);
 
 	if (in) fclose(in); if (out) fclose(out);
+	// apparently desktop files should be +x //
+	chmod(dest_path, 0755);
 	rename(dest_path, destination);
 	free(temp); free(dest_path);
 }
