@@ -79,6 +79,8 @@ install:
 	install -m 644 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/conf/dbpd-introspection.xml"
 	install -m 644 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/scripts/dbp_exec"
 	install -m 755 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/scripts/run_script"
+	install -d "$(PREFIX)/lib/systemd/system/"
+	install -m 644 -t "$(PREFIX)/lib/systemd/system" "$(TOPDIR)/conf/dbpd.service"
 	install -d "$(PREFIX)/etc/dbus-1/system.d"
 	install -m 644 -t "$(PREFIX)/etc/dbus-1/system.d" "$(TOPDIR)/conf/de.dragonbox.PackageDaemon.conf"
 	install -d "$(PREFIX)/etc/xdg/autostart"
