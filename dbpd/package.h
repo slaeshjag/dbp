@@ -35,6 +35,12 @@ struct package_instance_s {
 	int				loop;
 };
 
+struct package_purgatory_s {
+	char				*package_id;
+	int				loop_number;
+	int				reusable;
+	time_t				expiry;
+};
 
 struct package_s {
 	pthread_mutex_t			mutex;
@@ -43,6 +49,9 @@ struct package_s {
 	int				run_cnt;
 	struct package_instance_s	*instance;
 	int				instances;
+	struct package_purgatory_s	*purgatory;
+	int				purgatory_entries;
+
 };
 
 struct package_s package_init();

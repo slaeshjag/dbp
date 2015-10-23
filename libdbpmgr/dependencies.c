@@ -408,12 +408,10 @@ bool dbpmgr_depend_debian_check(const char *package_string) {
 	dep = dbpmgr_depend_parse(package_string);
 	
 	for (pkg = dbpmgr_depend_debian_next(dep->pkg_name, NULL); pkg; pkg = dbpmgr_depend_debian_next(dep->pkg_name, pkg)) {
-		//fprintf(stderr, "pkg=%s\n", pkgstr);
 		if (strcmp(pkg->name, dep->pkg_name))
 			continue;
 		if (strcmp(pkg->arch, "any") && strcmp(pkg->arch, "all") && strcmp(pkg->arch, dep->arch) && strcmp(dep->arch, "any"))
 			continue;
-		//fprintf(stderr, "Arch: %s\n", arch->name);
 		for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++) {
 			if (!dep->version[i])
 				continue;

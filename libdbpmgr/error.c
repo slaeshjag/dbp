@@ -76,5 +76,7 @@ const char *dbpmgr_error_lookup(int error) {
 		return _("One or more parameters contains malformed data that can not be processed.");
 	if (error == DBP_ERROR_BADEXT)
 		return _("The given file does not have a recognized file extension.");
+	if (error == DBP_ERROR_MUTILATED)
+		return _("Instances of this program are still running after an unclean media removal, and it is not safe to spawn new instances. Close the old instances of this program before trying again.");
 	return _("An unknown error occured.");
 }

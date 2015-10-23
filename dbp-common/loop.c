@@ -174,7 +174,7 @@ fail:
 }
 
 
-static void loop_reset(int loop) {
+static int loop_reset(int loop) {
 	char *device;
 	int loop_fd;
 
@@ -187,12 +187,16 @@ static void loop_reset(int loop) {
 	free(device);
 	device = NULL;
 
-	ioctl(loop_fd, LOOP_CLR_FD);
+	if (ioctl(loop_fd, LOOP_CLR_FD) < 0) {
+		close(loop_fd);
+		goto fail;
+	}
 	close(loop_fd);
-	return;
+	return 1;
 
 fail:
 	free(device);
+	return 0;
 }
 
 
@@ -316,7 +320,7 @@ fail:
 }
 
 
-void loop_umount(const char *pkg_id, int loop, const char *user) {
+int loop_umount(const char *pkg_id, int loop, const char *user, int prev_state) {
 	char *mount_path, *img_path = NULL;
 
 	/* parameter user will eventually be used */
@@ -329,19 +333,34 @@ void loop_umount(const char *pkg_id, int loop, const char *user) {
 	if (!(img_path = dbp_string("%s/%s", config_struct.img_mount, pkg_id)))
 		goto fail;
 
-	umount(mount_path);
-	umount(img_path);
+	mount_path:
+	if (prev_state < -1)
+		goto img_path;
+	prev_state = -1;
+	if (umount(mount_path) < 0)
+		goto fail;
+	img_path:
+	if (prev_state < -2)
+		goto loop;
+	prev_state = -2;
+	if (umount(img_path) < 0)
+		goto fail;
 
 	rmdir(mount_path);
 	rmdir(img_path);
-	loop_reset(loop);
+
+	loop:
+	prev_state = -3;
+	if (!loop_reset(loop))
+		goto fail;
 
 	free(mount_path);
 	free(img_path);
 
-	return;
+	return 0;
 
 fail:
 	free(mount_path);
 	free(img_path);
+	return prev_state;
 }

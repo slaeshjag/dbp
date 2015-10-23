@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <unistd.h>
 #include <sys/time.h>
@@ -262,12 +263,20 @@ struct mountwatch_change_s mountwatch_diff() {
 	FILE *fp;
 	char mount[256], device[256], fstype[128];
 	int i, n;
+	struct timespec timeout;
 
 	wait:
-	sem_wait(&mountwatch_struct.changed);
-	pthread_mutex_lock(&mountwatch_struct.dir_watch_mutex);
-
 	change.entry = NULL, change.entries = 0;
+	if (clock_gettime(CLOCK_REALTIME, &timeout) < 0)
+		timeout.tv_sec = time(NULL) + 2;
+	timeout.tv_sec++;
+	if (sem_timedwait(&mountwatch_struct.changed, &timeout) < 0) {
+		if (errno == ETIMEDOUT)
+			return change;
+		goto wait;
+	}
+	
+	pthread_mutex_lock(&mountwatch_struct.dir_watch_mutex);
 
 	if (!(fp = fopen("/proc/mounts", "r"))) {
 		fprintf(dbp_error_log, "Unable to open /proc/mounts\n");

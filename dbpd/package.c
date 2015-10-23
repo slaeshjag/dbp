@@ -15,6 +15,8 @@
 
 /* The line-count in this file is too damn high! */
 static void package_meta_exec_export(const char *exec, int env, struct package_s *p, int id);
+static int package_purgatory_add(struct package_s *p, const char *pkg_id, int loop, int reusable);
+static int package_purgatory_revive(struct package_s *p, const char *pkgid);
 
 
 struct package_s package_init() {
@@ -540,6 +542,12 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 			loop = p->instance[i].loop;
 			goto mounted;
 		}
+	if ((loop = package_purgatory_revive(p, id)) < -1) {
+		pthread_mutex_unlock(&p->mutex);
+		return DBP_ERROR_MUTILATED;
+	} else if (loop > -1)
+		goto mounted;
+
 	if ((pkg_n = package_find(p, id)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
 		return DBP_ERROR_BAD_PKG_ID;
@@ -570,6 +578,74 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 	return p->instance[i].run_id;
 }
 
+static int package_purgatory_add(struct package_s *p, const char *pkg_id, int loop, int reusable) {
+	struct package_purgatory_s *new;
+	int id;
+
+	if (!(new = realloc(p->purgatory, (id = p->purgatory_entries++, p->purgatory_entries) * sizeof(*p->purgatory)))) {
+		fprintf(dbp_error_log, "ERROR: Can't allocate purgatory space, resources lost in the void. Why can't I hold all these memory blocks?\n");
+		p->purgatory_entries--;
+		return 0;
+	}
+
+	p->purgatory[id].reusable = reusable;
+	p->purgatory[id].loop_number = loop;
+	p->purgatory[id].package_id = strdup(pkg_id);
+	p->purgatory[id].expiry = time(NULL) + 5; // Somewhere between 4 and 5 seconds is probably good //
+
+	return 1;
+}
+
+static void package_purgatory_remove(struct package_s *p, int id) {
+	free(p->purgatory[id].package_id);
+	memmove(&p->purgatory[id], &p->purgatory[id + 1], (p->purgatory_entries - id) * sizeof(*p->purgatory));
+	p->purgatory_entries--;
+	return;
+}
+
+static int package_purgatory_find(struct package_s *p, const char *pkgid) {
+	int i;
+
+	for (i = 0; i < p->purgatory_entries; i++)
+		if (!strcmp(pkgid, p->purgatory[i].package_id))
+			return i;
+	return -1;
+}
+
+// Return loop number //
+static int package_purgatory_revive(struct package_s *p, const char *pkgid) {
+	int i, loop;
+
+	if ((i = package_purgatory_find(p, pkgid)) < 0)
+		return -1;
+	if (p->purgatory[i].reusable < 1)
+		return -2;
+	loop = p->purgatory[i].loop_number;
+	package_purgatory_remove(p, i);
+	return loop;
+}
+
+static void package_purgatory_reap(struct package_s *p, int id) {
+	p->purgatory[id].reusable = loop_umount(p->purgatory[id].package_id, p->purgatory[id].loop_number, NULL, p->purgatory[id].reusable);
+	if (!p->purgatory[id].reusable)
+		package_purgatory_remove(p, id);
+	else
+		fprintf(dbp_error_log, "Unable to reap package %s in purgatory, reason %i\n", p->purgatory[id].package_id, p->purgatory[id].reusable);
+	return;
+}
+
+void package_purgatory_check(struct package_s *p) {
+	int i;
+
+	pthread_mutex_lock(&p->mutex);
+	
+	for (i = 0; i < p->purgatory_entries; i++)
+		if (p->purgatory[i].reusable < 1 || p->purgatory[i].expiry)
+			package_purgatory_reap(p, i), i--;
+
+	pthread_mutex_unlock(&p->mutex);
+	return;
+}
 
 int package_stop(struct package_s *p, int run_id) {
 	int i, rid;
@@ -598,7 +674,8 @@ int package_stop(struct package_s *p, int run_id) {
 	}
 	
 	/* TODO: Send the actual user instead of NULL */
-	loop_umount(p->instance[rid].package_id, p->instance[rid].loop, NULL);
+	/* TODO: When mutilated instances are implemented, take that state into account before flagging as reusable */
+	package_purgatory_add(p, p->instance[rid].package_id, p->instance[rid].loop, 1);
 
 	umount_done:
 	
