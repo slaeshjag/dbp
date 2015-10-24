@@ -83,10 +83,18 @@ namespace Run {
 
 				stdout.printf("%s\n", err);
 			} else {
+				int sel;
 				/* TODO: Care about the users' selection */
 				DepListDialog dld;
 				dld = new DepListDialog(pkg_id, sysmissing, dbpmissing);
-				dld.run();
+				sel = dld.run();
+				if (sel == DepListDialog.Result.LAUNCH) {
+					// Carry on... //
+				} else if (sel == DepListDialog.Result.INSTALL) {
+					stderr.printf("Automatic installation of dependencies is currently not supported\n");
+					return false;
+				} else
+					return false;
 				dld = null;
 			}
 		}
