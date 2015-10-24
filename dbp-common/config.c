@@ -103,6 +103,10 @@ int config_init() {
 
 	c.per_user_appdata = config_get_bool(df, "per_user_appdata");
 
+	tmp = config_request_entry(df, "supported_archs");
+	config_expand_token(&c.arch, &c.archs, tmp);
+	free(tmp);
+
 	/* Optional key */
 	c.run_script = desktop_lookup(df, "run_script", "", "Package Daemon Config");
 	if (c.run_script)

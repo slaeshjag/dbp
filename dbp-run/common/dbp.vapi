@@ -74,6 +74,9 @@ namespace DBP {
 			bool per_user_appdata;
 			bool per_package_appdata;
 			bool create_rodata;
+			
+			[CCode (array_length_cname = "archs", array_length_type = "int")]
+			string[] arch;
 
 			string? run_script;
 

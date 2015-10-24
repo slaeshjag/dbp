@@ -33,6 +33,9 @@ struct config_s {
 	char			*state_file;
 	char			*run_script;
 
+	char			**arch;
+	int			archs;
+
 	int			verbose_output;
 
 	struct desktop_file_s	*df;

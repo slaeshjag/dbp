@@ -44,6 +44,14 @@ namespace Run {
 		pkgarch = pkg.desktop_file.lookup("Arch", "", "Package Entry");
 		if (pkgarch == null || pkgarch == "")
 			pkgarch = "any";
+		if (pkgarch != "any") {
+			bool supported = false;
+			foreach (string s in DBP.Config.config.arch)
+				if (s == pkgarch)
+					supported = true;
+			if (!supported)
+				throw new IOError.FAILED(_("This package is not supported on your system architecture") + "\n" + _("Package is for") + " " + pkgarch);
+		}
 
 		if (sysdep != null) {
 			sysdeps = sysdep.split(";");
