@@ -91,8 +91,7 @@ namespace Run {
 				if (sel == DepListDialog.Result.LAUNCH) {
 					// Carry on... //
 				} else if (sel == DepListDialog.Result.INSTALL) {
-					stderr.printf("Automatic installation of dependencies is currently not supported\n");
-					return false;
+					throw new IOError.FAILED(_("Automatic installation of dependencies is currently not supported\n"));
 				} else
 					return false;
 				dld = null;

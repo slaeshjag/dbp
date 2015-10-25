@@ -35,25 +35,25 @@ signed long long state_btime() {
 void state_dump(struct package_s *p) {
 	struct desktop_file_s *df;
 	char buff[16], buff2[16], *dirname_s, *dir;
-	int i;
+	int i, section;
 
 	fprintf(stderr, "*** Dumping state ***\n");
 	
 	df = desktop_parse("Type=DBPStateFile\n");
 
-	desktop_section_new(df, "DBPStateControl");
+	section = desktop_section_new(df, "DBPStateControl");
 
 	snprintf(buff, 16, "%lli", state_btime());
-	desktop_entry_new(df, "SystemBootup", "", buff);
+	desktop_entry_new(df, "SystemBootup", "", buff, section);
 	snprintf(buff, 16, "%i", p->run_cnt);
-	desktop_entry_new(df, "RunCnt", "", buff);
-	desktop_section_new(df, "Instances");
+	desktop_entry_new(df, "RunCnt", "", buff, section);
+	section = desktop_section_new(df, "Instances");
 	
 	for (i = 0; i < p->instances; i++) {
 		snprintf(buff, 16, "%u", p->instance[i].run_id);
-		desktop_entry_new(df, "PkgId", buff, p->instance[i].package_id);
+		desktop_entry_new(df, "PkgId", buff, p->instance[i].package_id, section);
 		snprintf(buff2, 16, "%i", p->instance[i].loop);
-		desktop_entry_new(df, "Loop", buff, buff2);
+		desktop_entry_new(df, "Loop", buff, buff2, section);
 	}
 	
 	fprintf(stderr, "Writing state dump...\n");

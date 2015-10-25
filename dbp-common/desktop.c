@@ -8,6 +8,10 @@
 int desktop_section_new(struct desktop_file_s *df, const char *name) {
 	int id;
 
+	for (id = 0; id < df->sections; id++)
+		if (!strcmp(df->section[id].name, name))
+			return id;
+
 	id = df->sections++;
 	/* Lets just assume this will work... */
 	df->section = realloc(df->section, sizeof(*df->section) * df->sections);
@@ -18,10 +22,13 @@ int desktop_section_new(struct desktop_file_s *df, const char *name) {
 }
 
 
-int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value) {
+int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value, int section) {
 	struct desktop_file_section_s *s;
-	int e;
+	int e, i;
 
+	for (i = 0; i < df->section[section].entries; i++)
+		if (!strcmp(df->section[section].entry[i].key, key) && !strcmp(df->section[section].entry[i].locale, locale))
+			return i;	// Key/value collision, keep the old one
 	s = &df->section[df->sections - 1];
 	e = s->entries++;
 	s->entry = realloc(s->entry, sizeof(*s->entry) * s->entries);
@@ -116,12 +123,12 @@ struct desktop_file_s *desktop_parse(char *str) {
 	/* TODO: Make these dynamically reallocable */
 	char key[4096], value[4096], buff[4096], buff2[4096], *tmp;
 
-	int sz, brk;
+	int sz, brk, section;
 	struct desktop_file_s *df;
 
 	df = malloc(sizeof(*df));
 	df->sections = 0, df->section = NULL;
-	desktop_section_new(df, NULL);
+	section = desktop_section_new(df, NULL);
 
 	/* Hack to make the parser work with retarded line endings */
 	while (strchr(str, '\r'))
@@ -146,7 +153,7 @@ struct desktop_file_s *desktop_parse(char *str) {
 				continue;
 			*strchr(key, ']') = 0;
 			sscanf(key + 1, "%[^\n]", buff);
-			desktop_section_new(df, buff);
+			section = desktop_section_new(df, buff);
 		} else if (*key == ';' || *key == '#') {
 		} else {
 			desktop_entry_unescape(value);
@@ -155,9 +162,9 @@ struct desktop_file_s *desktop_parse(char *str) {
 					continue;	/* nope.avi */
 				*strchr(key, '[') = '\n', *strchr(key, ']') = 0;
 				sscanf(key, "%[^\n]\n%[^\n]", buff, buff2);
-				desktop_entry_new(df, buff, buff2, value);
+				desktop_entry_new(df, buff, buff2, value, section);
 			} else
-				desktop_entry_new(df, key, "", value);
+				desktop_entry_new(df, key, "", value, section);
 		}
 	}
 	
