@@ -119,16 +119,10 @@ static void desktop_entry_unescape(char *str) {
 }
 
 
-struct desktop_file_s *desktop_parse(char *str) {
+struct desktop_file_s *desktop_parse_append(char *str, struct desktop_file_s *df) {
 	/* TODO: Make these dynamically reallocable */
 	char key[4096], value[4096], buff[4096], buff2[4096], *tmp;
-
-	int sz, brk, section;
-	struct desktop_file_s *df;
-
-	df = malloc(sizeof(*df));
-	df->sections = 0, df->section = NULL;
-	section = desktop_section_new(df, NULL);
+	int sz, brk, section = 0;
 
 	/* Hack to make the parser work with retarded line endings */
 	while (strchr(str, '\r'))
@@ -169,6 +163,15 @@ struct desktop_file_s *desktop_parse(char *str) {
 	}
 	
 	return df;
+}
+
+struct desktop_file_s *desktop_parse(char *str) {
+	struct desktop_file_s *df;
+
+	df = malloc(sizeof(*df));
+	df->sections = 0, df->section = NULL;
+	desktop_section_new(df, NULL);
+	return desktop_parse_append(str, df);
 }
 
 
