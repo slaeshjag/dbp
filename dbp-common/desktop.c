@@ -175,11 +175,10 @@ struct desktop_file_s *desktop_parse(char *str) {
 }
 
 
-struct desktop_file_s *desktop_parse_file(const char *path) {
+struct desktop_file_s *desktop_parse_file_append(const char *path, struct desktop_file_s *df) {
 	FILE *fp;
 	char *buff;
 	long file_sz;
-	struct desktop_file_s *df;
 
 	if (!(fp = fopen(path, "r")))
 		return NULL;
@@ -189,11 +188,17 @@ struct desktop_file_s *desktop_parse_file(const char *path) {
 	buff = malloc(file_sz + 1);
 	buff[fread(buff, 1, file_sz, fp)] = 0;
 	fclose(fp);
-	df = desktop_parse(buff);
+	if (!df)
+		df = desktop_parse(buff);
+	else
+		desktop_parse_append(buff, df);
 	free(buff);
 	return df;
 }
 
+struct desktop_file_s *desktop_parse_file(const char *path) {
+	return desktop_parse_file_append(path, NULL);
+}
 
 static void desktop_write_format(FILE *fp, char *str) {
 	int i, len;

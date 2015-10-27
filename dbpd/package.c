@@ -1,3 +1,4 @@
+#define	_GNU_SOURCE
 #include "desktop.h"
 #include "package.h"
 #include "config.h"
@@ -9,6 +10,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 
+#include <string.h>
 #include <dirent.h>
 #include <pthread.h>
 #include <limits.h>
@@ -134,14 +136,18 @@ static const char *find_filename(const char *path) {
 
 
 static void package_desktop_write(struct package_s *p, int id, const char *fname, char *data, int announce) {
-	char writename[PATH_MAX];
+	char writename[PATH_MAX], *override_path;
 	const char *pkg_id = p->entry[id].id;
 	struct desktop_file_s *df;
 	int sec, ent;
 	FILE *fp;
 
-	df = desktop_parse(data);
-
+	asprintf(&override_path, "%s/%s/%s/%s_ovr", p->entry[id].mount, config_struct.data_directory, p->entry[id].appdata, fname);
+	df = desktop_parse_file(override_path);
+	free(override_path);
+	if (df)
+		df = desktop_parse_append(data, df);
+	
 	if ((sec = desktop_lookup_section(df, "Desktop Entry")) < 0)
 		goto write;
 	if ((ent = desktop_lookup_entry(df, "Icon", "", sec)) < 0)
