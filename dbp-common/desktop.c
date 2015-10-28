@@ -8,9 +8,12 @@
 int desktop_section_new(struct desktop_file_s *df, const char *name) {
 	int id;
 
-	for (id = 0; id < df->sections; id++)
+	for (id = 0; id < df->sections; id++) {
+		if (!df->section[id].name)
+			continue;
 		if (!strcmp(df->section[id].name, name))
 			return id;
+	}
 
 	id = df->sections++;
 	/* Lets just assume this will work... */
@@ -26,9 +29,17 @@ int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *lo
 	struct desktop_file_section_s *s;
 	int e, i;
 
-	for (i = 0; i < df->section[section].entries; i++)
+	for (i = 0; i < df->section[section].entries; i++) {
+		if (!df->section[section].name) {
+			if (!strcmp("key", ""))
+				return i;
+			continue;
+		}
+
 		if (!strcmp(df->section[section].entry[i].key, key) && !strcmp(df->section[section].entry[i].locale, locale))
 			return i;	// Key/value collision, keep the old one
+	}
+
 	s = &df->section[df->sections - 1];
 	e = s->entries++;
 	s->entry = realloc(s->entry, sizeof(*s->entry) * s->entries);
