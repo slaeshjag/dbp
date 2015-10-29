@@ -205,16 +205,18 @@ static char *escape_string(const char *str) {
 	char *new;
 
 	for (i = escaped = 0; str[i]; i++)
-		if (!isalpha(str[i]) || !isascii(str[i]))
+		if ((!isalpha(str[i]) && str[i] != '/') || !isascii(str[i]))
 			escaped++;
 	if (!(new = malloc(strlen(str) + 1 + escaped * 3)))
 		return NULL;
 	for (i = j = 0; str[i]; i++) {
-		if (isalpha(str[i]) && isascii(str[i]))
+		if ((isalpha(str[i]) && isascii(str[i])) || str[i] == '/')
 			new[j++] = str[i];
 		else
 			sprintf(&new[j], "\\%.3o", ((unsigned) str[i]) & 0xFF), j += 4;
 	}
+
+	new[j] = 0;
 
 	return new;
 }

@@ -147,6 +147,8 @@ static void package_desktop_write(struct package_s *p, int id, const char *fname
 	free(override_path);
 	if (df)
 		df = desktop_parse_append(data, df);
+	else
+		df = desktop_parse(data);
 	
 	if ((sec = desktop_lookup_section(df, "Desktop Entry")) < 0)
 		goto write;

@@ -103,6 +103,7 @@ int config_init() {
 
 	c.per_user_appdata = config_get_bool(df, "per_user_appdata");
 
+	c.arch = NULL, c.archs = 0;
 	tmp = config_request_entry(df, "supported_archs");
 	config_expand_token(&c.arch, &c.archs, tmp);
 	free(tmp);
