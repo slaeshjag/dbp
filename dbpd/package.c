@@ -142,7 +142,7 @@ static void package_desktop_write(struct package_s *p, int id, const char *fname
 	int sec, ent;
 	FILE *fp;
 
-	asprintf(&override_path, "%s/%s/%s/%s_ovr", p->entry[id].mount, config_struct.data_directory, p->entry[id].appdata, fname);
+	asprintf(&override_path, "%s/%s/%s/%s_%s_ovr", p->entry[id].mount, config_struct.data_directory, p->entry[id].appdata, pkg_id, fname);
 	df = desktop_parse_file(override_path);
 	free(override_path);
 	if (df)
