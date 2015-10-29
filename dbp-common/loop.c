@@ -200,52 +200,27 @@ fail:
 	return 0;
 }
 
-static char *escape_string(const char *str) {
-	int i, escaped, j;
-	char *new;
-
-	for (i = escaped = 0; str[i]; i++)
-		if ((!isalpha(str[i]) && str[i] != '/') || !isascii(str[i]))
-			escaped++;
-	if (!(new = malloc(strlen(str) + 1 + escaped * 3)))
-		return NULL;
-	for (i = j = 0; str[i]; i++) {
-		if ((isalpha(str[i]) && isascii(str[i])) || str[i] == '/')
-			new[j++] = str[i];
-		else
-			sprintf(&new[j], "\\%.3o", ((unsigned) str[i]) & 0xFF), j += 4;
-	}
-
-	new[j] = 0;
-
-	return new;
-}
-
 static void loop_decide_appdata(int fs, const char *appdata, const char *fs_path, char **user_dir, char **rodata, const char *user) {
 	// Only the user and rodata dirs are outside of global system configuration. Only these needs to be escaped, as
 	// it can be assumed that global system configuration and pkgid validation will keep the rest of the paths valid.
-	char *escaped_fs_path;
-	escaped_fs_path = fs? escape_string(fs_path) : NULL;
 
 	if (config_struct.per_user_appdata) {
 		if (config_struct.per_package_appdata) {
-			*user_dir = dbp_string("%s/%s_%s/%s", fs?escaped_fs_path:"", config_struct.data_directory, user, appdata);
-			*rodata = dbp_string("%s/%s_%s/%s", fs?escaped_fs_path:"", config_struct.rodata_directory, user, appdata);
+			*user_dir = dbp_string("%s/%s_%s/%s", fs?fs_path:"", config_struct.data_directory, user, appdata);
+			*rodata = dbp_string("%s/%s_%s/%s", fs?fs_path:"", config_struct.rodata_directory, user, appdata);
 		} else {
-			*user_dir = dbp_string("%s/%s_%s", fs?escaped_fs_path:"", config_struct.data_directory, user);
-			*rodata = dbp_string("%s/%s_%s", fs?escaped_fs_path:"", config_struct.rodata_directory, user);
+			*user_dir = dbp_string("%s/%s_%s", fs?fs_path:"", config_struct.data_directory, user);
+			*rodata = dbp_string("%s/%s_%s", fs?fs_path:"", config_struct.rodata_directory, user);
 		}
 	} else {
 		if (config_struct.per_package_appdata) {
-			*user_dir = dbp_string("%s/%s/%s", fs?escaped_fs_path:"", config_struct.data_directory, appdata);
-			*rodata = dbp_string("%s/%s/%s", fs?escaped_fs_path:"", config_struct.rodata_directory, appdata);
+			*user_dir = dbp_string("%s/%s/%s", fs?fs_path:"", config_struct.data_directory, appdata);
+			*rodata = dbp_string("%s/%s/%s", fs?fs_path:"", config_struct.rodata_directory, appdata);
 		} else {
-			*user_dir = dbp_string("%s/%s", fs?escaped_fs_path:"", config_struct.data_directory);
-			*rodata = dbp_string("%s/%s", fs?escaped_fs_path:"", config_struct.rodata_directory);
+			*user_dir = dbp_string("%s/%s", fs?fs_path:"", config_struct.data_directory);
+			*rodata = dbp_string("%s/%s", fs?fs_path:"", config_struct.rodata_directory);
 		}
 	}
-
-	free(escaped_fs_path);
 }
 
 
@@ -290,7 +265,6 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	if (!user_dir || !rodata_dir)
 		goto fail;
 
-	// Now that the path is escaped, we probably won't need to check user_dir, rodata_dir //
 	if (strchr(user_dir, ':') || strchr(img_dir, ':') || strchr(rodata_dir, ':'))
 		goto illegal_dirname;
 	if (strchr(user_dir, '=') || strchr(img_dir, '=') || strchr(rodata_dir, '='))
@@ -303,10 +277,10 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 			rodata = 1;
 	/* FIXME: nolwh, noplink should really only be used when vfat is detected */
 	if (!rodata)
-		if (!(mount_opt = dbp_string("noplink,br=%s=rw+nolwh:%s=ro", user_dir, img_dir)))
+		if (!(mount_opt = dbp_string("noplink,br=\"%s=rw+nolwh\":\"%s=ro\"", user_dir, img_dir)))
 			goto fail;
 	if (rodata)
-		if (!(mount_opt = dbp_string("noplink,br=%s=rw+nolwh:%s=ro+nolwh:%s=ro", user_dir, rodata_dir, img_dir)))
+		if (!(mount_opt = dbp_string("noplink,br=\"%s=rw+nolwh\":\"%s=ro+nolwh\":\"%s=ro\"", user_dir, rodata_dir, img_dir)))
 			goto fail;
 
 	free(user_dir), user_dir = NULL;
