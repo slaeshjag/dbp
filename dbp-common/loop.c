@@ -277,10 +277,10 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 			rodata = 1;
 	/* FIXME: nolwh, noplink should really only be used when vfat is detected */
 	if (!rodata)
-		if (!(mount_opt = dbp_string("noplink,br=\"%s=rw+nolwh\":\"%s=ro\"", user_dir, img_dir)))
+		if (!(mount_opt = dbp_string("noplink,br=%s=rw+nolwh:%s=ro", user_dir, img_dir)))
 			goto fail;
 	if (rodata)
-		if (!(mount_opt = dbp_string("noplink,br=\"%s=rw+nolwh\":\"%s=ro+nolwh\":\"%s=ro\"", user_dir, rodata_dir, img_dir)))
+		if (!(mount_opt = dbp_string("noplink,br=%s=rw+nolwh:%s=ro+nolwh:%s=ro", user_dir, rodata_dir, img_dir)))
 			goto fail;
 
 	free(user_dir), user_dir = NULL;
