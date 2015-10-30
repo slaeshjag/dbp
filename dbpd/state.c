@@ -156,5 +156,7 @@ void state_recover(struct package_s *p) {
 		p->instance = NULL, p->instances = 0;
 	}
 
+	desktop_free(df);
+
 	return;
 }

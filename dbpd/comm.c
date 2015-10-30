@@ -47,6 +47,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 
 		mpoint = package_mount_get(p, arg1);
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", mpoint?1:DBP_ERROR_NOTFOUND, mpoint?mpoint:"!"));
+		free(mpoint);
 	} else if (!g_strcmp0(method_name, "RegisterPath")) {
 		char *pkg_id, *mount, *dev;
 		int ret;

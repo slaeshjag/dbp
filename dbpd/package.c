@@ -113,7 +113,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	goto fail;
 
 	fail:
-	free(path), free(id), free(device), free(mount), free(sys), free(pkg);
+	free(path), free(id), free(device), free(mount), free(sys), free(pkg), free(appdata);
 	return errid;
 }
 
