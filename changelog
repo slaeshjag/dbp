@@ -1,0 +1,21 @@
+== Legend ==
++ Feature added
+- Feature removed
+* Bug fixed
+
+[0.6.10] First numbered release - 2015-10-31
+	* Fixed bug causing dbp-desktopd creating "unsafe" launchers
+	* Minor memory leaks in the dbpd DBus code has been fixed
+	+ Delayed umount of packages implemented in dbpd
+		% Leaved a mounted package around for a bit in case it is
+		% launched again.
+	+ Basic check of package architecture
+		% Package architecture is checked against supported ones listed
+		% in dbp_config.ini, dbp-run throws an error if it's unsupported.
+	+ dbpd now supports override files
+		% It is now possible to inject and/or override .desktop launchers
+		% in a package by placing special files in its appdata directory
+	+ Missing dependency dialog cares about input
+		% An aborted package launch is actually aborted now
+		% Installing of deps is still unsupported and throws an error
+

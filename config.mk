@@ -28,7 +28,7 @@ RM		=	rm -fR
 MKDIR		=	mkdir -p
 CP		=	cp
 MV		=	mv
-PREFIX		?=	$(TOPDIR)/install
+PREFIX		?=	/
 
 ifneq ($(wildcard /etc/debian_version),) 
 	#Debian packaging

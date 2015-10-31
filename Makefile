@@ -8,7 +8,6 @@ include config.mk
 .PHONY: all install clean
 
 all:
-	@./update_version
 	@echo " [INIT] build/"
 	@$(MKDIR) build/
 	@echo " [INIT] build/bin"
