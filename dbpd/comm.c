@@ -76,6 +76,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		VALIDATE_NOT_NULL(arg1);
 		ret = package_path_from_id(p, arg1);
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(is)", ret?1:DBP_ERROR_NOTFOUND, ret?ret:"!"));
+		free(ret);
 	} else if (!g_strcmp0(method_name, "Ping")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("(i)", 1));
 	} else if (!g_strcmp0(method_name, "PackageList")) {
@@ -103,7 +104,10 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		fprintf(dbp_error_log, "Bad method call %s\n", (const char *) method_name);
 		return;
 	}
-
+	if (arg1)
+		g_free(arg1);
+	if (arg2)
+		g_free(arg2);
 }
 
 void comm_dbus_announce(const char *name, const char *signame) {
