@@ -1,10 +1,10 @@
-#ifndef __CONFIG_H__
-#define	__CONFIG_H__
+#ifndef __DBP_CONFIG_H__
+#define	__DBP_CONFIG_H__
 
 #include "desktop.h"
-#define	CONFIG_FILE_PATH	"/etc/dbp/dbp_config.ini"
+#define	DBP_CONFIG_FILE_PATH	"/etc/dbp/dbp_config.ini"
 
-struct config_s {
+struct DBPConfig {
 	char			**file_extension;
 	int			file_extensions;
 	char			**search_dir;
@@ -38,13 +38,13 @@ struct config_s {
 
 	int			verbose_output;
 
-	struct desktop_file_s	*df;
+	struct DBPDesktopFile	*df;
 };
 
 
-int config_init();
-extern struct config_s config_struct;
-char *config_version_get();
-void config_expand_token(char ***target, int *targets, char *token);
+int dbp_config_init();
+extern struct DBPConfig dbp_config_struct;
+char *dbp_config_version_get();
+void dbp_config_expand_token(char ***target, int *targets, char *token);
 
 #endif

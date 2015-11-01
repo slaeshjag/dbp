@@ -171,8 +171,8 @@ static void mountwatch_inotify_add(const char *mount, const char *device) {
 	char path[PATH_MAX];
 	int i;
 
-	for (i = 0; i < config_struct.search_dirs; i++) {
-		sprintf(path, "%s/%s", mount, config_struct.search_dir[i]);
+	for (i = 0; i < dbp_config_struct.search_dirs; i++) {
+		sprintf(path, "%s/%s", mount, dbp_config_struct.search_dir[i]);
 		mountwatch_inotify_add_entry(mount, device, path);
 	}
 	

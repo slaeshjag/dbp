@@ -33,36 +33,36 @@ signed long long state_btime() {
 
 
 void state_dump(struct package_s *p) {
-	struct desktop_file_s *df;
+	struct DBPDesktopFile *df;
 	char buff[16], buff2[16], *dirname_s, *dir;
 	int i, section;
 
 	fprintf(stderr, "*** Dumping state ***\n");
 	
-	df = desktop_parse("Type=DBPStateFile\n");
+	df = dbp_desktop_parse("Type=DBPStateFile\n");
 
-	section = desktop_section_new(df, "DBPStateControl");
+	section = dbp_desktop_section_new(df, "DBPStateControl");
 
 	snprintf(buff, 16, "%lli", state_btime());
-	desktop_entry_new(df, "SystemBootup", "", buff, section);
+	dbp_desktop_entry_new(df, "SystemBootup", "", buff, section);
 	snprintf(buff, 16, "%i", p->run_cnt);
-	desktop_entry_new(df, "RunCnt", "", buff, section);
-	section = desktop_section_new(df, "Instances");
+	dbp_desktop_entry_new(df, "RunCnt", "", buff, section);
+	section = dbp_desktop_section_new(df, "Instances");
 	
 	for (i = 0; i < p->instances; i++) {
 		snprintf(buff, 16, "%u", p->instance[i].run_id);
-		desktop_entry_new(df, "PkgId", buff, p->instance[i].package_id, section);
+		dbp_desktop_entry_new(df, "PkgId", buff, p->instance[i].package_id, section);
 		snprintf(buff2, 16, "%i", p->instance[i].loop);
-		desktop_entry_new(df, "Loop", buff, buff2, section);
+		dbp_desktop_entry_new(df, "Loop", buff, buff2, section);
 	}
 	
 	fprintf(stderr, "Writing state dump...\n");
-	dirname_s = strdup(config_struct.state_file);
+	dirname_s = strdup(dbp_config_struct.state_file);
 	dir = dirname(dirname_s);
-	loop_directory_setup(dir, 0700);
+	dbp_loop_directory_setup(dir, 0700);
 	free(dirname_s);
-	desktop_write(df, config_struct.state_file);
-	desktop_free(df);
+	dbp_desktop_write(df, dbp_config_struct.state_file);
+	dbp_desktop_free(df);
 
 	fprintf(dbp_error_log, "State dumping complete\n");
 	return;
@@ -100,13 +100,13 @@ static int state_get_instance(struct package_s *p, const char *run_id) {
 
 void state_recover(struct package_s *p) {
 	int i, id, section, valid;
-	struct desktop_file_s *df;
+	struct DBPDesktopFile *df;
 	signed long long boot, rboot;
 	char *s;
 
-	if (!(df = desktop_parse_file(config_struct.state_file)))
+	if (!(df = dbp_desktop_parse_file(dbp_config_struct.state_file)))
 		return;
-	if (!(s = desktop_lookup(df, "SystemBootup", "", "DBPStateControl")))
+	if (!(s = dbp_desktop_lookup(df, "SystemBootup", "", "DBPStateControl")))
 		return;
 	
 	rboot = atoll(s);
@@ -119,12 +119,12 @@ void state_recover(struct package_s *p) {
 		return;
 	}
 
-	if ((section = desktop_lookup_section(df, "Instances")) < 0) {
+	if ((section = dbp_desktop_lookup_section(df, "Instances")) < 0) {
 		fprintf(dbp_error_log, "Section Instances is missing, Ignoring state file\n");
 		return;
 	}
 
-	if (!(s = desktop_lookup(df, "RunCnt", "", "DBPStateControl"))) {
+	if (!(s = dbp_desktop_lookup(df, "RunCnt", "", "DBPStateControl"))) {
 		fprintf(dbp_error_log, "RunCnt is missing from state file. Ignoring state file\n");
 		return;
 	}
@@ -156,7 +156,7 @@ void state_recover(struct package_s *p) {
 		p->instance = NULL, p->instances = 0;
 	}
 
-	desktop_free(df);
+	dbp_desktop_free(df);
 
 	return;
 }

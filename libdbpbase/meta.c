@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 
-int meta_package_open(const char *path, struct meta_package_s *mp) {
+int dbp_meta_package_open(const char *path, struct DBPMetaPackage *mp) {
 	struct archive *a;
 	struct archive_entry *ae;
 	int errid, found, size;
@@ -45,7 +45,7 @@ int meta_package_open(const char *path, struct meta_package_s *mp) {
 	archive_read_data(a, data, size);
 	data[size] = 0;
 
-	mp->df = desktop_parse(data);
+	mp->df = dbp_desktop_parse(data);
 	free(data);
 	archive_read_free(a);
 

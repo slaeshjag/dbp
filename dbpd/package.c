@@ -39,11 +39,11 @@ struct package_s package_init() {
 static int package_filename_interesting(const char *path) {
 	int i;
 	
-	for (i = 0; i < config_struct.file_extensions; i++) {
-		if (strlen(path) < strlen(config_struct.file_extension[i]))
+	for (i = 0; i < dbp_config_struct.file_extensions; i++) {
+		if (strlen(path) < strlen(dbp_config_struct.file_extension[i]))
 			continue;
-		if (!strcmp(&path[strlen(path) - strlen(config_struct.file_extension[i])],
-		    config_struct.file_extension[i]))
+		if (!strcmp(&path[strlen(path) - strlen(dbp_config_struct.file_extension[i])],
+		    dbp_config_struct.file_extension[i]))
 			return 1;
 	}
 	return 0;
@@ -96,7 +96,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].appdata = appdata;
 	p->entry[nid].sys_dep = sys;
 	p->entry[nid].pkg_dep = pkg;
-	p->entry[nid].desktop = strdup(loop_desktop_directory(path) ? "desk" : "nodesk");
+	p->entry[nid].desktop = strdup(dbp_loop_desktop_directory(path) ? "desk" : "nodesk");
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
 	comm_dbus_announce_new_package(id);
 
@@ -138,40 +138,40 @@ static const char *find_filename(const char *path) {
 static void package_desktop_write(struct package_s *p, int id, const char *fname, char *data, int announce) {
 	char writename[PATH_MAX], *override_path;
 	const char *pkg_id = p->entry[id].id;
-	struct desktop_file_s *df;
+	struct DBPDesktopFile *df;
 	int sec, ent;
 	FILE *fp;
 
-	asprintf(&override_path, "%s/%s/%s/%s_%s_ovr", p->entry[id].mount, config_struct.data_directory, p->entry[id].appdata, pkg_id, fname);
-	df = desktop_parse_file(override_path);
+	asprintf(&override_path, "%s/%s/%s/%s_%s_ovr", p->entry[id].mount, dbp_config_struct.data_directory, p->entry[id].appdata, pkg_id, fname);
+	df = dbp_desktop_parse_file(override_path);
 	free(override_path);
 	if (df)
-		df = desktop_parse_append(data, df);
+		df = dbp_desktop_parse_append(data, df);
 	else
-		df = desktop_parse(data);
+		df = dbp_desktop_parse(data);
 	
-	if ((sec = desktop_lookup_section(df, "Desktop Entry")) < 0)
+	if ((sec = dbp_desktop_lookup_section(df, "Desktop Entry")) < 0)
 		goto write;
-	if ((ent = desktop_lookup_entry(df, "Icon", "", sec)) < 0)
+	if ((ent = dbp_desktop_lookup_entry(df, "Icon", "", sec)) < 0)
 		goto write;
 	
-	snprintf(writename, PATH_MAX, "%s/%s%s_%s", config_struct.icon_directory, DBP_META_PREFIX, pkg_id, df->section[sec].entry[ent].value);
+	snprintf(writename, PATH_MAX, "%s/%s%s_%s", dbp_config_struct.icon_directory, DBP_META_PREFIX, pkg_id, df->section[sec].entry[ent].value);
 	free(df->section[sec].entry[ent].value);
 	df->section[sec].entry[ent].value = strdup(writename);
 
 	write:
-	snprintf(writename, PATH_MAX, "%s/%s%s_%s", config_struct.desktop_directory, DBP_META_PREFIX, pkg_id, fname);
+	snprintf(writename, PATH_MAX, "%s/%s%s_%s", dbp_config_struct.desktop_directory, DBP_META_PREFIX, pkg_id, fname);
 	if (!(fp = fopen(writename, "w")))
 		goto desktop_free;
-	desktop_write(df, writename);
+	dbp_desktop_write(df, writename);
 	chmod(writename, 0755);
-	package_meta_exec_export(desktop_lookup(df, "Exec", "", "Package Entry"), 1, p, id);
-	package_meta_exec_export(desktop_lookup(df, "NoEnvExec", "", "Package Entry"), 0, p, id);
+	package_meta_exec_export(dbp_desktop_lookup(df, "Exec", "", "Package Entry"), 1, p, id);
+	package_meta_exec_export(dbp_desktop_lookup(df, "NoEnvExec", "", "Package Entry"), 0, p, id);
 	if (announce)
 		comm_dbus_announce_new_meta(writename);
 
 	desktop_free:
-	desktop_free(df);
+	dbp_desktop_free(df);
 	return;
 }
 
@@ -181,8 +181,8 @@ static void package_emit_exec(const char *path, const char *bin, int env, const 
 	int sz, tok_var;
 	char *script, *saveptr = NULL, *tok;
 
-	if (!(fp = fopen(config_struct.exec_template, "r"))) {
-		fprintf(dbp_error_log, "Unable to open exec template %s\n", config_struct.exec_template);
+	if (!(fp = fopen(dbp_config_struct.exec_template, "r"))) {
+		fprintf(dbp_error_log, "Unable to open exec template %s\n", dbp_config_struct.exec_template);
 		return;
 	}
 
@@ -245,7 +245,7 @@ static void package_meta_exec_export(const char *exec, int env, struct package_s
 		return;
 	exec_tok = strdup(exec);
 	for (tok = strtok_r(exec_tok, ";", &saveptr); tok; tok = strtok_r(NULL, ";", &saveptr)) {
-		snprintf(path, PATH_MAX, "%s/%s", config_struct.exec_directory, find_filename(tok));
+		snprintf(path, PATH_MAX, "%s/%s", dbp_config_struct.exec_directory, find_filename(tok));
 		if (!access(path, F_OK)) {
 			fprintf(dbp_error_log, "Executable collision! %s already exists\n", path);
 			continue;
@@ -293,7 +293,7 @@ static void package_meta_extract(const char *path, struct package_s *p, int id, 
 			data[size] = 0;
 			if (strstr(pathname, "icons/") == pathname) {
 				snprintf(writename, PATH_MAX, "%s/%s%s_%s", 
-				    config_struct.icon_directory, DBP_META_PREFIX, pkg_id,
+				    dbp_config_struct.icon_directory, DBP_META_PREFIX, pkg_id,
 				    find_filename(pathname));
 				
 				if (!(fp = fopen(writename, "w"))) {
@@ -318,25 +318,25 @@ static void package_meta_extract(const char *path, struct package_s *p, int id, 
 
 
 static int package_register(struct package_s *p, const char *path, const char *device, const char *mount, int *coll_id) {
-	struct meta_package_s mp;
+	struct DBPMetaPackage mp;
 	char *pkg_id = "none", *appdata, *sys, *pkg;
 	int id, errid;
 
 	*coll_id = -1;
-	if ((errid = meta_package_open(path, &mp)) < 0)
+	if ((errid = dbp_meta_package_open(path, &mp)) < 0)
 		goto error;
-	if (!(pkg_id = desktop_lookup(mp.df, "Id", "", mp.section))) {
+	if (!(pkg_id = dbp_desktop_lookup(mp.df, "Id", "", mp.section))) {
 		errid = DBP_ERROR_BAD_PKG_ID;
 		goto error;
 	}
 
-	if (!(appdata = desktop_lookup(mp.df, "Appdata", "", mp.section)))
+	if (!(appdata = dbp_desktop_lookup(mp.df, "Appdata", "", mp.section)))
 		appdata = pkg_id;
 	else if (!package_id_validate(appdata))
 		appdata = pkg_id;
-	if (!(sys = desktop_lookup(mp.df, "SysDependency", "", mp.section)))
+	if (!(sys = dbp_desktop_lookup(mp.df, "SysDependency", "", mp.section)))
 		sys = "";
-	if (!(pkg = desktop_lookup(mp.df, "PkgDependency", "", mp.section)))
+	if (!(pkg = dbp_desktop_lookup(mp.df, "PkgDependency", "", mp.section)))
 		pkg = "";
 	
 	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata), strdup(sys), strdup(pkg))) < 0) {
@@ -349,14 +349,14 @@ static int package_register(struct package_s *p, const char *path, const char *d
 	package_meta_extract(path, p, id, !strcmp(p->entry[id].desktop, "desk"));
 	fprintf(dbp_error_log, "Registered package %s at '%s'\n", pkg_id, path);
 	
-	mp.df = desktop_free(mp.df);
+	mp.df = dbp_desktop_free(mp.df);
 
 	return id;
 
 	error:
 	fprintf(dbp_error_log, "An error occured while registering a package %s at '%s'\n", pkg_id, path);
 	if (mp.df)
-		mp.df = desktop_free(mp.df);
+		mp.df = dbp_desktop_free(mp.df);
 	return errid;
 }
 
@@ -416,9 +416,9 @@ void package_crawl_mount(struct package_s *p, const char *device, const char *pa
 	
 	pthread_mutex_lock(&p->mutex);
 
-	for (i = 0; i < config_struct.search_dirs; i++) {
-		new_path = realloc(new_path, strlen(path) + 2 + strlen(config_struct.search_dir[i]));
-		snprintf(new_path, PATH_MAX, "%s/%s", path, config_struct.search_dir[i]);
+	for (i = 0; i < dbp_config_struct.search_dirs; i++) {
+		new_path = realloc(new_path, strlen(path) + 2 + strlen(dbp_config_struct.search_dir[i]));
+		snprintf(new_path, PATH_MAX, "%s/%s", path, dbp_config_struct.search_dir[i]);
 		package_crawl(p, device, new_path, path);
 	}
 	
@@ -451,8 +451,8 @@ static void package_meta_remove(const char *pkg_id, int announce) {
 	char prefix[PATH_MAX];
 
 	snprintf(prefix, PATH_MAX, "%s%s_", DBP_META_PREFIX, pkg_id);
-	package_kill_prefix(config_struct.icon_directory, prefix, 0);
-	package_kill_prefix(config_struct.desktop_directory, prefix, announce);
+	package_kill_prefix(dbp_config_struct.icon_directory, prefix, 0);
+	package_kill_prefix(dbp_config_struct.desktop_directory, prefix, announce);
 
 	return;
 }
@@ -462,12 +462,12 @@ static void package_kill(struct package_s *p, int entry) {
 	int i;
 	char ulinkpath[PATH_MAX];
 
-	if (config_struct.verbose_output)
+	if (dbp_config_struct.verbose_output)
 		fprintf(dbp_error_log, "Package at '%s' released\n", p->entry[entry].path);
 	
 	package_meta_remove(p->entry[entry].id, !strcmp(p->entry[entry].desktop, "desk"));
 	for (i = 0; i < p->entry[entry].execs; i++) {
-		snprintf(ulinkpath, PATH_MAX, "%s/%s", config_struct.exec_directory, p->entry[entry].exec[i]);
+		snprintf(ulinkpath, PATH_MAX, "%s/%s", dbp_config_struct.exec_directory, p->entry[entry].exec[i]);
 		unlink(ulinkpath);
 		free(p->entry[entry].exec[i]);
 	}
@@ -523,7 +523,7 @@ void package_release_mount(struct package_s *p, const char *device) {
 
 		last = p->entry[i].id;
 		if (strcmp(p->entry[i].device, device)) {
-			if (config_struct.verbose_output)
+			if (dbp_config_struct.verbose_output)
 				fprintf(dbp_error_log, "Package '%s' does not reside on '%s', it's on '%s', skipping\n", p->entry[i].path, device, p->entry[i].device);
 			continue;
 		}
@@ -563,7 +563,7 @@ int package_run(struct package_s *p, const char *id, const char *user) {
 		return DBP_ERROR_BAD_PKG_ID;
 	}
 
-	if ((loop = loop_mount(p->entry[pkg_n].path, id, user, p->entry[pkg_n].mount, p->entry[pkg_n].appdata)) < 0) {
+	if ((loop = dbp_loop_mount(p->entry[pkg_n].path, id, user, p->entry[pkg_n].mount, p->entry[pkg_n].appdata)) < 0) {
 		pthread_mutex_unlock(&p->mutex);
 		return loop;
 	}
@@ -638,11 +638,11 @@ static int package_purgatory_revive(struct package_s *p, const char *pkgid) {
 }
 
 static int package_purgatory_reap(struct package_s *p, int id) {
-	p->purgatory[id].reusable = loop_umount(p->purgatory[id].package_id, p->purgatory[id].loop_number, NULL, p->purgatory[id].reusable);
+	p->purgatory[id].reusable = dbp_loop_umount(p->purgatory[id].package_id, p->purgatory[id].loop_number, NULL, p->purgatory[id].reusable);
 	if (!p->purgatory[id].reusable) {
 		package_purgatory_remove(p, id);
 		return 1;
-	} else if (config_struct.verbose_output)
+	} else if (dbp_config_struct.verbose_output)
 		fprintf(dbp_error_log, "Unable to reap package %s in purgatory, reason %i\n", p->purgatory[id].package_id, p->purgatory[id].reusable);
 	return 0;
 }

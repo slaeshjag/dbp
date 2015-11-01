@@ -70,10 +70,10 @@ static int daemon_nuke_execs() {
 	FILE *fp;
 	char buff[512], path[PATH_MAX];
 
-	if (!(d = opendir(config_struct.exec_directory)))
+	if (!(d = opendir(dbp_config_struct.exec_directory)))
 		return 0;
 	for (readdir_r(d, &de, &result); result; readdir_r(d, &de, &result)) {
-		snprintf(path, PATH_MAX, "%s/%s", config_struct.exec_directory, de.d_name);
+		snprintf(path, PATH_MAX, "%s/%s", dbp_config_struct.exec_directory, de.d_name);
 		if (!(fp = fopen(path, "r")))
 			continue;
 		*buff = 0;
@@ -93,8 +93,8 @@ static int daemon_nuke_execs() {
 
 
 static int daemon_nuke() {
-	if (!daemon_nuke_dir(config_struct.desktop_directory));
-	else if (!daemon_nuke_dir(config_struct.icon_directory));
+	if (!daemon_nuke_dir(dbp_config_struct.desktop_directory));
+	else if (!daemon_nuke_dir(dbp_config_struct.icon_directory));
 	else if (!daemon_nuke_execs());
 	else
 		return 1;
@@ -103,12 +103,12 @@ static int daemon_nuke() {
 
 
 static int daemon_init() {
-	if (!loop_directory_setup(config_struct.img_mount, 0755));
-	else if (!loop_directory_setup(config_struct.union_mount, 0755));
-	else if (!loop_directory_setup(config_struct.icon_directory, 0755));
-	else if (!loop_directory_setup(config_struct.exec_directory, 0755));
-	else if (!loop_directory_setup(config_struct.desktop_directory, 0755));
-	else if (!loop_directory_setup(config_struct.dbpout_directory, 0777));
+	if (!dbp_loop_directory_setup(dbp_config_struct.img_mount, 0755));
+	else if (!dbp_loop_directory_setup(dbp_config_struct.union_mount, 0755));
+	else if (!dbp_loop_directory_setup(dbp_config_struct.icon_directory, 0755));
+	else if (!dbp_loop_directory_setup(dbp_config_struct.exec_directory, 0755));
+	else if (!dbp_loop_directory_setup(dbp_config_struct.desktop_directory, 0755));
+	else if (!dbp_loop_directory_setup(dbp_config_struct.dbpout_directory, 0777));
 	else if (!daemon_nuke());
 	else
 		return 1;
@@ -143,15 +143,15 @@ int main(int argc, char **argv) {
 
 	dbp_error_log = stderr;
 	p_s = &p;
-	if (!config_init())
+	if (!dbp_config_init())
 		return -1;
-	if (!(dbp_error_log = fopen(config_struct.daemon_log, "w"))) {
+	if (!(dbp_error_log = fopen(dbp_config_struct.daemon_log, "w"))) {
 		dbp_error_log = stderr;
-		fprintf(stderr, "Unable to open %s\n", config_struct.daemon_log);
+		fprintf(stderr, "Unable to open %s\n", dbp_config_struct.daemon_log);
 	} else
 		setbuf(dbp_error_log, NULL);
 
-	fprintf(dbp_error_log, "DBPd version %s starting...\n", config_version_get());
+	fprintf(dbp_error_log, "DBPd version %s starting...\n", dbp_config_version_get());
 	p = package_init();
 	state_recover(&p);
 

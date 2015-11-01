@@ -109,14 +109,14 @@ static void add_package_meta(char *pkg_id) {
 
 	asprintf(&prefix, "__dbp__%s_", pkg_id);
 	
-	if (!(dir_s = opendir(config_struct.desktop_directory))) {
-		fprintf(stderr, "Unable to open '%s' for directory list\n", config_struct.desktop_directory);
+	if (!(dir_s = opendir(dbp_config_struct.desktop_directory))) {
+		fprintf(stderr, "Unable to open '%s' for directory list\n", dbp_config_struct.desktop_directory);
 		return free(prefix);
 	}
 
 	for (readdir_r(dir_s, &ent, &result); result; readdir_r(dir_s, &ent, &result)) {
 		if (HAS_PREFIX(ent.d_name, prefix) && HAS_SUFFIX(ent.d_name, ".desktop")) {
-			asprintf(&source, "%s/%s", config_struct.desktop_directory, ent.d_name);
+			asprintf(&source, "%s/%s", dbp_config_struct.desktop_directory, ent.d_name);
 			add_meta(source, 0);
 			free(source);
 		}
@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
 	struct DBPList *list, *next;
 	(void) argc; (void) argv;
 	dbp_error_log = stderr;
-	config_init();
+	dbp_config_init();
 	if (!(desktop_directory = find_desktop()))
 		return 1;
 	nuke_desktop(desktop_directory);

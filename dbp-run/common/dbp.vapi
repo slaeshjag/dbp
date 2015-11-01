@@ -46,7 +46,7 @@ namespace DBP {
 	
 	[CCode (cheader_filename = "config.h")]
 	namespace Config {
-		[CCode (cname = "struct config_s", has_type_id = false)]
+		[CCode (cname = "struct DBPConfig", has_type_id = false)]
 		struct Config {
 			[CCode (array_length_cname = "file_extensions", array_length_type = "int")]
 			string[] file_extension;
@@ -83,59 +83,52 @@ namespace DBP {
 			Desktop df;
 		}
 		
-		[CCode (cname = "config_struct")]
+		[CCode (cname = "dbp_config_struct")]
 		Config config;
 		
-		[CCode (cprefix = "CONFIG_")]
+		[CCode (cprefix = "DBP_CONFIG_")]
 		public const string FILE_PATH;
 	
-		[CCode (cname = "config_init")]
+		[CCode (cname = "dbp_config_init")]
 		void init();
-		[CCode (cname = "config_version_get")]
+		[CCode (cname = "dbp_config_version_get")]
 		public unowned string version();
 	}
 
-	[CCode (cheader_filename = "desktop.h", cname = "struct desktop_file_s", free_function = "desktop_free")]
+	[CCode (cheader_filename = "desktop.h", cname = "struct DBPDesktopFile", free_function = "dbp_desktop_free")]
 	[Compact]
 	public class Desktop {
-		[CCode (cname = "desktop_parse")]
+		[CCode (cname = "dbp_desktop_parse")]
 		public Desktop(char[] str);
-		[CCode (cname = "desktop_parse_file")]
+		[CCode (cname = "dbp_desktop_parse_file")]
 		public Desktop.from_file(string path);
-		[CCode (cname = "desktop_write")]
+		[CCode (cname = "dbp_desktop_write")]
 		public void write(string path);
-		[CCode (cname = "desktop_lookup")]
+		[CCode (cname = "dbp_desktop_lookup")]
 		public unowned string? lookup(string key, string locale, string section);
-		[CCode (cname = "desktop_lookup_section")]
+		[CCode (cname = "dbp_desktop_lookup_section")]
 		public int lookup_section(string section);
-		[CCode (cname = "desktop_lookup_entry")]
+		[CCode (cname = "dbp_desktop_lookup_entry")]
 		public int lookup_entry(string key, string locale, int section);
 	}
 	
-	[CCode (cheader_filename = "loop.h", cprefix = "loop_")]
+	[CCode (cheader_filename = "loop.h", cprefix = "dbp_loop_")]
 	namespace Loop {
 		int mount(string image, string id, string user, string src_mount, string appdata);
 		void umount(string pkg_id, int loop, string user);
 		int directory_setup(string path, int umask);
 	}
 	
-	[CCode (cheader_filename = "deb_dep_check.h", cprefix = "deb_")]
-	namespace DebDepCheck {
-		void do_init();
-		void do_free();
-		bool check_package(string pkgname, string package_arch);
-	}
-	
 	[CCode (cheader_filename = "meta.h")]
 	namespace Meta {
-		[CCode (cname = "struct meta_package_s", has_type_id = false, destroy_function = "", default_value = "{}")]
+		[CCode (cname = "struct DBPMetaPackage", has_type_id = false, destroy_function = "", default_value = "{}")]
 		public struct Package {
 			[CCode (cname = "df")]
 			Desktop desktop_file;
 			string section;
 		}
 		
-		[CCode (cname = "meta_package_open")]
+		[CCode (cname = "dbp_meta_package_open")]
 		int package_open(string path, out Package mp);
 	}
 

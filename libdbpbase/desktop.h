@@ -1,41 +1,41 @@
-#ifndef __DESKTOP_H__
-#define	__DESKTOP_H__
+#ifndef __DBP_DESKTOP_H__
+#define	__DBP_DESKTOP_H__
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-struct desktop_file_entry_s {
+struct DBPDesktopFileEntry {
 	char				*key;
 	char				*locale;
 	char				*value;
 };
 
 
-struct desktop_file_section_s {
+struct DBPDesktopFileSection {
 	char				*name;
-	struct desktop_file_entry_s	*entry;
+	struct DBPDesktopFileEntry	*entry;
 	int				entries;
 };
 
 
-struct desktop_file_s {
-	struct desktop_file_section_s	*section;
+struct DBPDesktopFile {
+	struct DBPDesktopFileSection	*section;
 	int				sections;
 };
 
 
-struct desktop_file_s *desktop_parse(char *str);
-struct desktop_file_s *desktop_parse_append(char *str, struct desktop_file_s *df);
-struct desktop_file_s *desktop_parse_file(const char *path);
-struct desktop_file_s *desktop_parse_file_append(const char *path, struct desktop_file_s *df);
-void *desktop_free(struct desktop_file_s *df);
-void desktop_write(struct desktop_file_s *df, const char *path);
-char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *locale, const char *section);
-int desktop_lookup_section(struct desktop_file_s *df, const char *section);
-int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char *locale, int section);
-int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value, int section);
-int desktop_section_new(struct desktop_file_s *df, const char *name);
+struct DBPDesktopFile *dbp_desktop_parse(char *str);
+struct DBPDesktopFile *dbp_desktop_parse_append(char *str, struct DBPDesktopFile *df);
+struct DBPDesktopFile *dbp_desktop_parse_file(const char *path);
+struct DBPDesktopFile *dbp_desktop_parse_file_append(const char *path, struct DBPDesktopFile *df);
+void *dbp_desktop_free(struct DBPDesktopFile *df);
+void dbp_desktop_write(struct DBPDesktopFile *df, const char *path);
+char *dbp_desktop_lookup(struct DBPDesktopFile *df, const char *key, const char *locale, const char *section);
+int dbp_desktop_lookup_section(struct DBPDesktopFile *df, const char *section);
+int dbp_desktop_lookup_entry(struct DBPDesktopFile *df, const char *key, const char *locale, int section);
+int dbp_desktop_entry_new(struct DBPDesktopFile *df, const char *key, const char *locale, const char *value, int section);
+int dbp_desktop_section_new(struct DBPDesktopFile *df, const char *name);
 
 #endif

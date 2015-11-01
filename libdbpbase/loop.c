@@ -20,7 +20,7 @@
 #include <ctype.h>
 
 
-int loop_desktop_directory(const char *path) {
+int dbp_loop_desktop_directory(const char *path) {
 	if (strstr(path, "desktop/"))
 		if (!strchr(strstr(path, "desktop/") + strlen("desktop/"), '/'))
 			return 1;
@@ -28,7 +28,7 @@ int loop_desktop_directory(const char *path) {
 }
 
 
-int loop_directory_setup(const char *path, int umask) {
+int dbp_loop_directory_setup(const char *path, int umask) {
 	char *path_tok, *tmp, *saveptr, *next_path = NULL, *old_path = NULL;
 	struct stat dir_stat;
 
@@ -204,27 +204,27 @@ static void loop_decide_appdata(int fs, const char *appdata, const char *fs_path
 	// Only the user and rodata dirs are outside of global system configuration. Only these needs to be escaped, as
 	// it can be assumed that global system configuration and pkgid validation will keep the rest of the paths valid.
 
-	if (config_struct.per_user_appdata) {
-		if (config_struct.per_package_appdata) {
-			*user_dir = dbp_string("%s/%s_%s/%s", fs?fs_path:"", config_struct.data_directory, user, appdata);
-			*rodata = dbp_string("%s/%s_%s/%s", fs?fs_path:"", config_struct.rodata_directory, user, appdata);
+	if (dbp_config_struct.per_user_appdata) {
+		if (dbp_config_struct.per_package_appdata) {
+			*user_dir = dbp_string("%s/%s_%s/%s", fs?fs_path:"", dbp_config_struct.data_directory, user, appdata);
+			*rodata = dbp_string("%s/%s_%s/%s", fs?fs_path:"", dbp_config_struct.rodata_directory, user, appdata);
 		} else {
-			*user_dir = dbp_string("%s/%s_%s", fs?fs_path:"", config_struct.data_directory, user);
-			*rodata = dbp_string("%s/%s_%s", fs?fs_path:"", config_struct.rodata_directory, user);
+			*user_dir = dbp_string("%s/%s_%s", fs?fs_path:"", dbp_config_struct.data_directory, user);
+			*rodata = dbp_string("%s/%s_%s", fs?fs_path:"", dbp_config_struct.rodata_directory, user);
 		}
 	} else {
-		if (config_struct.per_package_appdata) {
-			*user_dir = dbp_string("%s/%s/%s", fs?fs_path:"", config_struct.data_directory, appdata);
-			*rodata = dbp_string("%s/%s/%s", fs?fs_path:"", config_struct.rodata_directory, appdata);
+		if (dbp_config_struct.per_package_appdata) {
+			*user_dir = dbp_string("%s/%s/%s", fs?fs_path:"", dbp_config_struct.data_directory, appdata);
+			*rodata = dbp_string("%s/%s/%s", fs?fs_path:"", dbp_config_struct.rodata_directory, appdata);
 		} else {
-			*user_dir = dbp_string("%s/%s", fs?fs_path:"", config_struct.data_directory);
-			*rodata = dbp_string("%s/%s", fs?fs_path:"", config_struct.rodata_directory);
+			*user_dir = dbp_string("%s/%s", fs?fs_path:"", dbp_config_struct.data_directory);
+			*rodata = dbp_string("%s/%s", fs?fs_path:"", dbp_config_struct.rodata_directory);
 		}
 	}
 }
 
 
-int loop_mount(const char *image, const char *id, const char *user, const char *src_mount, const char *appdata) {
+int dbp_loop_mount(const char *image, const char *id, const char *user, const char *src_mount, const char *appdata) {
 	int loop_n = -1, ret = 0, lret, rodata = 0;
 	char *mount_path = NULL, *loop = NULL, *user_dir = NULL, *img_dir = NULL, *rodata_dir = NULL;
 	char *mount_opt = NULL;
@@ -241,14 +241,14 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	if ((lret = loop_setup(image, loop_n)) < 0)
 		goto loop_set_fail;
 
-	if (!(img_dir = dbp_string("%s/%s", config_struct.img_mount, id)))
+	if (!(img_dir = dbp_string("%s/%s", dbp_config_struct.img_mount, id)))
 		goto fail;
 
 	if (!(loop = dbp_string("/dev/loop%i", loop_n)))
 		goto fail;
 
 	/* It'll mount read-only, as it's an image */
-	loop_directory_setup(img_dir, 0555);
+	dbp_loop_directory_setup(img_dir, 0555);
 	if (mount(loop, img_dir, DBP_FS_NAME, 0, ""))
 		goto bad_fsimg;
 
@@ -256,10 +256,10 @@ int loop_mount(const char *image, const char *id, const char *user, const char *
 	loop = NULL;
 
 	/***** Mount the UnionFS *****/
-	if (!(mount_path = dbp_string("%s/%s", config_struct.union_mount, id)))
+	if (!(mount_path = dbp_string("%s/%s", dbp_config_struct.union_mount, id)))
 		goto fail;
 
-	loop_directory_setup(mount_path, 0555);
+	dbp_loop_directory_setup(mount_path, 0555);
 	loop_decide_appdata(src_mount[1]!=0, appdata, src_mount, &user_dir, &rodata_dir, user);
 
 	if (!user_dir || !rodata_dir)
@@ -323,17 +323,17 @@ fail:
 }
 
 
-int loop_umount(const char *pkg_id, int loop, const char *user, int prev_state) {
+int dbp_loop_umount(const char *pkg_id, int loop, const char *user, int prev_state) {
 	char *mount_path, *img_path = NULL;
 
 	/* parameter user will eventually be used */
 	(void) user;
 	assert(pkg_id);
 
-	if (!(mount_path = dbp_string("%s/%s", config_struct.union_mount, pkg_id)))
+	if (!(mount_path = dbp_string("%s/%s", dbp_config_struct.union_mount, pkg_id)))
 		goto fail;
 
-	if (!(img_path = dbp_string("%s/%s", config_struct.img_mount, pkg_id)))
+	if (!(img_path = dbp_string("%s/%s", dbp_config_struct.img_mount, pkg_id)))
 		goto fail;
 
 	if (prev_state < -1)

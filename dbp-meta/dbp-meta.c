@@ -9,7 +9,7 @@ FILE *dbp_error_log;
 
 void usage() {
 	fprintf(stdout, _("Extracts meta keys from a DBP\n"));
-	fprintf(stdout, _("By Steven Arnow, 2015, version %s\n"), config_version_get());
+	fprintf(stdout, _("By Steven Arnow, 2015, version %s\n"), dbp_config_version_get());
 	fprintf(stdout, "\n");
 	fprintf(stdout, _("Usage:\n"));
 	fprintf(stdout, _("dbp-meta list <path-to-dbp>			- lists all meta keys for the package\n"));
@@ -18,7 +18,7 @@ void usage() {
 
 
 int main(int argc, char **argv) {
-	struct meta_package_s mp;
+	struct DBPMetaPackage mp;
 	const char *str;
 
 	setlocale(LC_ALL, "");
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	if (meta_package_open(argv[2], &mp)) {
+	if (dbp_meta_package_open(argv[2], &mp)) {
 		fprintf(stderr, _("Unable to open package %s\n"), argv[2]);
 		return 1;
 	}
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 	if (!strcmp(argv[1], "list")) {
 		int section, i;
 
-		section = desktop_lookup_section(mp.df, mp.section);
+		section = dbp_desktop_lookup_section(mp.df, mp.section);
 		for (i = 0; i < mp.df->section[section].entries; i++)
 			fprintf(stdout, "%s[%s]=\"%s\"\n", mp.df->section[section].entry[i].key, mp.df->section[section].entry[i].locale, mp.df->section[section].entry[i].value);
 		return 0;
@@ -52,9 +52,9 @@ int main(int argc, char **argv) {
 		}
 		
 		if (argc < 5)
-			str = desktop_lookup(mp.df, argv[3], "", mp.section);
+			str = dbp_desktop_lookup(mp.df, argv[3], "", mp.section);
 		else
-			str = desktop_lookup(mp.df, argv[3], argv[4], mp.section);
+			str = dbp_desktop_lookup(mp.df, argv[3], argv[4], mp.section);
 		if (str)
 			fprintf(stdout, "%s\n", str);
 		return 0;

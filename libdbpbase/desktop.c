@@ -5,7 +5,7 @@
 	trouble that it tries to do both */
 
 
-int desktop_section_new(struct desktop_file_s *df, const char *name) {
+int dbp_desktop_section_new(struct DBPDesktopFile *df, const char *name) {
 	int id;
 
 	for (id = 0; id < df->sections; id++) {
@@ -25,8 +25,8 @@ int desktop_section_new(struct desktop_file_s *df, const char *name) {
 }
 
 
-int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *locale, const char *value, int section) {
-	struct desktop_file_section_s *s;
+int dbp_desktop_entry_new(struct DBPDesktopFile *df, const char *key, const char *locale, const char *value, int section) {
+	struct DBPDesktopFileSection *s;
 	int e, i;
 
 	for (i = 0; i < df->section[section].entries; i++) {
@@ -49,7 +49,7 @@ int desktop_entry_new(struct desktop_file_s *df, const char *key, const char *lo
 }
 
 
-int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
+int dbp_desktop_lookup_section(struct DBPDesktopFile *df, const char *section) {
 	int s = -1, i = 0;
 	
 	if (!df) return -1;
@@ -66,7 +66,7 @@ int desktop_lookup_section(struct desktop_file_s *df, const char *section) {
 }
 
 
-int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char *locale, int section) {
+int dbp_desktop_lookup_entry(struct DBPDesktopFile *df, const char *key, const char *locale, int section) {
 	int i;
 
 	if (!df) return -1;
@@ -80,7 +80,7 @@ int desktop_lookup_entry(struct desktop_file_s *df, const char *key, const char 
 }
 
 
-char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *locale, const char *section) {
+char *dbp_desktop_lookup(struct DBPDesktopFile *df, const char *key, const char *locale, const char *section) {
 	char *locbuff;
 	int s, i;
 	
@@ -90,14 +90,14 @@ char *desktop_lookup(struct desktop_file_s *df, const char *key, const char *loc
 	/* Strip out variant */
 	if (strchr(locbuff, '@'))
 		*strchr(locbuff, '@') = 0;
-	if ((s = desktop_lookup_section(df, section)) < 0) {
+	if ((s = dbp_desktop_lookup_section(df, section)) < 0) {
 		free(locbuff);
 		return NULL;
 	}
 
-	if ((i = desktop_lookup_entry(df, key, locale, s)) >= 0);
-	else if ((i = desktop_lookup_entry(df, key, locbuff, s)) >= 0);
-	else if ((i = desktop_lookup_entry(df, key, "", s)) >= 0);
+	if ((i = dbp_desktop_lookup_entry(df, key, locale, s)) >= 0);
+	else if ((i = dbp_desktop_lookup_entry(df, key, locbuff, s)) >= 0);
+	else if ((i = dbp_desktop_lookup_entry(df, key, "", s)) >= 0);
 	else {
 		free(locbuff);
 		return NULL;
@@ -130,7 +130,7 @@ static void desktop_entry_unescape(char *str) {
 }
 
 
-struct desktop_file_s *desktop_parse_append(char *str, struct desktop_file_s *df) {
+struct DBPDesktopFile *dbp_desktop_parse_append(char *str, struct DBPDesktopFile *df) {
 	/* TODO: Make these dynamically reallocable */
 	char key[4096], value[4096], buff[4096], buff2[4096], *tmp;
 	int sz, brk, section = 0;
@@ -158,7 +158,7 @@ struct desktop_file_s *desktop_parse_append(char *str, struct desktop_file_s *df
 				continue;
 			*strchr(key, ']') = 0;
 			sscanf(key + 1, "%[^\n]", buff);
-			section = desktop_section_new(df, buff);
+			section = dbp_desktop_section_new(df, buff);
 		} else if (*key == ';' || *key == '#') {
 		} else {
 			desktop_entry_unescape(value);
@@ -167,26 +167,26 @@ struct desktop_file_s *desktop_parse_append(char *str, struct desktop_file_s *df
 					continue;	/* nope.avi */
 				*strchr(key, '[') = '\n', *strchr(key, ']') = 0;
 				sscanf(key, "%[^\n]\n%[^\n]", buff, buff2);
-				desktop_entry_new(df, buff, buff2, value, section);
+				dbp_desktop_entry_new(df, buff, buff2, value, section);
 			} else
-				desktop_entry_new(df, key, "", value, section);
+				dbp_desktop_entry_new(df, key, "", value, section);
 		}
 	}
 	
 	return df;
 }
 
-struct desktop_file_s *desktop_parse(char *str) {
-	struct desktop_file_s *df;
+struct DBPDesktopFile *dbp_desktop_parse(char *str) {
+	struct DBPDesktopFile *df;
 
 	df = malloc(sizeof(*df));
 	df->sections = 0, df->section = NULL;
-	desktop_section_new(df, NULL);
-	return desktop_parse_append(str, df);
+	dbp_desktop_section_new(df, NULL);
+	return dbp_desktop_parse_append(str, df);
 }
 
 
-struct desktop_file_s *desktop_parse_file_append(const char *path, struct desktop_file_s *df) {
+struct DBPDesktopFile *dbp_desktop_parse_file_append(const char *path, struct DBPDesktopFile *df) {
 	FILE *fp;
 	char *buff;
 	long file_sz;
@@ -200,15 +200,15 @@ struct desktop_file_s *desktop_parse_file_append(const char *path, struct deskto
 	buff[fread(buff, 1, file_sz, fp)] = 0;
 	fclose(fp);
 	if (!df)
-		df = desktop_parse(buff);
+		df = dbp_desktop_parse(buff);
 	else
-		desktop_parse_append(buff, df);
+		dbp_desktop_parse_append(buff, df);
 	free(buff);
 	return df;
 }
 
-struct desktop_file_s *desktop_parse_file(const char *path) {
-	return desktop_parse_file_append(path, NULL);
+struct DBPDesktopFile *dbp_desktop_parse_file(const char *path) {
+	return dbp_desktop_parse_file_append(path, NULL);
 }
 
 static void desktop_write_format(FILE *fp, char *str) {
@@ -231,7 +231,7 @@ static void desktop_write_format(FILE *fp, char *str) {
 }
 
 
-void desktop_write(struct desktop_file_s *df, const char *path) {
+void dbp_desktop_write(struct DBPDesktopFile *df, const char *path) {
 	FILE *fp;
 	int i, j;
 
@@ -261,7 +261,7 @@ void desktop_write(struct desktop_file_s *df, const char *path) {
 }
 				
 
-void *desktop_free(struct desktop_file_s *df) {
+void *dbp_desktop_free(struct DBPDesktopFile *df) {
 	int i, j;
 
 	if (!df) return NULL;

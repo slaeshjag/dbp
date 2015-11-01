@@ -4,11 +4,11 @@
 #include "desktop.h"
 
 
-struct meta_package_s {
-	struct desktop_file_s		*df;
+struct DBPMetaPackage {
+	struct DBPDesktopFile		*df;
 	const char			*section;
 };
 
-int meta_package_open(const char *path, struct meta_package_s *mp);
+int dbp_meta_package_open(const char *path, struct DBPMetaPackage *mp);
 
 #endif
