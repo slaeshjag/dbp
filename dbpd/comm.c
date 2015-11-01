@@ -87,11 +87,11 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		pthread_mutex_lock(&p->mutex);
 		
 		for (i = 0; i < p->entries; i++) {
-			g_variant_builder_add(builder, "(sss)", p->entry[i].path, p->entry[i].id, p->entry[i].desktop);
+			g_variant_builder_add(builder, "(ssss)", p->entry[i].path, p->entry[i].id, p->entry[i].desktop, p->entry[i].version);
 		}
 
 		if (!p->entries) {
-			g_variant_builder_add(builder, "(sss)", "/dev/null", "!", "nodesk");
+			g_variant_builder_add(builder, "(ssss)", "/dev/null", "!", "nodesk", "");
 		}
 		
 		pthread_mutex_unlock(&p->mutex);

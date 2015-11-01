@@ -19,6 +19,9 @@ struct package_entry_s {
 	char				*mount;
 	char				*appdata;
 
+	/* Daemon does not check version, but includes it in package list */
+	char				*version;
+
 	/* Dependencies are only stored for later relay to client	*
 	** Daemon does not do any dep-checking itself			*/
 	char				*sys_dep;

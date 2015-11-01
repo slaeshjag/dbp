@@ -131,17 +131,18 @@ int dbpmgr_server_path_from_id(const char *pkg_id, char **path) {
 
 struct DBPList *dbpmgr_server_package_list() {
 	GVariantIter *iter;
-	char *path, *id, *desktop;
+	char *path, *id, *desktop, version;
 	struct DBPList *prev = NULL, *this = NULL;
 	SEND_MESSAGE("PackageList", NULL, NULL);
 	(void) reti;
 	g_variant_get(ret, "(a(sss))", &iter);
-	while (g_variant_iter_loop(iter, "(sss)", &path, &id, &desktop)) {
+	while (g_variant_iter_loop(iter, "(ssss)", &path, &id, &desktop, &version)) {
 		if (!strcmp(id, "!"))
 			continue;
 		this = malloc(sizeof(*this));
 		this->path = strdup(path);
 		this->id = strdup(id);
+		this->version = strdup(id);
 		this->on_desktop = !strcmp(desktop, "desk");
 		this->next = prev;
 		prev = this;
@@ -156,6 +157,7 @@ struct DBPList *dbpmgr_server_package_list() {
 void dbpmgr_server_package_list_free_one(struct DBPList *list) {
 	free(list->path);
 	free(list->id);
+	free(list->version);
 	free(list);
 }
 

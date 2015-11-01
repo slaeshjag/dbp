@@ -73,7 +73,7 @@ static int package_id_validate(const char *pkg_id) {
 }
 
 
-static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount, char *appdata, char *sys, char *pkg) {
+static int package_add(struct package_s *p, char *path, char *id, char *device, char *mount, char *appdata, char *sys, char *pkg, char *version) {
 	int nid, i, errid;
 
 	for (i = 0; i < p->entries; i++) {
@@ -96,6 +96,7 @@ static int package_add(struct package_s *p, char *path, char *id, char *device, 
 	p->entry[nid].appdata = appdata;
 	p->entry[nid].sys_dep = sys;
 	p->entry[nid].pkg_dep = pkg;
+	p->entry[nid].version = version;
 	p->entry[nid].desktop = strdup(dbp_loop_desktop_directory(path) ? "desk" : "nodesk");
 	p->entry[nid].exec = NULL, p->entry[nid].execs = 0;
 	comm_dbus_announce_new_package(id);
@@ -319,7 +320,7 @@ static void package_meta_extract(const char *path, struct package_s *p, int id, 
 
 static int package_register(struct package_s *p, const char *path, const char *device, const char *mount, int *coll_id) {
 	struct DBPMetaPackage mp;
-	char *pkg_id = "none", *appdata, *sys, *pkg;
+	char *pkg_id = "none", *appdata, *sys, *pkg, *version = NULL;
 	int id, errid;
 
 	*coll_id = -1;
@@ -338,8 +339,10 @@ static int package_register(struct package_s *p, const char *path, const char *d
 		sys = "";
 	if (!(pkg = dbp_desktop_lookup(mp.df, "PkgDependency", "", mp.section)))
 		pkg = "";
+	if (!(version = dbp_desktop_lookup(mp.df, "Version", "", mp.section)))
+		version = "";
 	
-	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata), strdup(sys), strdup(pkg))) < 0) {
+	if ((id = package_add(p, strdup(path), strdup(pkg_id), strdup(device), strdup(mount), strdup(appdata), strdup(sys), strdup(pkg), strdup(version))) < 0) {
 		*coll_id = package_id_lookup(p, pkg_id);
 		errid = id;
 		pkg_id = NULL;
@@ -483,6 +486,7 @@ static void package_kill(struct package_s *p, int entry) {
 	free(p->entry[entry].sys_dep);
 	free(p->entry[entry].pkg_dep);
 	free(p->entry[entry].desktop);
+	free(p->entry[entry].version);
 	p->entries--;
 	memmove(&p->entry[entry], &p->entry[entry + 1], (p->entries - entry) * sizeof(*p->entry));
 	return;

@@ -29,6 +29,7 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <dbpbase/dbpbase.h>
 #include "types.h"
 
 
@@ -133,7 +134,7 @@ static int compare_substring(char *s1, char *s2) {
 			return -1;
 		if (s2[i] == '~')
 			return 1;
-		/* TODO: Find out if this is supposed to be case insensitive or not... */
+		
 		if (!isalpha(s1[i])) {
 			if (!isalpha(s2[i]))
 				return s1[i] < s2[i] ? -1 : 1;
@@ -359,42 +360,48 @@ static void free_node(struct DBPDependDPackageNode *node) {
 	free(node);
 }
 
-static void dbpmgr_depend_init() {
+static void dbpmgr_depend_debian_init() {
 	if (debian_root)
 		return;
 	init_conv_table();
 	debian_root = build_database();
 }
 
-void dbpmgr_depend_free() {
-	free_node(debian_root), debian_root = NULL;
-}
 
 void dbpmgr_depend_arch_set(const char *arch) {
 	free(default_arch), default_arch = strdup(arch);
 }
 
-static struct DBPDependDPackage *debian_find_list(const char *pkg_name, struct DBPDependDPackageNode *node, int name_index) {
+static struct DBPDependDPackage *find_list(const char *pkg_name, struct DBPDependDPackageNode *node, int name_index) {
 	if (!node)
 		return NULL;
 	if (!pkg_name[name_index])
 		return node->match;
 	if (!node->lookup)
 		return node->list;
-	return debian_find_list(pkg_name, node->lookup[TREE_LOOKUP(pkg_name[name_index])], name_index + 1);
+	return find_list(pkg_name, node->lookup[TREE_LOOKUP(pkg_name[name_index])], name_index + 1);
 }
 
 struct DBPDependDPackage *dbpmgr_depend_debian_next(const char *pkg_name, struct DBPDependDPackage *prev) {
-	dbpmgr_depend_init();
+	dbpmgr_depend_debian_init();
 	
 	if (!prev)
-		prev = debian_find_list(pkg_name, debian_root, 0);
+		prev = find_list(pkg_name, debian_root, 0);
 	else
 		prev = prev->next;
 	for (; prev; prev = prev->next)
 		if (!strcmp(prev->name, pkg_name))
 			return prev;
 	return NULL;
+}
+
+
+void dbpmgr_depend_free(struct DBPDepend *dep) {
+	free(dep->version);
+	free(dep->pkg_name);
+	free(dep->arch);
+	free(dep);
+	return;
 }
 
 
@@ -426,4 +433,148 @@ bool dbpmgr_depend_debian_check(const char *package_string) {
 	dbpmgr_depend_free(dep);
 	return false;
 }
+
+static struct DBPDependDPackageNode *dbp_root = NULL;
+struct DBPList *dbpmgr_server_package_list();                                   
+void dbpmgr_server_package_list_free(struct DBPList *list);
+
+static void build_dbp_database() {
+	struct DBPList *list, *next;
+	struct DBPDependDPackage *this = NULL;
+
+	if (!(list = dbpmgr_server_package_list()))
+		return;
+	for (next = list; next; next = next->next) {
+		this = calloc(sizeof(*this), 1);
+		this->version = strdup(this->version);
+		this->name = strdup(this->name);
+		dbp_root = package_tree_populate(dbp_root, this, 0);
+	}
+
+	dbpmgr_server_package_list_free(list);
+	return;
+}
+
+void dbpmgr_depend_dbp_init() {
+	if (!dbp_root)
+		build_dbp_database();
+}
+
+
+struct DBPDependDPackage *dbpmgr_depend_dbp_next(const char *pkg_name, struct DBPDependDPackage *prev) {
+	dbpmgr_depend_dbp_init();
+	
+	if (!prev)
+		prev = find_list(pkg_name, dbp_root, 0);
+	else
+		prev = prev->next;
+	for (; prev; prev = prev->next)
+		if (!strcmp(prev->name, pkg_name))
+			return prev;
+	return NULL;
+}
+
+
+bool dbpmgr_depend_dbp_check(const char *package_string) {
+	struct DBPDepend *dep;
+	struct DBPDependDPackage *pkg;
+	int i, ver_match;
+	dep = dbpmgr_depend_parse(package_string);
+
+	for (pkg = dbpmgr_depend_dbp_next(dep->pkg_name, NULL); pkg; pkg = dbpmgr_depend_dbp_next(dep->pkg_name, pkg)) {
+		for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++) {
+			if (!dep->version[i])
+				continue;
+			ver_match = dbpmgr_depend_compare_version(pkg->version, dep->version[i]);
+			if (!dbpmgr_depend_version_result_compare(ver_match, i))
+				return dbpmgr_depend_free(dep), false;
+		}
+		dbpmgr_depend_free(dep);
+		return true;
+	}
+	dbpmgr_depend_free(dep);
+	return false;
+}
+
+
+static struct DBPDependList create_list(const char *str) {
+	struct DBPDependList list;
+	char *new;
+	list.depend = NULL, list.depends = 0;
+	if (!str)
+		return list;
+	new = strdup(str);
+	dbp_config_expand_token(&list.depend, &list.depends, new);
+	free(new);
+
+	return list;
+}
+
+
+static void addto_list(struct DBPDependList *list, const char *str) {
+	int id = list->depends++;
+	list->depend = realloc(list->depend, sizeof(*list->depend) * list->depends);
+	list->depend[id] = strdup(str);
+	return;
+}
+
+
+void dbpmgr_depend_delete_list(struct DBPDependList *list) {
+	int i;
+
+	for (i = 0; i < list->depends; i++)
+		free(list->depend[i]);
+	free(list->depend);
+}
+
+
+void dbpmgr_depend_cleanup() {
+	free_node(debian_root), debian_root = NULL;
+	free_node(dbp_root), dbp_root = NULL;
+}
+
+
+struct DBPDependListList dbpmgr_depend_check(struct DBPDesktopFile *meta) {
+	char *sysonly, *dbponly, *prefsys, *prefdbp, *whatevs;
+	struct DBPDependListList list, missing;
+	int i;
+
+	sysonly = dbp_desktop_lookup(meta, "Dependency", "deb", "Package Entry");
+	dbponly = dbp_desktop_lookup(meta, "Dependency", "dbp", "Package Entry");
+	prefsys = dbp_desktop_lookup(meta, "Dependency", "pref_deb", "Package Entry");
+	prefdbp = dbp_desktop_lookup(meta, "Dependency", "pref_dbp", "Package Entry");
+	whatevs = dbp_desktop_lookup(meta, "Dependency", "", "Package Entry");
+	
+	list.sysonly = create_list(sysonly);
+	list.dbponly = create_list(dbponly);
+	list.syspref = create_list(prefsys);
+	list.dbppref = create_list(prefdbp);
+	list.whatevs = create_list(whatevs);
+	memset(&missing, 0, sizeof(missing));
+
+	/* Det här luktar jommpakod... */
+	for (i = 0; i < list.sysonly.depends; i++)
+		if (!dbpmgr_depend_debian_check(list.sysonly.depend[i]))
+			addto_list(&missing.sysonly, list.sysonly.depend[i]);
+	for (i = 0; i < list.syspref.depends; i++)
+		if (!dbpmgr_depend_debian_check(list.syspref.depend[i]))
+			if (!dbpmgr_depend_dbp_check(list.syspref.depend[i]))
+				addto_list(&missing.syspref, list.syspref.depend[i]);
+	for (i = 0; i < list.dbponly.depends; i++)
+		if (!dbpmgr_depend_dbp_check(list.dbponly.depend[i]))
+			addto_list(&missing.dbponly, list.dbponly.depend[i]);
+	for (i = 0; i < list.dbppref.depends; i++)
+		if (!dbpmgr_depend_dbp_check(list.dbppref.depend[i]))
+			if (!dbpmgr_depend_debian_check(list.dbppref.depend[i]))
+				addto_list(&missing.dbppref, list.dbppref.depend[i]);
+	for (i = 0; i < list.whatevs.depends; i++)
+		if (!dbpmgr_depend_dbp_check(list.whatevs.depend[i]))
+			if (!dbpmgr_depend_debian_check(list.whatevs.depend[i]))
+				addto_list(&missing.whatevs, list.whatevs.depend[i]);
+
+	dbpmgr_depend_cleanup();
+	return list;
+}
+
+
 

@@ -18,6 +18,7 @@ struct DBPList {
 	struct DBPList			*next;
 	char				*id;
 	char				*path;
+	char				*version;
 	bool				on_desktop;
 };
 
@@ -41,6 +42,19 @@ struct DBPDependDPackageNode {
 	struct DBPDependDPackageNode	**lookup;
 	struct DBPDependDPackage	*list;
 	int				list_size;
+};
+
+struct DBPDependList {
+	char				**depend;
+	int				depends;
+};
+
+struct DBPDependListList {
+	struct DBPDependList		sysonly;
+	struct DBPDependList		dbponly;
+	struct DBPDependList		syspref;
+	struct DBPDependList		dbppref;
+	struct DBPDependList		whatevs;
 };
 
 
