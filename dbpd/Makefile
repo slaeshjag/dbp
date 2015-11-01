@@ -4,12 +4,12 @@ include $(TOPDIR)/config.mk
 SRCFILES	=	$(wildcard *.c)
 OBJFILES	=	$(SRCFILES:.c=.o)
 CFLAGS		+=	`pkg-config glib-2.0 --cflags gio-unix-2.0`
-LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0`
+LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0` -ldbpbase
 .PHONY: all clean
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(DAEMONBIN)"
-	@$(CC) -o $(DAEMONBIN) $(OBJFILES) $(LIB) $(LDFLAGS)
+	@$(CC) -o $(DAEMONBIN) $(OBJFILES) -ldbpbase $(LDPATH) $(LDFLAGS)
 	@echo "Done."
 	@echo
 	

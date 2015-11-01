@@ -3,11 +3,12 @@ include $(TOPDIR)/config.mk
 
 SRCFILES	=	$(wildcard *.c)
 OBJFILES	=	$(SRCFILES:.c=.o)
+LDFLAGS		+=	-ldbpbase
 .PHONY: all clean
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(METABIN)"
-	@$(CC) -o $(METABIN) $(OBJFILES) $(LIB) $(LDFLAGS)
+	@$(CC) -o $(METABIN) $(OBJFILES) $(LDPATH) $(LDFLAGS)
 	@echo "Done."
 	@echo
 	

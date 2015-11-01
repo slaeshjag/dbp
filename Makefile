@@ -20,8 +20,8 @@ all:
 	@echo " [INIT] build/include/dbpmgr"
 	@$(MKDIR) build/include
 	@$(MKDIR) build/include/dbpmgr
-	@echo " [ CD ] dbp-common/"
-	+@make -C dbp-common/
+	@echo " [ CD ] libdbpbase/"
+	+@make -C libdbpbase/
 	@echo " [ CD ] libdbpmgr/"
 	+@make -C libdbpmgr/
 	@echo " [ CD ] dbpd/"
@@ -50,8 +50,8 @@ all:
 clean:
 	@echo " [ RM ] build/"
 	+@$(RM) build/
-	@echo " [ CD ] dbp-common/"
-	+@make -C dbp-common/ clean
+	@echo " [ CD ] libdbpbase/"
+	+@make -C libdbpbase/ clean
 	@echo " [ CD ] libdbpmgr/"
 	+@make -C libdbpmgr/ clean
 	@echo " [ CD ] dbpd/"
@@ -100,5 +100,6 @@ install:
 	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run-path" 
 	install -d "$(PREFIX)/usr/lib"
 	install -m 644 $(STRIP_FLAG) -t "$(PREFIX)/usr/lib/" "$(TOPDIR)/build/lib/libdbpmgr.so"
+	install -m 644 $(STRIP_FLAG) -t "$(PREFIX)/usr/lib/" "$(TOPDIR)/build/lib/libdbpbase.so"
 	install -d "$(PREFIX)/usr/include/dbpmgr"
 	install -m 644 -t "$(PREFIX)/usr/include/dbpmgr" $(TOPDIR)/build/include/dbpmgr/*.h

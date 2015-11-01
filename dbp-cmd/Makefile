@@ -7,7 +7,7 @@ OBJFILES	=	$(SRCFILES:.c=.o)
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(CMDBIN)"
-	@$(CC) $(LDPATH) -o $(CMDBIN) $(OBJFILES) $(LIB) $(LDFLAGS) -ldbpmgr
+	@$(CC) $(LDPATH) -o $(CMDBIN) $(OBJFILES) $(LDFLAGS) -ldbpbase -ldbpmgr
 	@echo "Done."
 	@echo
 	

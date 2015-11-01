@@ -8,7 +8,7 @@ CFLAGS		+=	-D_GNU_SOURCE
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(DESKTOPBIN)"
-	@$(CC) $(LDPATH) -o $(DESKTOPBIN) $(OBJFILES) $(LIB) $(LDFLAGS) -ldbpmgr
+	@$(CC) $(LDPATH) -o $(DESKTOPBIN) $(OBJFILES) $(LDFLAGS) -ldbpbase -ldbpmgr
 	@echo "Done."
 	@echo
 	

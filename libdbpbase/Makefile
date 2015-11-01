@@ -3,11 +3,13 @@ include $(TOPDIR)/config.mk
 
 SRCFILES	=	$(wildcard *.c)
 OBJFILES	=	$(SRCFILES:.c=.o)
+CFLAGS		+=	-shared -fPIC
+LDFLAGS		+=	-Wl,-soname,$(LIBBASEFILE)
 .PHONY: all clean
 
 all: $(OBJFILES) $(DEPENDS)
-	@echo " [ AR ] $(LIB)"
-	@$(AR) -cr $(LIB) $(OBJFILES)
+	@echo " [ LD ] $(LIBBASE)"
+	@$(CC) $(CFLAGS) -o $(LIBBASE) $(OBJFILES) $(LDFLAGS)
 	@echo "Done."
 	@echo
 	
@@ -21,7 +23,7 @@ clean:
 	@echo 
 
 %.o: %.c %.h
-	@echo " [ CC ] dbp-common/$<"
+	@echo " [ CC ] libdbpbase/$<"
 	@$(CC) $(CFLAGS) -c -o $@ $<
 	
 
