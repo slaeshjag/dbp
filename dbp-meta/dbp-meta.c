@@ -1,11 +1,8 @@
 #include <libintl.h>
 #include <locale.h>
 #include <stdio.h>
-#include "meta.h"
-#include "config.h"
+#include <dbpbase/dbpbase.h>
 #define	_(STRING)	gettext(STRING)
-
-FILE *dbp_error_log;
 
 void usage() {
 	fprintf(stdout, _("Extracts meta keys from a DBP\n"));
@@ -23,13 +20,13 @@ int main(int argc, char **argv) {
 
 	setlocale(LC_ALL, "");
 	textdomain("dbp-run");
-	dbp_error_log = stderr;
 
 	if (argc <3) {
 		usage();
 		return 1;
 	}
 
+	dbp_init(NULL);
 	if (dbp_meta_package_open(argv[2], &mp)) {
 		fprintf(stderr, _("Unable to open package %s\n"), argv[2]);
 		return 1;

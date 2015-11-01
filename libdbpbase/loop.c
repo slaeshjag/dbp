@@ -1,3 +1,4 @@
+#define	_LIBINTERNAL
 #include "loop.h"
 #include "util.h"
 #include "dbp.h"

@@ -1,7 +1,9 @@
 #ifndef __DBP_CONFIG_H__
 #define	__DBP_CONFIG_H__
 
+#ifdef _LIBINTERNAL
 #include "desktop.h"
+#endif
 #define	DBP_CONFIG_FILE_PATH	"/etc/dbp/dbp_config.ini"
 
 struct DBPConfig {
@@ -42,7 +44,7 @@ struct DBPConfig {
 };
 
 
-int dbp_config_init();
+//int dbp_config_init();
 extern struct DBPConfig dbp_config_struct;
 char *dbp_config_version_get();
 void dbp_config_expand_token(char ***target, int *targets, char *token);

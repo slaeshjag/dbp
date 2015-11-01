@@ -45,5 +45,6 @@
 #define	DBP_ERROR_MUTILATED	-1023	/* Uncleanly removed media with active programs */
 
 extern FILE *dbp_error_log;
+int dbp_init(FILE *dbp_error_log);
 
 #endif

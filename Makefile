@@ -20,6 +20,8 @@ all:
 	@echo " [INIT] build/include/dbpmgr"
 	@$(MKDIR) build/include
 	@$(MKDIR) build/include/dbpmgr
+	@echo " [INIT] build/include/dbpbase"
+	@$(MKDIR) build/include/dbpbase
 	@echo " [ CD ] libdbpbase/"
 	+@make -C libdbpbase/
 	@echo " [ CD ] libdbpmgr/"
@@ -103,3 +105,5 @@ install:
 	install -m 644 $(STRIP_FLAG) -t "$(PREFIX)/usr/lib/" "$(TOPDIR)/build/lib/libdbpbase.so"
 	install -d "$(PREFIX)/usr/include/dbpmgr"
 	install -m 644 -t "$(PREFIX)/usr/include/dbpmgr" $(TOPDIR)/build/include/dbpmgr/*.h
+	install -d "$(PREFIX)/usr/include/dbpbase"
+	install -m 644 -t "$(PREFIX)/usr/include/dbpbase" $(TOPDIR)/build/include/dbpbase/*.h

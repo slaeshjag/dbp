@@ -1,3 +1,4 @@
+#define	_LIBINTERNAL
 #include "dbp.h"
 #include "meta.h"
 #include <time.h>

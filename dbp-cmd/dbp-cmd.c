@@ -1,3 +1,4 @@
+#include <dbpbase/dbpbase.h>
 #include <dbpmgr/dbpmgr.h>
 
 #include <stdio.h>
@@ -7,7 +8,6 @@
 #include <locale.h>
 #define	_(STRING)	gettext(STRING)
 
-FILE *dbp_error_log = NULL;
 struct FunctionLookup {
 	char *name;
 	void (*func)(int argc, char **argv);
@@ -172,13 +172,13 @@ static struct FunctionLookup lookup[] = {
 int main(int argc, char **argv) {
 	int i;
 
-	dbp_error_log = stderr;
 	setlocale(LC_ALL, "");
 	textdomain("dbp-run");
 
 	if (argc < 2)
 		exit(usage());
-	
+
+	dbp_init(NULL);
 	if (dbpmgr_server_connect() < 0)
 		return 1;
 	for (i = 0; lookup[i].name; i++)

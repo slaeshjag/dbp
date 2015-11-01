@@ -10,6 +10,8 @@ LDFLAGS		+=	-Wl,-soname,$(LIBBASEFILE)
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(LIBBASE)"
 	@$(CC) $(CFLAGS) -o $(LIBBASE) $(OBJFILES) $(LDFLAGS)
+	@echo " [COPY] Headers into build directory"
+	@$(CP) *.h $(TOPDIR)/build/include/dbpbase/
 	@echo "Done."
 	@echo
 	

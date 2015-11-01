@@ -1,7 +1,9 @@
 #ifndef __META_H__
 #define	__META_H__
 
+#ifdef _LIBINTERNAL
 #include "desktop.h"
+#endif
 
 
 struct DBPMetaPackage {

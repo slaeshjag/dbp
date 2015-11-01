@@ -5,15 +5,12 @@
 #include <dirent.h>
 #include <string.h>
 #include <signal.h>
+#include <dbpbase/dbpbase.h>
 #include "mountwatch.h"
-#include "config.h"
 #include "package.h"
-#include "dbp.h"
 #include "comm.h"
-#include "loop.h"
 #include "state.h"
 
-FILE *dbp_error_log;
 static struct package_s *p_s;
 
 static void sleep_usec(int usec) {
@@ -141,9 +138,8 @@ int main(int argc, char **argv) {
 	char *n;
 	pid_t procid;
 
-	dbp_error_log = stderr;
 	p_s = &p;
-	if (!dbp_config_init())
+	if (!dbp_init(NULL))
 		return -1;
 	if (!(dbp_error_log = fopen(dbp_config_struct.daemon_log, "w"))) {
 		dbp_error_log = stderr;

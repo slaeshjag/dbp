@@ -9,13 +9,12 @@
 #include <pthread.h>
 
 #include <dbpmgr/dbpmgr.h>
-#include "config.h"
+#include <dbpbase/dbpbase.h>
 
 #define	HAS_SUFFIX(str, suffix)		(strlen((suffix)) < strlen((str)) && !strcmp((str) + strlen((str)) - strlen((suffix)), suffix))
 #define	HAS_PREFIX(str, prefix)		(strstr((str), (prefix)) == (str))
 
 static char *desktop_directory = NULL;
-FILE *dbp_error_log;
 
 static char *find_desktop() {
 	char *desktop_dir, *home_dir, *desktop_path;
@@ -135,8 +134,7 @@ static void sighndlr(const char *signal, const char *value, void *data) {
 int main(int argc, char **argv) {
 	struct DBPList *list, *next;
 	(void) argc; (void) argv;
-	dbp_error_log = stderr;
-	dbp_config_init();
+	dbp_init(NULL);
 	if (!(desktop_directory = find_desktop()))
 		return 1;
 	nuke_desktop(desktop_directory);

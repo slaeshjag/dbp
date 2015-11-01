@@ -1,12 +1,10 @@
-#include "config.h"
-#include "desktop.h"
+#include <dbpbase/dbpbase.h>
 
 #include <stdio.h>
 #include <libintl.h>
 #include <locale.h>
 
 #define _(STRING)       gettext(STRING)
-FILE *dbp_error_log;
 
 
 void usage(char *name) {
@@ -21,11 +19,10 @@ int main(int argc, char **argv) {
 	struct DBPDesktopFile *df;
 	const char *value;
 
-	dbp_error_log = stderr;
-
 	setlocale(LC_ALL, "");
 	textdomain("dbp-run");
 
+	dbp_init(NULL);
 	if (argc < 2)
 		return usage(argv[0]), -1;
 	if (!strcmp(argv[1], "--help"))
