@@ -142,6 +142,25 @@ namespace DBP {
 	namespace Depend {
 		[CCode (cname = "dbpmgr_depend_debian_check")]
 		bool debian_check(string? package_string);
+
+		
+		[CCode (cname = "struct DBPDependList", has_type_id = false, destroy_function = "", default_value = "{}")]
+		public struct ListEntry {
+			[CCode (array_length_cname = "depends", array_length_type = "int")]
+			string?[] depend;
+		}
+
+		[CCode (cname = "struct DBPDependListList", free_function = "dbpmgr_depend_delete_list_ptr")]
+		[Compact]
+		public class List {
+			[CCode (cname = "dbpmgr_depend_check")]
+			public List(DBP.Desktop df);
+			public ListEntry sysonly;
+			public ListEntry dbponly;
+			public ListEntry syspref;
+			public ListEntry dbppref;
+			public ListEntry whatevs;
+		}
 	}
 
 	[CCode (cheader_filename = "dbpmgr/dbpmgr.h", cprefix = "dbpmgr_server_")]

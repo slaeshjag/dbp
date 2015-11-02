@@ -33,12 +33,12 @@ bool dbpmgr_depend_debian_check(const char *package_string);
 struct DBPDepend *dbpmgr_depend_parse(const char *package_string);
 void dbpmgr_depend_free(struct DBPDepend *dep);
 void dbpmgr_depend_version_result_compare(int result, enum DBPMgrDependVersionCheck check);
-struct DBPDependListList dbpmgr_depend_check(struct DBPDesktopFile *meta);
+struct DBPDependListList *dbpmgr_depend_check(struct DBPDesktopFile *meta);
 
 /* After doing package dependency checking, run free to unload databases */
 void dbpmgr_depend_cleanup();
 struct DBPDependDPackage *dbpmgr_depend_debian_next(const char *pkg_name, struct DBPDependDPackage *prev);
 
-void dbpmgr_depend_delete_list(struct DBPDependList *list);
+void dbpmgr_depend_delete_list_ptr(struct DBPDependListList *list);
 
 #endif

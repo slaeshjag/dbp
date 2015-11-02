@@ -519,12 +519,22 @@ static void addto_list(struct DBPDependList *list, const char *str) {
 }
 
 
-void dbpmgr_depend_delete_list(struct DBPDependList *list) {
+static void dbpmgr_depend_delete_list(struct DBPDependList *list) {
 	int i;
 
 	for (i = 0; i < list->depends; i++)
 		free(list->depend[i]);
 	free(list->depend);
+}
+
+
+void dbpmgr_depend_delete_list_ptr(struct DBPDependListList *list) {
+	dbpmgr_depend_delete_list(&list->sysonly);
+	dbpmgr_depend_delete_list(&list->syspref);
+	dbpmgr_depend_delete_list(&list->dbponly);
+	dbpmgr_depend_delete_list(&list->dbppref);
+	dbpmgr_depend_delete_list(&list->whatevs);
+	free(list);
 }
 
 
@@ -534,9 +544,9 @@ void dbpmgr_depend_cleanup() {
 }
 
 
-struct DBPDependListList dbpmgr_depend_check(struct DBPDesktopFile *meta) {
+struct DBPDependListList *dbpmgr_depend_check(struct DBPDesktopFile *meta) {
 	char *sysonly, *dbponly, *prefsys, *prefdbp, *whatevs;
-	struct DBPDependListList list, missing;
+	struct DBPDependListList list, missing, *missing_ptr;
 	int i;
 
 	sysonly = dbp_desktop_lookup(meta, "Dependency", "deb", "Package Entry");
@@ -571,9 +581,16 @@ struct DBPDependListList dbpmgr_depend_check(struct DBPDesktopFile *meta) {
 		if (!dbpmgr_depend_dbp_check(list.whatevs.depend[i]))
 			if (!dbpmgr_depend_debian_check(list.whatevs.depend[i]))
 				addto_list(&missing.whatevs, list.whatevs.depend[i]);
-
+	
+	dbpmgr_depend_delete_list(&list.sysonly), dbpmgr_depend_delete_list(&list.syspref);
+	dbpmgr_depend_delete_list(&list.dbponly), dbpmgr_depend_delete_list(&list.dbppref);
+	dbpmgr_depend_delete_list(&list.whatevs);
 	dbpmgr_depend_cleanup();
-	return list;
+	
+	missing_ptr = malloc(sizeof(*missing_ptr));
+	*missing_ptr = missing;
+
+	return missing_ptr;
 }
 
 

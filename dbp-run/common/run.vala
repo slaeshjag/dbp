@@ -36,11 +36,10 @@ namespace Run {
 	}
 
 	bool dependency_ok(string pkg_id, DBP.Meta.Package pkg, bool gui_errors) throws IOError {
-		string[] sysdeps, dbpdeps, sysmissing, dbpmissing;
-		string sysdep, dbpdep, pkgarch;
+		string[] sysmissing = {}, dbpmissing = {};
+		string pkgarch;
+		DBP.Depend.List deplist = new DBP.Depend.List(pkg.desktop_file);
 		
-		sysdep = pkg.desktop_file.lookup("SysDependency", "", "Package Entry");
-		dbpdep = pkg.desktop_file.lookup("PkgDependency", "", "Package Entry");
 		pkgarch = pkg.desktop_file.lookup("Arch", "", "Package Entry");
 		if (pkgarch == null || pkgarch == "")
 			pkgarch = "any";
@@ -53,17 +52,17 @@ namespace Run {
 				throw new IOError.FAILED(_("This package is not supported on your system architecture") + "\n" + _("Package is for") + " " + pkgarch);
 		}
 
-		if (sysdep != null) {
-			sysdeps = sysdep.split(";");
-			sysmissing = DepCheck.check_sys_dep(sysdeps, pkgarch);
-		} else
-			sysmissing = {};
-		
-		if (dbpdep != null) {
-			dbpdeps = dbpdep.split(";");
-			dbpmissing = DepCheck.check_dbp_dep(dbpdeps);
-		} else
-			dbpmissing = {};
+		foreach (string s in deplist.sysonly.depend)
+			sysmissing += s;
+		foreach (string s in deplist.syspref.depend)
+			sysmissing += s;
+		foreach (string s in deplist.dbponly.depend)
+			dbpmissing += s;
+		foreach (string s in deplist.dbppref.depend)
+			dbpmissing += s;
+		foreach (string s in deplist.whatevs.depend)
+			dbpmissing += s;
+
 		if (dbpmissing.length > 0 || sysmissing.length > 0) {
 			string err;
 			
