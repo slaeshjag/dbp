@@ -83,7 +83,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		int i;
 		GVariantBuilder *builder;
 
-		builder = g_variant_builder_new(G_VARIANT_TYPE("a(sss)"));
+		builder = g_variant_builder_new(G_VARIANT_TYPE("a(ssss)"));
 		pthread_mutex_lock(&p->mutex);
 		
 		for (i = 0; i < p->entries; i++) {
@@ -96,7 +96,7 @@ static void vtab_method_call(GDBusConnection *conn, const gchar *sender, const g
 		
 		pthread_mutex_unlock(&p->mutex);
 		
-		g_dbus_method_invocation_return_value(inv, g_variant_new("(a(sss))", builder));
+		g_dbus_method_invocation_return_value(inv, g_variant_new("(a(ssss))", builder));
 		g_variant_builder_unref(builder);
 	} else if (!g_strcmp0(method_name, "Introspect")) {
 		g_dbus_method_invocation_return_value(inv, g_variant_new("s", introspection_xml));

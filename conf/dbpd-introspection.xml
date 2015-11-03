@@ -37,7 +37,7 @@
 			<arg type='i' name='dummy' direction='out' />
 		</method>
 		<method name='PackageList'>
-			<arg type='a(sss)' name='entry' direction='out' />
+			<arg type='a(ssss)' name='entry' direction='out' />
 		</method>
 		<signal name='NewMeta'>
 			<arg type='s' name='pkg_id' />

@@ -397,7 +397,10 @@ struct DBPDependDPackage *dbpmgr_depend_debian_next(const char *pkg_name, struct
 
 
 void dbpmgr_depend_free(struct DBPDepend *dep) {
-	free(dep->version);
+	int i;
+
+	for (i = 0; i < DBPMGR_DEPEND_VERSION_CHECKS; i++)
+		free(dep->version[i]);
 	free(dep->pkg_name);
 	free(dep->arch);
 	free(dep);
@@ -446,8 +449,8 @@ static void build_dbp_database() {
 		return;
 	for (next = list; next; next = next->next) {
 		this = calloc(sizeof(*this), 1);
-		this->version = strdup(this->version);
-		this->name = strdup(this->name);
+		this->version = strdup(next->version);
+		this->name = strdup(next->id);
 		dbp_root = package_tree_populate(dbp_root, this, 0);
 	}
 
