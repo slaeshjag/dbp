@@ -3,6 +3,12 @@
 - Feature removed
 * Bug fixed
 
+[0.6.11] 2015-11-05
+	+ New dependency checking system
+		% Dependencies are now in 5 different categories
+	+ dbp-common has been moved into a shared library
+		% Makes it easier to re-use it in other applications
+
 [0.6.10] First numbered release - 2015-10-31
 	* Fixed bug causing dbp-desktopd creating "unsafe" launchers
 	* Minor memory leaks in the dbpd DBus code has been fixed
