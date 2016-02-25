@@ -1,1 +1,1 @@
-CFLAGS += -DVERSION=\"0.6.11\"
+CFLAGS += -DVERSION=\"0.6.12~volatile\"

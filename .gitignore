@@ -12,3 +12,4 @@
 *.remote
 build/
 install/
+documentation/

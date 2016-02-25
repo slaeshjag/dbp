@@ -40,9 +40,11 @@ all:
 	+@make -C dbp-cmd/
 	@echo " [ CD ] dbp-desktopd/"
 	+@make -C dbp-desktopd/
+	@echo " [ CD ] dbp-validate-extracted/"
+	+@make -C dbp-validate-extracted/
 	
 	@echo " [POT ] po/dbp-run.pot"
-	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c dbp-cmd/*.c dbp-thumbnailer/*.c
+	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c dbp-cmd/*.c dbp-thumbnailer/*.c dbp-validate-extracted/*.c
 	@echo " [ CD ] po/"
 	+@make -C po/
 	
@@ -70,40 +72,42 @@ clean:
 	+@make -C dbp-cmd/ clean
 	@echo " [ CD ] dbp-desktopd/"
 	+@make -C dbp-desktopd/ clean
+	@echo " [ CD ] dbp-validate-extracted/"
+	+@make -C dbp-validate-extracted/ clean
 	@echo
 	@echo "Source tree cleaned."
 	@echo
 
 install:
-	install -d "$(PREFIX)/etc/dbp"
-	install -m 644 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/conf/dbp_config.ini"
-	install -m 644 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/conf/dbpd-introspection.xml"
-	install -m 644 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/scripts/dbp_exec"
-	install -m 755 -t "$(PREFIX)/etc/dbp" "$(TOPDIR)/scripts/run_script"
-	install -d "$(PREFIX)/lib/systemd/system/"
-	install -m 644 -t "$(PREFIX)/lib/systemd/system" "$(TOPDIR)/conf/dbpd.service"
-	install -d "$(PREFIX)/etc/dbus-1/system.d"
-	install -m 644 -t "$(PREFIX)/etc/dbus-1/system.d" "$(TOPDIR)/conf/de.dragonbox.PackageDaemon.conf"
-	install -d "$(PREFIX)/etc/xdg/autostart"
-	install -m 644 -t "$(PREFIX)/etc/xdg/autostart" "$(TOPDIR)/conf/dbp-desktopd-autostart.desktop"
-	install -d "$(PREFIX)/usr/share/binfmts/"
-	install -m 644 -t "$(PREFIX)/usr/share/binfmts" "$(TOPDIR)/conf/binfmts/dbp.binfmt"
-	install -d "$(PREFIX)/usr/share/applications"
-	install -m 644 -t "$(PREFIX)/usr/share/applications" "$(TOPDIR)/conf/dbp-run-path.desktop"
-	install -d "$(PREFIX)/usr/share/mime"
-	install -m 644 -t "$(PREFIX)/usr/share/mime" "$(TOPDIR)/conf/mime/x-dbp.xml"
-	install -d "$(PREFIX)/usr/bin"
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-cfg" 
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-cmd" 
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbpd" 
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-desktopd" 
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-meta" 
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run" 
-	install -m 755 $(STRIP_FLAG) -t "$(PREFIX)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run-path" 
-	install -d "$(PREFIX)/usr/lib"
-	install -m 644 $(STRIP_FLAG) -t "$(PREFIX)/usr/lib/" "$(TOPDIR)/build/lib/libdbpmgr.so"
-	install -m 644 $(STRIP_FLAG) -t "$(PREFIX)/usr/lib/" "$(TOPDIR)/build/lib/libdbpbase.so"
-	install -d "$(PREFIX)/usr/include/dbpmgr"
-	install -m 644 -t "$(PREFIX)/usr/include/dbpmgr" $(TOPDIR)/build/include/dbpmgr/*.h
-	install -d "$(PREFIX)/usr/include/dbpbase"
-	install -m 644 -t "$(PREFIX)/usr/include/dbpbase" $(TOPDIR)/build/include/dbpbase/*.h
+	install -d "$(DESTDIR)/etc/dbp"
+	install -m 644 -t "$(DESTDIR)/etc/dbp" "$(TOPDIR)/conf/dbp_config.ini"
+	install -m 644 -t "$(DESTDIR)/etc/dbp" "$(TOPDIR)/conf/dbpd-introspection.xml"
+	install -m 644 -t "$(DESTDIR)/etc/dbp" "$(TOPDIR)/scripts/dbp_exec"
+	install -m 755 -t "$(DESTDIR)/etc/dbp" "$(TOPDIR)/scripts/run_script"
+	install -d "$(DESTDIR)/lib/systemd/system/"
+	install -m 644 -t "$(DESTDIR)/lib/systemd/system" "$(TOPDIR)/conf/dbpd.service"
+	install -d "$(DESTDIR)/etc/dbus-1/system.d"
+	install -m 644 -t "$(DESTDIR)/etc/dbus-1/system.d" "$(TOPDIR)/conf/de.dragonbox.PackageDaemon.conf"
+	install -d "$(DESTDIR)/etc/xdg/autostart"
+	install -m 644 -t "$(DESTDIR)/etc/xdg/autostart" "$(TOPDIR)/conf/dbp-desktopd-autostart.desktop"
+	install -d "$(DESTDIR)/usr/share/binfmts/"
+	install -m 644 -t "$(DESTDIR)/usr/share/binfmts" "$(TOPDIR)/conf/binfmts/dbp.binfmt"
+	install -d "$(DESTDIR)/usr/share/applications"
+	install -m 644 -t "$(DESTDIR)/usr/share/applications" "$(TOPDIR)/conf/dbp-run-path.desktop"
+	install -d "$(DESTDIR)/usr/share/mime"
+	install -m 644 -t "$(DESTDIR)/usr/share/mime" "$(TOPDIR)/conf/mime/x-dbp.xml"
+	install -d "$(DESTDIR)/usr/bin"
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-cfg" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-cmd" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbpd" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-desktopd" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-meta" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run-path" 
+	install -d "$(DESTDIR)/usr/lib"
+	install -m 644 $(STRIP_FLAG) -t "$(DESTDIR)/usr/lib/" "$(TOPDIR)/build/lib/libdbpmgr.so"
+	install -m 644 $(STRIP_FLAG) -t "$(DESTDIR)/usr/lib/" "$(TOPDIR)/build/lib/libdbpbase.so"
+	install -d "$(DESTDIR)/usr/include/dbpmgr"
+	install -m 644 -t "$(DESTDIR)/usr/include/dbpmgr" $(TOPDIR)/build/include/dbpmgr/*.h
+	install -d "$(DESTDIR)/usr/include/dbpbase"
+	install -m 644 -t "$(DESTDIR)/usr/include/dbpbase" $(TOPDIR)/build/include/dbpbase/*.h

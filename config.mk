@@ -16,6 +16,7 @@ METABIN		=	"$(TOPDIR)/build/bin/$(NAME)-meta"
 CMDBIN		=	"$(TOPDIR)/build/bin/$(NAME)-cmd"
 DESKTOPBIN	=	"$(TOPDIR)/build/bin/$(NAME)-desktopd"
 THUMBBIN	=	"$(TOPDIR)/build/bin/$(NAME)-thumbnailer"
+VALIDBIN	=	"$(TOPDIR)/build/bin/$(NAME)-validate-extracted"
 LIB		=	"$(TOPDIR)/dbp-common/dbp-common.a"
 LIBINC		=	"-I$(TOPDIR)/libdbpbase" "-I$(TOPDIR)/build/include"
 
@@ -28,7 +29,8 @@ RM		=	rm -fR
 MKDIR		=	mkdir -p
 CP		=	cp
 MV		=	mv
-PREFIX		?=	/
+DESTDIR		?=	/
+PREFIX		?=	$(DESTDIR)
 
 ifneq ($(wildcard /etc/debian_version),) 
 	#Debian packaging
