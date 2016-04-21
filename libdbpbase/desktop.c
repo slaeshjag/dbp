@@ -85,6 +85,7 @@ char *dbp_desktop_lookup(struct DBPDesktopFile *df, const char *key, const char 
 	int s, i;
 	
 	if (!df) return NULL;
+	if (!locale) locale = "";
 
 	locbuff = strdup(locale);
 	/* Strip out variant */

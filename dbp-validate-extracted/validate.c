@@ -3,6 +3,7 @@
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdbool.h>
 #include <string.h>
 #include <dirent.h>
@@ -33,6 +34,7 @@ struct StringBufferContainer {
 
 struct CheckList {
 	char			*name;
+	char			*full_name;
 	bool			check;
 	struct CheckList	*next;
 };
@@ -42,14 +44,15 @@ struct StringBufferContainer notice, warning, error;
 struct CheckList *icons_avail, *icons_used, *launchers_to_skip, *execs_used, *desktop_files_to_scan;
 char *rootfs_path = NULL, *meta_path = NULL;
 
-bool directorylist_to_checklist(char *path, struct CheckList **list, char *prefix, char *suffix);
+bool directorylist_to_checklist(char *name, struct CheckList **list, char *prefix, char *suffix);
 
-void checklist_add(char *str, struct CheckList **list) {
+void checklist_add(char *str, char *name, struct CheckList **list) {
 	struct CheckList *new;
 
 	new = malloc(sizeof(*new));
 	new->check = false;
-	new->name = strdup(str);
+	new->name = strdup(name);
+	new->full_name = strdup(str);
 	new->next = *list;
 	*list = new;
 	return;
@@ -71,8 +74,11 @@ char *add_string_message(struct StringBufferContainer *cont, char *string) {
 	if (cont->last) {
 		cont->last->next = new;
 		cont->last = new;
-	} else
+	} else {
 		cont->first = new;
+		cont->last = new;
+	}
+
 	cont->count++;
 	new->str = strdup(string);
 	return string;
@@ -205,7 +211,7 @@ bool validate_desktop_file(const char *path) {
 	if (!(tmp = dbp_desktop_lookup(df, "Icon", NULL, "Desktop Entry")) || !strlen(tmp))
 		LOG_FREE((asprintf(&tmp, "Desktop file %s is missing an icon in its desktop entry", path), tmp), warning);
 	else {
-		checklist_add(tmp, &icons_used);
+		checklist_add(tmp, tmp, &icons_used);
 		if (!checklist_find(tmp, icons_avail))
 			LOG_FREE((asprintf(&tmp, "Desktop file %s uses the icon %s, which is missing", path, tmp), tmp), error), valid = false;
 	}
@@ -270,6 +276,8 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 	asprintf(&path, "%s/icons", meta_path);
 	if (!directorylist_to_checklist(path, &icons_avail, NULL, ".png"))
 		LOG_FREE((asprintf(&tmp, "Icon directory '%s' is missing", path), tmp), warning);
+	free(path);
+	asprintf(&path, "%s/meta", meta_path);
 	directorylist_to_checklist(path, &desktop_files_to_scan, NULL, ".desktop");
 	if (!icons_avail)
 		LOG("No icons found, this is probably not what you want", warning);
@@ -283,6 +291,7 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 bool directorylist_to_checklist(char *path, struct CheckList **list, char *prefix, char *suffix) {
 	DIR *d;
 	struct dirent dir, *result;
+	char *tmpnam;
 
 	if (!(d = opendir(path)))
 		return false;
@@ -295,7 +304,9 @@ bool directorylist_to_checklist(char *path, struct CheckList **list, char *prefi
 			continue;
 		if (suffix && strcmp(suffix, dir.d_name + strlen(dir.d_name) - strlen(suffix)))
 			continue;
-		checklist_add(dir.d_name, list);
+		asprintf(&tmpnam, "%s/%s", path, dir.d_name);
+		checklist_add(tmpnam, dir.d_name, list);
+		free(tmpnam);
 	}
 
 	closedir(d);
@@ -318,16 +329,18 @@ int main(int argc, char **argv) {
 	{
 		char *tmp, *tmp2;
 		asprintf(&tmp, "%s/meta/default.desktop", meta_path);
-		if (!(default_desk = dbp_desktop_parse_file(tmp)))
+		if (!(default_desk = dbp_desktop_parse_file(tmp))) {
 			LOG_FREE((asprintf(&tmp2, "Missing default.desktop [%s]", tmp), tmp2), error);
+			free(tmp);
+			goto fatal;
+		}
 		free(tmp);
-		goto fatal;
 	}
 
 	validate_package_data(default_desk);
 
 	for (next = desktop_files_to_scan; next; next = next->next)
-		validate_desktop_file(next->name);
+		validate_desktop_file(next->full_name);
 
 	fatal:
 	print_messages();
