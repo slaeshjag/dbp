@@ -9,7 +9,7 @@ LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0` -ldbpbase
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [ LD ] $(DAEMONBIN)"
-	@$(CC) -o $(DAEMONBIN) $(OBJFILES) -ldbpbase $(LDPATH) $(LDFLAGS)
+	@$(CC) -o $(DAEMONBIN) $(OBJFILES) $(LDPATH) -ldbpbase $(LDFLAGS)
 	@echo "Done."
 	@echo
 	

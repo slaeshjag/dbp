@@ -39,7 +39,7 @@ struct CheckList {
 
 
 struct StringBufferContainer notice, warning, error;
-struct CheckList *icons_avail, *icons_used, *launchers_to_skip, *execs_used;
+struct CheckList *icons_avail, *icons_used, *launchers_to_skip, *execs_used, *desktop_files_to_scan;
 char *rootfs_path = NULL, *meta_path = NULL;
 
 bool directorylist_to_checklist(char *path, struct CheckList **list, char *prefix, char *suffix);
@@ -81,7 +81,7 @@ char *add_string_message(struct StringBufferContainer *cont, char *string) {
 
 void usage() {
 	fprintf(stdout, _("Validates ingoing files before a DBP is created\n"));
-	fprintf(stdout, _("By Steven Arnow, 2015, version %s\n"), dbp_config_version_get());
+	fprintf(stdout, _("By Steven Arnow, 2015-2016, version %s\n"), dbp_config_version_get());
 	fprintf(stdout, "\n");
 	fprintf(stdout, _("Usage:\n"));
 	fprintf(stdout, _("dbp-validate-extracted <path to meta directory> [path to rootfs directory]\n"));
@@ -195,12 +195,15 @@ bool validate_desktop_file(const char *path) {
 		
 	} else
 		LOG_FREE((asprintf(&tmp, "Desktop file %s have an invalid type '%s' in its desktop entry", path, tmp), tmp), error), valid = false;
+	
+	/* TODO: Check that all present keys are known */
+
 	if (!(tmp = dbp_desktop_lookup(df, "Name", NULL, "Desktop Entry")) || !strlen(tmp))
 		LOG_FREE((asprintf(&tmp, "Desktop file %s does not have a name set in its desktop entry", path), tmp), error), valid = false;
-	if (!(tmp = dbp_desktop_lookup(df, "Icon", NULL, "Desktop Entry")) || !strlen(tmp))
-		LOG_FREE((asprintf(&tmp, "Desktop file %s is missing an icon in its desktop entry", path), tmp), warning);
 	if (!(tmp = dbp_desktop_lookup(df, "Comment", NULL, "Desktop Entry")) || strlen(tmp))
 		LOG_FREE((asprintf(&tmp, "Desktop file %s is missing a comment in its desktop entry", path), tmp), warning);
+	if (!(tmp = dbp_desktop_lookup(df, "Icon", NULL, "Desktop Entry")) || !strlen(tmp))
+		LOG_FREE((asprintf(&tmp, "Desktop file %s is missing an icon in its desktop entry", path), tmp), warning);
 	else {
 		checklist_add(tmp, &icons_used);
 		if (!checklist_find(tmp, icons_avail))
@@ -261,16 +264,17 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 	else if (!_conforms_strict_name_type(tmp))
 		LOG("default.desktop has an appdata directory specified, but it contains illegal characters", error);
 	
-
-		
 	/* Check package ID etc. etc. */
 	if (dbp_desktop_lookup_section(def, "Desktop Entry") < 0)
 		LOG("default.desktop is lacking a [Desktop Entry], this package will not have a default launch action", warning);
 	asprintf(&path, "%s/icons", meta_path);
 	if (!directorylist_to_checklist(path, &icons_avail, NULL, ".png"))
 		LOG_FREE((asprintf(&tmp, "Icon directory '%s' is missing", path), tmp), warning);
+	directorylist_to_checklist(path, &desktop_files_to_scan, NULL, ".desktop");
 	if (!icons_avail)
 		LOG("No icons found, this is probably not what you want", warning);
+	if (!desktop_files_to_scan)
+		LOG("No desktop files found", warning);
 
 	return true;
 }
@@ -300,6 +304,7 @@ bool directorylist_to_checklist(char *path, struct CheckList **list, char *prefi
 
 
 int main(int argc, char **argv) {
+	struct CheckList *next;
 	struct DBPDesktopFile *default_desk;
 
 	if (argc < 2)
@@ -320,6 +325,9 @@ int main(int argc, char **argv) {
 	}
 
 	validate_package_data(default_desk);
+
+	for (next = desktop_files_to_scan; next; next = next->next)
+		validate_desktop_file(next->name);
 
 	fatal:
 	print_messages();
