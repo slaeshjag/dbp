@@ -150,6 +150,8 @@ bool _valid_parent_category(struct CategoryEntry *ce, const char *prev) {
 	
 	if (!ce->requires_parent)
 		return true;
+	if (!prev)
+		return false;
 	
 	for (i = 0; ce->parents[i]; i++)
 		if (!strcmp(ce->parents[i], prev))
@@ -206,7 +208,7 @@ bool validate_desktop_file(const char *path) {
 
 	if (!(tmp = dbp_desktop_lookup(df, "Name", NULL, "Desktop Entry")) || !strlen(tmp))
 		LOG_FREE((asprintf(&tmp, "Desktop file %s does not have a name set in its desktop entry", path), tmp), error), valid = false;
-	if (!(tmp = dbp_desktop_lookup(df, "Comment", NULL, "Desktop Entry")) || strlen(tmp))
+	if (!(tmp = dbp_desktop_lookup(df, "Comment", NULL, "Desktop Entry")) || !strlen(tmp))
 		LOG_FREE((asprintf(&tmp, "Desktop file %s is missing a comment in its desktop entry", path), tmp), warning);
 	if (!(tmp = dbp_desktop_lookup(df, "Icon", NULL, "Desktop Entry")) || !strlen(tmp))
 		LOG_FREE((asprintf(&tmp, "Desktop file %s is missing an icon in its desktop entry", path), tmp), warning);
@@ -217,8 +219,8 @@ bool validate_desktop_file(const char *path) {
 	}
 	
 	/* Check categories */ {
-		char *category, **catlist, *last;
-		int categories, i;
+		char *category = NULL, **catlist = NULL, *last;
+		int categories = 0, i;
 		if (!(category = dbp_desktop_lookup(df, "Categories", NULL, "Desktop Entry")))
 			return LOG_FREE((asprintf(&tmp, "Desktop file %s does not have any categories set in its desktop entry", path), tmp), error), false;
 		category = strdup(category);
@@ -283,6 +285,9 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 		LOG("No icons found, this is probably not what you want", warning);
 	if (!desktop_files_to_scan)
 		LOG("No desktop files found", warning);
+	/* TODO: Check for unused icons */
+	/* TODO: Check that exported execs are present */
+	/* TODO: Check for illegal characters in dependencies */
 
 	return true;
 }

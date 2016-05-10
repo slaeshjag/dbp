@@ -3,6 +3,10 @@
 - Feature removed
 * Bug fixed
 
+[0.6.12] 2016-05-nn
+	+ Added a crude meta-data validation utility
+		% Most probably quite buggy and incomplete
+
 [0.6.11] 2015-11-05
 	+ New dependency checking system
 		% Dependencies are now in 5 different categories
