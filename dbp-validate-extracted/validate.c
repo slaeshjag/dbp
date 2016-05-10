@@ -180,6 +180,16 @@ bool _valid_category(const char *prev, const char *cat) {
 }
 
 
+void _find_unused_icons() {
+	struct CheckList *next;
+	char *tmp;
+
+	for (next = icons_avail; next; next = next->next)
+		if (!checklist_find(next->name, icons_used))
+			LOG_FREE((asprintf(&tmp, "Icon file %s is present but not used", next->name), tmp), warning);
+}
+
+
 bool validate_desktop_file(const char *path) {
 	int section;
 	struct DBPDesktopFile *df;
@@ -259,6 +269,9 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 	int section;
 	char *path, *tmp;
 
+	asprintf(&path, "%s/icons", meta_path);
+	if (!directorylist_to_checklist(path, &icons_avail, NULL, ".png"))
+		LOG_FREE((asprintf(&tmp, "Icon directory '%s' is missing", path), tmp), warning);
 	if ((section = dbp_desktop_lookup_section(def, "Package Entry")) < 0)
 		return LOG("default.desktop is missing the [Package Entry] section", error), false;
 	if (!(tmp = dbp_desktop_lookup(def, "Id", NULL, "Package Entry")))
@@ -267,7 +280,15 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 		LOG("default.desktop has a package ID specified, but it's invalid", error);
 	else if (_contains_uppercase(tmp))
 		LOG("default.desktop has a package ID containg upper-case characters", error);
-	
+	if (!(tmp = dbp_desktop_lookup(def, "Icon", NULL, "Package Entry")))
+		LOG("default.desktop does not have an icon specified in its Package Entry", warning);
+	else {
+		checklist_add(tmp, tmp, &icons_used);
+		if (!checklist_find(tmp, icons_avail))
+			LOG_FREE((asprintf(&path, "default.desktop has the icon '%s' specified in its Package Entry, which is missing", tmp), path), error);
+	}
+		
+
 	if (!(tmp = dbp_desktop_lookup(def, "Appdata", NULL, "Package Entry")));
 	else if (!_conforms_strict_name_type(tmp))
 		LOG("default.desktop has an appdata directory specified, but it contains illegal characters", error);
@@ -275,9 +296,6 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 	/* Check package ID etc. etc. */
 	if (dbp_desktop_lookup_section(def, "Desktop Entry") < 0)
 		LOG("default.desktop is lacking a [Desktop Entry], this package will not have a default launch action", warning);
-	asprintf(&path, "%s/icons", meta_path);
-	if (!directorylist_to_checklist(path, &icons_avail, NULL, ".png"))
-		LOG_FREE((asprintf(&tmp, "Icon directory '%s' is missing", path), tmp), warning);
 	free(path);
 	asprintf(&path, "%s/meta", meta_path);
 	directorylist_to_checklist(path, &desktop_files_to_scan, NULL, ".desktop");
@@ -285,7 +303,7 @@ bool validate_package_data(struct DBPDesktopFile *def) {
 		LOG("No icons found, this is probably not what you want", warning);
 	if (!desktop_files_to_scan)
 		LOG("No desktop files found", warning);
-	/* TODO: Check for unused icons */
+	
 	/* TODO: Check that exported execs are present */
 	/* TODO: Check for illegal characters in dependencies */
 
@@ -346,6 +364,7 @@ int main(int argc, char **argv) {
 
 	for (next = desktop_files_to_scan; next; next = next->next)
 		validate_desktop_file(next->full_name);
+	_find_unused_icons();
 
 	fatal:
 	print_messages();
