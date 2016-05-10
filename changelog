@@ -3,7 +3,7 @@
 - Feature removed
 * Bug fixed
 
-[0.6.12] 2016-05-nn
+[0.6.12] 2016-05-10
 	+ Added a crude meta-data validation utility
 		% Most probably quite buggy and incomplete
 
