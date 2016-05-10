@@ -1,1 +1,1 @@
-CFLAGS += -DVERSION=\"0.6.12\"
+CFLAGS += -DVERSION=\"0.6.12.1\"

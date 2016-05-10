@@ -2,6 +2,9 @@
 + Feature added
 - Feature removed
 * Bug fixed
+[0.6.12.1] 2016-05-10
+	+ meta-data validation tool will now chekck package icon and
+		% check for unused icons
 
 [0.6.12] 2016-05-10
 	+ Added a crude meta-data validation utility
