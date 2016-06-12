@@ -111,3 +111,4 @@ install:
 	install -m 644 -t "$(DESTDIR)/usr/include/dbpmgr" $(TOPDIR)/build/include/dbpmgr/*.h
 	install -d "$(DESTDIR)/usr/include/dbpbase"
 	install -m 644 -t "$(DESTDIR)/usr/include/dbpbase" $(TOPDIR)/build/include/dbpbase/*.h
+	update-mime-database "$(DESTDIR)/usr/share/mime"
