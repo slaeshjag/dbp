@@ -11,9 +11,10 @@
 #include <sys/types.h>
 #include <dbpbase/dbpbase.h>
 #include <dbpbase/desktop.h>
+#include <dbpmgr/categories.h>
 
 #include "validate.h"
-#include "categories.h"
+//#include "categories.h"
 
 #define	_(STRING)		gettext(STRING)
 #define	LOG_FREE(msg, dest)	free(add_string_message(&(dest), (msg)))

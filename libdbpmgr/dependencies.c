@@ -566,6 +566,7 @@ struct DBPDependListList *dbpmgr_depend_check(struct DBPDesktopFile *meta) {
 	memset(&missing, 0, sizeof(missing));
 
 	/* Det här luktar jommpakod... */
+	/* TODO: Make lists of dependencies that are installed that must not be */
 	for (i = 0; i < list.sysonly.depends; i++)
 		if (!dbpmgr_depend_debian_check(list.sysonly.depend[i]))
 			addto_list(&missing.sysonly, list.sysonly.depend[i]);

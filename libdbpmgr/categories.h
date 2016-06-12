@@ -1,5 +1,5 @@
-#ifndef __CATEGORIES_H__
-#define	__CATEGORIES_H__
+#ifndef __DBPMGR_CATEGORIES_H__
+#define	__DBPMGR_CATEGORIES_H__
 
 #include <stdlib.h>
 #include <stdbool.h>
