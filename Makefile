@@ -44,7 +44,7 @@ all:
 	+@make -C dbp-validate-extracted/
 	
 	@echo " [POT ] po/dbp-run.pot"
-	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c dbp-cmd/*.c dbp-thumbnailer/*.c dbp-validate-extracted/*.c
+	@xgettext --package-name="DragonBox-Package-system" --package-version="$(VERSION)" -L C -k_ -d dbp-run -s -o po/dbp-run.pot dbp-run/*.vala dbp-run/common/*.vala dbp-cfg/*.c dbp-meta/*.c dbp-cmd/*.c dbp-thumbnailer/*.c dbp-validate-extracted/*.c libdbpmgr/*.c
 	@echo " [ CD ] po/"
 	+@make -C po/
 	
@@ -104,6 +104,7 @@ install:
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-meta" 
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run" 
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run-path" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-validate-extracted" 
 	install -d "$(DESTDIR)/usr/lib"
 	install -m 644 $(STRIP_FLAG) -t "$(DESTDIR)/usr/lib/" "$(TOPDIR)/build/lib/libdbpmgr.so"
 	install -m 644 $(STRIP_FLAG) -t "$(DESTDIR)/usr/lib/" "$(TOPDIR)/build/lib/libdbpbase.so"
