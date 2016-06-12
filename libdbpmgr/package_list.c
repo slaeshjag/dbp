@@ -21,16 +21,22 @@ freely, subject to the following restrictions:
 	3. This notice may not be removed or altered from any source
 	distribution.
 */
-
+#define	_GNU_SOURCE
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <sys/stat.h>
+#include <glib.h>
 #include <dbpbase/desktop.h>
 #include <dbpbase/config.h>
 
+#include "dbpmgr.h"
 #include "categories.h"
 #include "dependencies.h"
 #include "package_list.h"
+
+static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch);
 
 
 static int _locate_pkgid(struct DBPPackageList *list, int branch_id, const char *pkg_id) {
@@ -174,9 +180,12 @@ void dbp_pkglist_parse(struct DBPPackageList *list, const char *branch, int sour
 		verid = list->branch[branch_id].id[pkgid].versions++;
 		list->branch[branch_id].id[pkgid].version = realloc(list->branch[branch_id].id[pkgid].version, sizeof(*list->branch[branch_id].id[pkgid].version) * list->branch[branch_id].id[pkgid].versions);
 		memset(&list->branch[branch_id].id[pkgid].version[verid], 0, sizeof(list->branch[branch_id].id[pkgid].version[verid]));
-	
 		/* TODO: Snygga upp det här spaghettimonstret... */
 		for (j = 0; j < pkglist->section[i].entries; j++) {
+			if (!strcmp(pkglist->section[i].name, "")) {
+				if (!strcmp(pkglist->section[i].entry[j].key, "FeedName"))
+					free(list->source_id[source_id].name), list->source_id[source_id].name = strdup(pkglist->section[i].entry[j].value);
+			}
 			if (strcmp(pkglist->section[i].entry[j].locale, "")) {
 				if (!strcmp(pkglist->section[i].entry[j].key, "Name"))
 					_add_to_locale(&list->branch[branch_id].id[pkgid].version[verid], pkglist->section[i].entry[j].locale, pkglist->section[i].entry[j].value, NULL);
@@ -211,3 +220,184 @@ void dbp_pkglist_parse(struct DBPPackageList *list, const char *branch, int sour
 
 	return;
 }
+
+struct DBPPackageList *dbp_pkglist_free(struct DBPPackageList *list) {
+	int i, j, k, l;
+
+	free(list->arch);
+
+	for (i = 0; i < list->source_ids; i++) {
+		free(list->source_id[i].url);
+		free(list->source_id[i].name);
+	}
+	free(list->source_id);
+
+	for (i = 0; i < list->branches; i++) {
+		free(list->branch[i].name);
+		for (j = 0; j < list->branch[i].ids; i++) {
+			free(list->branch[i].id[j].pkg_id);
+			for (k = 0; k < list->branch[i].id[j].versions; k++) {
+				free(list->branch[i].id[j].version[k].version);
+				free(list->branch[i].id[j].version[k].dep.any);
+				free(list->branch[i].id[j].version[k].dep.deb);
+				free(list->branch[i].id[j].version[k].dep.pref_deb);
+				free(list->branch[i].id[j].version[k].dep.dbp);
+				free(list->branch[i].id[j].version[k].dep.pref_dbp);
+				free(list->branch[i].id[j].version[k].icon_url);
+				
+				free(list->branch[i].id[j].version[k].description.name);
+				free(list->branch[i].id[j].version[k].description.shortdesc);
+				free(list->branch[i].id[j].version[k].description.locale);
+
+				for (l = 0; l < list->branch[i].id[j].version[k].locales; l++) {
+					free(list->branch[i].id[j].version[k].locale[l].name);
+					free(list->branch[i].id[j].version[k].locale[l].shortdesc);
+					free(list->branch[i].id[j].version[k].locale[l].locale);
+				}
+				free(list->branch[i].id[j].version[k].locale);
+
+				for (l = 0; l < list->branch[i].id[j].version[k].categories; l++) {
+					free(list->branch[i].id[j].version[k].category[l].main);
+					free(list->branch[i].id[j].version[k].category[l].sub);
+					free(list->branch[i].id[j].version[k].category[l].subsub);
+				}
+				free(list->branch[i].id[j].version[k].category);
+			}
+			free(list->branch[i].id[j].version);
+		}
+		free(list->branch[i].id);
+	}
+	free(list->branch);
+	return NULL;
+}
+
+
+char *dbp_pkglist_sourcelist_path() {
+	char *config_dir, *path;
+
+	config_dir = dbp_mgr_config_directory();
+	asprintf(&path, "%s/sources.list", config_dir);
+	free(config_dir);
+	return path;
+}
+
+
+struct DBPPackageList *dbp_pkglist_new(const char *arch) {
+	struct DBPPackageList *list;
+	char *sourcelist;
+
+	list = malloc(sizeof(*list));
+	list->branch = NULL, list->branches = 0;
+	list->source_id = NULL, list->source_ids = 0;
+	list->arch = strdup(arch);
+
+	sourcelist = dbp_pkglist_sourcelist_path();
+	/* Read source list */ {
+		FILE *fp;
+		char buff[4096];
+		char *arch;
+		if (!(fp = fopen(sourcelist, "r"))) {
+			fprintf(stderr, "Could not open the source list '%s'\n", sourcelist);
+			goto end;
+		}
+
+		while (!feof(fp)) {
+			*buff = 0;
+			fgets(buff, 4096, fp);
+			if (!*buff)
+				continue;
+			while (*strchr(buff, '\n'))
+				*strchr(buff, '\n') = 0;
+			
+			_get_repo_line_info(buff, NULL, &arch, NULL);
+			if (strcmp(arch, list->arch)) {
+				free(arch);
+				continue;
+			}
+
+			dbp_pkglist_source_add(list, buff, buff); // We don't have the feed name yet
+		}
+	}
+end:
+	return list;
+}
+
+
+int dbp_pkglist_source_add(struct DBPPackageList *list, const char *name, const char *url) {
+	int i;
+
+	i = list->source_ids++;
+	list->source_id = realloc(list->source_id, sizeof(*list->source_id) * list->source_ids);
+	list->source_id[i].url = strdup(url);
+	list->source_id[i].name = strdup(name);
+
+	return i;
+}
+
+
+static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch) {
+	char *_url, *_arch, *_branch;
+	sscanf(repoline, "%ms %ms %ms", &_url, &_arch, &_branch);
+	if (url)
+		*url = _url;
+	else
+		free(_url);
+	if (arch)
+		*arch = _arch;
+	else
+		free(_arch);
+	if (branch)
+		*branch = _branch;
+	else
+		free(_branch);
+	return;
+	
+}
+
+
+char *dbp_pkglist_source_cache_path(struct DBPPackageList *list, int source_id) {
+	char *cache_dir, *full_path;
+	char *url, *arch, *branch;
+	const gchar *csstr;
+	GChecksum *cs;
+
+	cache_dir = dbp_mgr_cache_directory();
+	_get_repo_line_info(list->source_id[source_id].url, &url, &arch, &branch);
+	
+	cs = g_checksum_new(G_CHECKSUM_MD5);
+	g_checksum_update(cs, (const uint8_t *) url, -1);
+	csstr = g_checksum_get_string(cs);
+	asprintf(&full_path, "%s/%s/%s/%s.pkglist", cache_dir, arch, csstr, branch);
+	g_checksum_free(cs);
+	free(cache_dir);
+	free(url), free(arch), free(branch);
+	
+	return full_path;
+}
+
+
+void dbp_pkglist_cache_read(struct DBPPackageList *list) {
+	int i;
+	char *cache_file, *branch;
+	struct DBPDesktopFile *df;
+	struct stat sbuf;
+
+	for (i = 0; i < list->source_ids; i++) {
+		cache_file = dbp_pkglist_source_cache_path(list, i);
+		if (stat(cache_file, &sbuf) < 0)
+			list->source_id[i].last_update = 0;
+		else
+			list->source_id[i].last_update = sbuf.st_mtime;
+		if ((df = dbp_desktop_parse_file(cache_file))) {
+			_get_repo_line_info(list->source_id[i].url, NULL, NULL, &branch);
+			dbp_pkglist_parse(list, branch, i, df);
+			free(branch);
+			dbp_desktop_free(df);
+		}
+		free(cache_file);
+	}
+
+	return;
+}
+
+

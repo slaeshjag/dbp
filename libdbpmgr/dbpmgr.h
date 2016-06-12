@@ -30,4 +30,7 @@ freely, subject to the following restrictions:
 #include <dbpmgr/dbpd-dbus-client.h>
 #include <dbpmgr/dependencies.h>
 
+char *dbp_mgr_cache_directory();
+char *dbp_mgr_config_directory();
+
 #endif
