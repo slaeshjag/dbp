@@ -4,7 +4,7 @@ include $(TOPDIR)/config.mk
 SRCFILES	=	$(wildcard *.c)
 OBJFILES	=	$(SRCFILES:.c=.o)
 CFLAGS		+=	`pkg-config glib-2.0 --cflags gio-unix-2.0` -shared -fPIC -I$(TOPDIR)/libdbpbase
-LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0` -Wl,-soname,$(LIBBINFILE) -ldbpbase
+LDFLAGS		+=	`pkg-config glib-2.0 --libs gio-unix-2.0` -lz -lcurl -Wl,-soname,$(LIBBINFILE) -ldbpbase
 .PHONY: all clean
 
 all: $(OBJFILES) $(DEPENDS)

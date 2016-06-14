@@ -33,4 +33,9 @@ freely, subject to the following restrictions:
 char *dbp_mgr_cache_directory();
 char *dbp_mgr_config_directory();
 
+int dbp_mgr_file_lock(const char *lockfile);
+int dbp_mgr_file_unlock(int fd);
+
+int dbp_mgr_mkdir_recursive(const char *path, int mode);
+
 #endif

@@ -26,18 +26,35 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <libgen.h>
 #include <sys/stat.h>
 #include <glib.h>
 #include <dbpbase/desktop.h>
 #include <dbpbase/config.h>
+#include <curl/curl.h>
+#include <zlib.h>
 
 #include "dbpmgr.h"
 #include "categories.h"
 #include "dependencies.h"
 #include "package_list.h"
 
-static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch);
+static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch, char **secret);
 
+
+static int _obtain_pkg_cache_lock() {
+	char *cache_path, *lockpath;
+	int lock;
+
+	cache_path = dbp_mgr_cache_directory();
+	asprintf(&lockpath, "%s/pkglist.lock", cache_path);
+	free(cache_path);
+	if ((lock = dbp_mgr_file_lock(lockpath)) < 0)
+		fprintf(stderr, "Unable to obtain package list cache lock %s\n", lockpath);
+
+	free(lockpath);
+	return lock;
+}
 
 static int _locate_pkgid(struct DBPPackageList *list, int branch_id, const char *pkg_id) {
 	int i;
@@ -309,7 +326,7 @@ struct DBPPackageList *dbp_pkglist_new(const char *arch) {
 			while (*strchr(buff, '\n'))
 				*strchr(buff, '\n') = 0;
 			
-			_get_repo_line_info(buff, NULL, &arch, NULL);
+			_get_repo_line_info(buff, NULL, &arch, NULL, NULL);
 			if (strcmp(arch, list->arch)) {
 				free(arch);
 				continue;
@@ -335,9 +352,10 @@ int dbp_pkglist_source_add(struct DBPPackageList *list, const char *name, const 
 }
 
 
-static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch) {
-	char *_url, *_arch, *_branch;
-	sscanf(repoline, "%ms %ms %ms", &_url, &_arch, &_branch);
+static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch, char **secret) {
+	char *_url, *_arch, *_branch, *_secret;
+	_secret = NULL;
+	sscanf(repoline, "%ms %ms %ms %ms", &_url, &_arch, &_branch, &_secret);
 	if (url)
 		*url = _url;
 	else
@@ -350,6 +368,10 @@ static void _get_repo_line_info(const char *repoline, char **url, char **arch, c
 		*branch = _branch;
 	else
 		free(_branch);
+	if (secret)
+		*secret = _secret;
+	else
+		free(_secret);
 	return;
 	
 }
@@ -362,7 +384,7 @@ char *dbp_pkglist_source_cache_path(struct DBPPackageList *list, int source_id) 
 	GChecksum *cs;
 
 	cache_dir = dbp_mgr_cache_directory();
-	_get_repo_line_info(list->source_id[source_id].url, &url, &arch, &branch);
+	_get_repo_line_info(list->source_id[source_id].url, &url, &arch, &branch, NULL);
 	
 	cs = g_checksum_new(G_CHECKSUM_MD5);
 	g_checksum_update(cs, (const uint8_t *) url, -1);
@@ -376,11 +398,15 @@ char *dbp_pkglist_source_cache_path(struct DBPPackageList *list, int source_id) 
 }
 
 
+/* FIXME: We probably want some error reporting */
 void dbp_pkglist_cache_read(struct DBPPackageList *list) {
-	int i;
+	int i, lock;
 	char *cache_file, *branch;
 	struct DBPDesktopFile *df;
 	struct stat sbuf;
+	
+	if ((lock = _obtain_pkg_cache_lock()) < 0)
+		return;
 
 	for (i = 0; i < list->source_ids; i++) {
 		cache_file = dbp_pkglist_source_cache_path(list, i);
@@ -389,15 +415,115 @@ void dbp_pkglist_cache_read(struct DBPPackageList *list) {
 		else
 			list->source_id[i].last_update = sbuf.st_mtime;
 		if ((df = dbp_desktop_parse_file(cache_file))) {
-			_get_repo_line_info(list->source_id[i].url, NULL, NULL, &branch);
+			_get_repo_line_info(list->source_id[i].url, NULL, NULL, &branch, NULL);
 			dbp_pkglist_parse(list, branch, i, df);
 			free(branch);
 			dbp_desktop_free(df);
 		}
 		free(cache_file);
 	}
+	
+	dbp_mgr_file_unlock(lock);
 
 	return;
 }
 
 
+void dbp_pkglist_cache_nuke(struct DBPPackageList *list) {
+	int i, lock;
+	char *path;
+
+	if ((lock = _obtain_pkg_cache_lock()) < 0)
+		return;
+
+	for (i = 0; i < list->source_ids; i++) {
+		path = dbp_pkglist_source_cache_path(list, i);
+		unlink(path);
+		free(path);
+	}
+	
+	dbp_mgr_file_unlock(lock);
+
+	return;
+}
+
+
+/* FIXME: We probably want some error reporting ...*/
+/* FIXME: We probably shouldn't use the curl easy interface like this, but it works as a prototype.. */
+void dbp_pkglist_cache_update_one(struct DBPPackageList *list, int source_id) {
+	char *url, *arch, *branch, *secret, *repo_uri = NULL, *cache_file_tmp = NULL, *cache_file, *tmp, *dir;
+	char cerr[CURL_ERROR_SIZE];
+	CURL *curly;
+	FILE *fp;
+	
+	if (!(curly = curl_easy_init())) {
+		fprintf(stderr, "dbp_pkglist_cache_update_one(): Unable to init curl\n");
+		return;
+	}
+	
+	cache_file = dbp_pkglist_source_cache_path(list, source_id);
+	tmp = strdup(cache_file);
+	dir = dirname(tmp);
+	if (dbp_mgr_mkdir_recursive(dir, 0700)) {
+		free(tmp);
+		goto error;
+	}
+
+	free(tmp);
+
+	asprintf(&cache_file_tmp, "%s.part", cache_file);
+	if (!(fp = fopen(cache_file_tmp, "w"))) {
+		goto error;
+	}
+
+	_get_repo_line_info(list->source_id[source_id].url, &url, &arch, &branch, &secret);
+	asprintf(&repo_uri, "%s/%s/%s/pkglist.gz", url, branch, arch);
+	curl_easy_setopt(curly, CURLOPT_URL, repo_uri);
+	curl_easy_setopt(curly, CURLOPT_WRITEDATA, fp);
+	curl_easy_setopt(curly, CURLOPT_FAILONERROR, 1);
+	curl_easy_setopt(curly, CURLOPT_ERRORBUFFER, cerr);
+	/* TODO: Add secret if present */
+	
+	if (curl_easy_perform(curly) != CURLE_OK) {
+		fprintf(stderr, "CURL error: %s\n", cerr);
+		unlink(cache_file_tmp);
+		goto error;
+	}
+	
+	/* Decompress it */ {
+		int i;
+		gzFile gzf;
+		FILE *fp2;
+		char buff[8192];
+		unlink(cache_file);
+		if (!(fp2 = fopen(cache_file, "wb"))) {
+			/* Fuck. */
+			fprintf(stderr, "Unable to open target package list cache file '%s'\n", cache_file);
+			goto error;
+		}
+
+		if (!(gzf = gzopen(cache_file_tmp, "rb"))) {
+			// Should not happen
+			fclose(fp);
+			goto error;
+		}
+
+		for (i = gzread(gzf, buff, 8192); i > 0; i = gzread(gzf, buff, 8192))
+			fwrite(buff, i, 1, fp2);
+		if (i < 0) {
+			fprintf(stderr, "decompression error at i=%lli in file %s\n", (long long int) ftell(fp), cache_file_tmp);
+			unlink(cache_file);
+		}
+
+		gzclose(gzf);
+		fclose(fp2);
+	}
+
+	error:
+	unlink(cache_file_tmp);
+	free(repo_uri);
+	free(cache_file_tmp);
+	free(cache_file);
+	fclose(fp);
+
+}
