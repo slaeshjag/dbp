@@ -17,6 +17,7 @@ CMDBIN		=	"$(TOPDIR)/build/bin/$(NAME)-cmd"
 DESKTOPBIN	=	"$(TOPDIR)/build/bin/$(NAME)-desktopd"
 THUMBBIN	=	"$(TOPDIR)/build/bin/$(NAME)-thumbnailer"
 VALIDBIN	=	"$(TOPDIR)/build/bin/$(NAME)-validate-extracted"
+GETBIN		=	"$(TOPDIR)/build/bin/$(NAME)-get"
 LIB		=	"$(TOPDIR)/dbp-common/dbp-common.a"
 LIBINC		=	"-I$(TOPDIR)/libdbpbase" "-I$(TOPDIR)/build/include"
 

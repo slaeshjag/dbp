@@ -38,6 +38,8 @@ all:
 	+@make -C dbp-meta/
 	@echo " [ CD ] dbp-cmd/"
 	+@make -C dbp-cmd/
+	@echo " [ CD ] dbp-get/"
+	+@make -C dbp-get/
 	@echo " [ CD ] dbp-desktopd/"
 	+@make -C dbp-desktopd/
 	@echo " [ CD ] dbp-validate-extracted/"
@@ -66,6 +68,8 @@ clean:
 	+@make -C dbp-run/ clean
 	@echo " [ CD ] dbp-cfg/"
 	+@make -C dbp-cfg/ clean
+	@echo " [ CD ] dbp-get/"
+	+@make -C dbp-get/ clean
 	@echo " [ CD ] dbp-meta/"
 	+@make -C dbp-meta/ clean
 	@echo " [ CD ] dbp-cmd/"
@@ -105,6 +109,7 @@ install:
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run" 
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-run-path" 
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-validate-extracted" 
+	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-get" 
 	install -d "$(DESTDIR)/usr/lib"
 	install -m 644 $(STRIP_FLAG) -t "$(DESTDIR)/usr/lib/" "$(TOPDIR)/build/lib/libdbpmgr.so"
 	install -m 644 $(STRIP_FLAG) -t "$(DESTDIR)/usr/lib/" "$(TOPDIR)/build/lib/libdbpbase.so"
