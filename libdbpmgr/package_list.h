@@ -27,6 +27,7 @@ freely, subject to the following restrictions:
 #define	__DBPMGR_PACKAGE_LIST_H__
 
 #include <time.h>
+#include <dbpbase/desktop.h>
 
 
 struct DBPPackageLocale {
@@ -99,12 +100,15 @@ struct DBPPackageList {
 
 
 int dbp_pkglist_source_add(struct DBPPackageList *list, const char *name, const char *url);
-struct DBPPackageList *dbp_pkglist_new();
+struct DBPPackageList *dbp_pkglist_new(const char *arch);
 struct DBPPackageList *dbp_pkglist_free(struct DBPPackageList *list);
 void dbp_pkglist_parse(struct DBPPackageList *list, const char *branch, int source_id, struct DBPDesktopFile *pkglist);
 int dbp_pkglist_branch_add(struct DBPPackageList *list, const char *branch);
 
 char *dbp_pkglist_source_cache_path(struct DBPPackageList *list, int source_id);
 void dbp_pkglist_cache_read(struct DBPPackageList *list);
+
+void dbp_pkglist_cache_update_one(struct DBPPackageList *list, int source_id);
+void dbp_pkglist_cache_update(struct DBPPackageList *list);
 
 #endif

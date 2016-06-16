@@ -323,7 +323,7 @@ struct DBPPackageList *dbp_pkglist_new(const char *arch) {
 			fgets(buff, 4096, fp);
 			if (!*buff)
 				continue;
-			while (*strchr(buff, '\n'))
+			while (strchr(buff, '\n'))
 				*strchr(buff, '\n') = 0;
 			
 			_get_repo_line_info(buff, NULL, &arch, NULL, NULL);
@@ -489,7 +489,8 @@ void dbp_pkglist_cache_update_one(struct DBPPackageList *list, int source_id) {
 		unlink(cache_file_tmp);
 		goto error;
 	}
-	
+
+	fclose(fp), fp = NULL;
 	/* Decompress it */ {
 		int i;
 		gzFile gzf;
@@ -524,6 +525,17 @@ void dbp_pkglist_cache_update_one(struct DBPPackageList *list, int source_id) {
 	free(repo_uri);
 	free(cache_file_tmp);
 	free(cache_file);
-	fclose(fp);
+	if (fp)
+		fclose(fp);
+
+}
+
+
+void dbp_pkglist_cache_update(struct DBPPackageList *list) {
+	int i;
+
+	for (i = 0; i < list->source_ids; i++)
+		dbp_pkglist_cache_update_one(list, i);
+	return;
 
 }
