@@ -37,5 +37,6 @@ int dbp_mgr_file_lock(const char *lockfile);
 int dbp_mgr_file_unlock(int fd);
 
 int dbp_mgr_mkdir_recursive(const char *path, int mode);
+int dbp_mgr_init();
 
 #endif

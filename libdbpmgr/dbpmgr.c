@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "../libdbpbase/dbpbase.h"
 #include "dbpmgr.h"
 
 
@@ -77,4 +78,9 @@ int dbp_mgr_mkdir_recursive(const char *path, int mode) {
 	free(path_tmp);
 	free(build_old);
 	return 0;
+}
+
+
+int dbp_mgr_init() {
+	return dbp_config_init();
 }

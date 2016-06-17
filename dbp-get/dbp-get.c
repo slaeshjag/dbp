@@ -2,6 +2,7 @@
 #include <string.h>
 #include "dbp-get.h"
 
+#include <dbpmgr/dbpmgr.h>
 #include <dbpmgr/package_list.h>
 
 void usage() {
@@ -10,20 +11,33 @@ void usage() {
 
 
 int main(int argc, char **argv) {
-	struct DBPPackageList *list;
-	int i;
+	struct DBPPackageList **list;
+	int lists;
+	int i, j;
 	
 	if (argc < 2) {
 		return usage(), 1;
 	}
 
-	if (!strcmp(argv[1], "update")) {
+	dbp_mgr_init();
 
-		list = dbp_pkglist_new("armhf");
-		for (i = 0; i < list->source_ids; i++) {
-			fprintf(stdout, "--> %s\n", list->source_id[i].url);
-			dbp_pkglist_cache_update_one(list, i);
-		}
+	if (!strcmp(argv[1], "update")) {
+		dbp_pkglist_arch_supported_load(&list, &lists);
+		for (j = 0; j < lists; j++)
+			for (i = 0; i < list[j]->source_ids; i++) {
+				fprintf(stdout, "--> %s\n", list[j]->source_id[i].url);
+				dbp_pkglist_cache_update_one(list[j], i);
+			}
+	} else if (!strcmp(argv[1], "list")) {
+		int k;
+		/* TODO: Make sure we print out the latest version, and no duplicates due to various branches */
+		dbp_pkglist_arch_supported_load(&list, &lists);
+		dbp_pkglist_cache_read_all(list, lists);
+
+		for (j = 0; j < lists; j++)
+			for (i = 0; i < list[j]->branches; i++)
+				for (k = 0; k < list[j]->branch[i].ids; k++)
+					fprintf(stdout, "%s:%s - %s\n", list[j]->branch[i].id[k].pkg_id, list[j]->arch, list[j]->branch[i].id[k].version->description.shortdesc); 
 	}
 
 	return 0;

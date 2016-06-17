@@ -134,8 +134,8 @@ static void _add_category(struct DBPPackageVersion *pkg, char *main, char *sub, 
 
 
 static void _process_categories(struct DBPPackageVersion *pkg, const char *categories) {
-	char **cat_arr;
-	int cats, i;
+	char **cat_arr = NULL;
+	int cats = 0, i;
 	char *new_cat = strdup(categories);;
 	if (pkg->category)
 		return;	// We have already added categories
@@ -538,4 +538,25 @@ void dbp_pkglist_cache_update(struct DBPPackageList *list) {
 		dbp_pkglist_cache_update_one(list, i);
 	return;
 
+}
+
+
+void dbp_pkglist_arch_supported_load(struct DBPPackageList ***list, int *lists) {
+	int i;
+
+	*list = malloc(sizeof(**list) * dbp_config_struct.archs);
+	*lists = dbp_config_struct.archs;
+	for (i = 0; i < dbp_config_struct.archs; i++)
+		(*list)[i] = dbp_pkglist_new(dbp_config_struct.arch[i]);
+	return;
+}
+
+
+/* FIXME: We probably want some error reporting */
+void dbp_pkglist_cache_read_all(struct DBPPackageList **list, int lists) {
+	int i;
+
+	for (i = 0; i < lists; i++)
+		dbp_pkglist_cache_read(list[i]);
+	return;
 }

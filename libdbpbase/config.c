@@ -56,6 +56,9 @@ int dbp_config_init() {
 	struct DBPConfig c;
 	char *tmp;
 
+	if (dbp_config_struct.df)
+		return 1;
+
 	/* En fuling åt h4xxel's vala-jox */
 	if (!dbp_error_log)
 		dbp_error_log = stderr;

@@ -107,8 +107,11 @@ int dbp_pkglist_branch_add(struct DBPPackageList *list, const char *branch);
 
 char *dbp_pkglist_source_cache_path(struct DBPPackageList *list, int source_id);
 void dbp_pkglist_cache_read(struct DBPPackageList *list);
+void dbp_pkglist_cache_read_all(struct DBPPackageList **list, int lists);
 
 void dbp_pkglist_cache_update_one(struct DBPPackageList *list, int source_id);
 void dbp_pkglist_cache_update(struct DBPPackageList *list);
+
+void dbp_pkglist_arch_supported_load(struct DBPPackageList ***list, int *lists);
 
 #endif
