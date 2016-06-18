@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
 	distribution.
 */
 #define	_GNU_SOURCE
+#include "dependencies.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +37,6 @@ freely, subject to the following restrictions:
 
 #include "dbpmgr.h"
 #include "categories.h"
-#include "dependencies.h"
 #include "package_list.h"
 
 static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch, char **secret);
@@ -197,7 +197,7 @@ void dbp_pkglist_parse(struct DBPPackageList *list, const char *branch, int sour
 		verid = list->branch[branch_id].id[pkgid].versions++;
 		list->branch[branch_id].id[pkgid].version = realloc(list->branch[branch_id].id[pkgid].version, sizeof(*list->branch[branch_id].id[pkgid].version) * list->branch[branch_id].id[pkgid].versions);
 		memset(&list->branch[branch_id].id[pkgid].version[verid], 0, sizeof(list->branch[branch_id].id[pkgid].version[verid]));
-		/* TODO: Snygga upp det här spaghettimonstret... */
+		/* TODO: Snygga upp det här spaghettimonstret... Offset+nyckeluppslag kanske? */
 		for (j = 0; j < pkglist->section[i].entries; j++) {
 			if (!strcmp(pkglist->section[i].name, "")) {
 				if (!strcmp(pkglist->section[i].entry[j].key, "FeedName"))
@@ -226,10 +226,14 @@ void dbp_pkglist_parse(struct DBPPackageList *list, const char *branch, int sour
 				free(list->branch[branch_id].id[pkgid].version[verid].version), list->branch[branch_id].id[pkgid].version[verid].version = strdup(pkglist->section[i].entry[j].value);
 			else if (!strcmp(pkglist->section[i].entry[j].key, "IconURL"))
 				free(list->branch[branch_id].id[pkgid].version[verid].icon_url), list->branch[branch_id].id[pkgid].version[verid].icon_url = strdup(pkglist->section[i].entry[j].value);
+			else if (!strcmp(pkglist->section[i].entry[j].key, "URL"))
+				free(list->branch[branch_id].id[pkgid].version[verid].icon_url), list->branch[branch_id].id[pkgid].version[verid].icon_url = strdup(pkglist->section[i].entry[j].value);
 			else if (!strcmp(pkglist->section[i].entry[j].key, "Categories"))
 				_process_categories(&list->branch[branch_id].id[pkgid].version[verid], pkglist->section[i].entry[j].value);
 			else if (!strcmp(pkglist->section[i].entry[j].key, "Dependency"))
 				free(list->branch[branch_id].id[pkgid].version[verid].dep.any), list->branch[branch_id].id[pkgid].version[verid].dep.any = strdup(pkglist->section[i].entry[j].value);
+			else if (!strcmp(pkglist->section[i].entry[j].key, "FileSize"))
+				list->branch[branch_id].id[pkgid].version[verid].file_size = atoi(pkglist->section[i].entry[j].value);
 		}
 
 		list->branch[branch_id].id[pkgid].version[verid].feed_id = source_id;
@@ -279,6 +283,7 @@ struct DBPPackageList *dbp_pkglist_free(struct DBPPackageList *list) {
 					free(list->branch[i].id[j].version[k].category[l].subsub);
 				}
 				free(list->branch[i].id[j].version[k].category);
+				free(list->branch[i].id[j].version[k].url);
 			}
 			free(list->branch[i].id[j].version);
 		}
@@ -558,5 +563,147 @@ void dbp_pkglist_cache_read_all(struct DBPPackageList **list, int lists) {
 
 	for (i = 0; i < lists; i++)
 		dbp_pkglist_cache_read(list[i]);
+	return;
+}
+
+
+struct DBPPackageList *dbp_pkglist_duplicate_base(struct DBPPackageList *in) {
+	struct DBPPackageList *new;
+	int i;
+
+	new = malloc(sizeof(*in));
+	new->source_id = malloc(sizeof(*new->source_id) * in->source_ids), new->source_ids = in->source_ids;
+	new->arch = strdup(in->arch);
+	for (i = 0; i < in->source_ids; i++) {
+		new->source_id[i].url = strdup(in->source_id[i].url);
+		new->source_id[i].name = strdup(in->source_id[i].name);
+		new->source_id[i].last_update = in->source_id[i].last_update;
+	}
+
+	new->branch = malloc(sizeof(*new->branch) * in->branches), new->branches = in->branches;
+	for (i = 0; i < new->branches; i++) {
+		new->branch[i].name = strdup(in->branch[i].name);
+		new->branch[i].id = NULL, new->branch[i].ids = 0;
+	}
+
+	return new;
+}
+
+struct DBPPackageVersion *dbp_pkglist_pkgentry_version_duplicate(struct DBPPackageVersion *ver) {
+#define	CHARDUP_COND(old, new, memb) (new->memb = (old->memb)?strdup(old->memb):NULL);
+	int i;
+	struct DBPPackageVersion *new;
+
+	new = calloc(sizeof(*new), 1);
+	new->category = malloc(sizeof(*new->category) * ver->categories), new->categories = ver->categories;
+	for (i = 0; i < new->categories; i++) {
+		CHARDUP_COND(ver, new, category[i].main);
+		CHARDUP_COND(ver, new, category[i].sub);
+		CHARDUP_COND(ver, new, category[i].subsub);
+	}
+
+	new->locale = malloc(sizeof(new->locale) * ver->locales), new->locales = ver->locales;
+	for (i = 0; i < new->locales; i++) {
+		CHARDUP_COND(ver, new, locale[i].locale);
+		CHARDUP_COND(ver, new, locale[i].shortdesc);
+		CHARDUP_COND(ver, new, locale[i].name);
+		new->locale[i].additional_data = NULL;
+	}
+	
+	CHARDUP_COND(ver, new, description.name);
+	CHARDUP_COND(ver, new, description.locale);
+	CHARDUP_COND(ver, new, description.shortdesc);
+	CHARDUP_COND(ver, new, version);
+	new->feed_id = ver->feed_id;
+	CHARDUP_COND(ver, new, dep.pref_deb);
+	CHARDUP_COND(ver, new, dep.deb);
+	CHARDUP_COND(ver, new, dep.any);
+	CHARDUP_COND(ver, new, dep.dbp);
+	CHARDUP_COND(ver, new, dep.pref_dbp);
+	CHARDUP_COND(ver, new, icon_url);
+	CHARDUP_COND(ver, new, url);
+	new->file_size = ver->file_size;
+	new->additional_data = NULL;
+
+	return new;
+#undef CHARDUP_COND	
+}
+
+
+// This thing might be *quite* slow. Complexity is somewhere around O(scary) //
+static struct DBPPackageVersion *_locate_newest_pkgid_in_list(struct DBPPackageListBranch *branchp, const char *pkgid, int branch, int branches) {
+	struct DBPPackageVersion *this = NULL, *up;
+	struct DBPPackageListBranch *b;
+	int i, j;
+
+	if (branch == branches)
+		return NULL;
+	b = &branchp[branch];
+
+	for (i = 0; i < b->ids; i++) {
+		if (strcmp(b->id[i].pkg_id, pkgid))
+			continue;
+		for (j = 0; j < b->id[i].versions; j++) {
+			if (this) {
+				if (dbpmgr_depend_compare_version(b->id[i].version[j].version, this->version) > 0)
+					this = &b->id[i].version[j];
+			} else
+				this = &b->id[i].version[j];
+		}
+		
+		break;
+	}
+	
+	if (!(up = _locate_newest_pkgid_in_list(branchp, pkgid, ++branch, branches)))
+		return this;
+	if (dbpmgr_depend_compare_version(up->version, this->version) > 0)
+		return up;
+	return this;
+}
+
+
+static struct DBPPackageListID *_pkgid_in_lists(struct DBPPackageList **list, int lists, const char *pkgid) {
+	int i, j, k;
+
+	for (i = 0; i < lists; i++) 
+		for (j = 0; j < list[i]->branches; j++) 
+			for (k = 0; k < list[i]->branch[j].ids; k++)
+				if (!strcmp(list[i]->branch[j].id[k].pkg_id, pkgid))
+					return &list[i]->branch[j].id[k];
+		
+	
+	return NULL;
+}
+
+
+/* list (not rec_list) should be all available packages to choose from, list 0 being the preferable, list 1 the next preferable, etc.. */
+/* Returns the same number of lists as it's supplied. Complexity: O(scary) */
+/* Note that this function will flatten the "branch" list into one entry */
+void dbp_pkglist_recommended_select(struct DBPPackageList ***rec_list, struct DBPPackageList **list, int lists) {
+	int i, j, k;
+	struct DBPPackageList **newlist;
+	struct DBPPackageVersion *highest;
+
+	newlist = malloc(sizeof(*newlist) * lists);
+
+	for (i = 0; i < lists; i++) {
+		newlist[i] = dbp_pkglist_duplicate_base(list[i]);
+
+		for (j = 0; j < newlist[i]->branches; j++) {
+			for (k = 0; k < list[i]->branch[j].ids; k++) {
+				int id;
+				if (_pkgid_in_lists(newlist, i + 1, list[i]->branch[j].id[k].pkg_id))
+					continue;
+				highest = _locate_newest_pkgid_in_list(list[i]->branch, list[i]->branch[j].id[k].pkg_id, k, list[i]->branches);
+				id = newlist[i]->branch[j].ids++;
+				newlist[i]->branch[j].id = realloc(newlist[i]->branch[j].id, sizeof(*newlist[i]->branch[j].id) * newlist[i]->branch[j].ids);
+				newlist[i]->branch[j].id[id].pkg_id = strdup(list[i]->branch[j].id[k].pkg_id);
+				newlist[i]->branch[j].id[id].version = dbp_pkglist_pkgentry_version_duplicate(highest);
+				newlist[i]->branch[j].id[id].versions = 1;
+			}
+		}
+	}
+
+	*rec_list = newlist;
 	return;
 }

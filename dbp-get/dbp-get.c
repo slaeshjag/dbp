@@ -30,14 +30,16 @@ int main(int argc, char **argv) {
 			}
 	} else if (!strcmp(argv[1], "list")) {
 		int k;
+		struct DBPPackageList **rec;
 		/* TODO: Make sure we print out the latest version, and no duplicates due to various branches */
 		dbp_pkglist_arch_supported_load(&list, &lists);
 		dbp_pkglist_cache_read_all(list, lists);
+		dbp_pkglist_recommended_select(&rec, list, lists);
 
 		for (j = 0; j < lists; j++)
-			for (i = 0; i < list[j]->branches; i++)
-				for (k = 0; k < list[j]->branch[i].ids; k++)
-					fprintf(stdout, "%s:%s - %s\n", list[j]->branch[i].id[k].pkg_id, list[j]->arch, list[j]->branch[i].id[k].version->description.shortdesc); 
+			for (i = 0; i < rec[j]->branches; i++)
+				for (k = 0; k < rec[j]->branch[i].ids; k++)
+					fprintf(stdout, "%s:%s - %s\n", rec[j]->branch[i].id[k].pkg_id, rec[j]->arch, rec[j]->branch[i].id[k].version->description.shortdesc); 
 	}
 
 	return 0;

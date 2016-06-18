@@ -45,6 +45,7 @@ struct DBPPackageCategory {
 };
 
 
+/* When extending this struct, don't forget to update free, duplicate, new */
 struct DBPPackageVersion {
 	char				*version;
 	int				feed_id;
@@ -64,6 +65,8 @@ struct DBPPackageVersion {
 	} dep;
 
 	char				*icon_url;
+	char				*url;
+	int32_t				file_size; // In kiB, 2+ TiB should be enough for everyone
 	void				*additional_data; /* Reseved for future use */
 };
 
@@ -113,5 +116,6 @@ void dbp_pkglist_cache_update_one(struct DBPPackageList *list, int source_id);
 void dbp_pkglist_cache_update(struct DBPPackageList *list);
 
 void dbp_pkglist_arch_supported_load(struct DBPPackageList ***list, int *lists);
+void dbp_pkglist_recommended_select(struct DBPPackageList ***rec_list, struct DBPPackageList **list, int lists);
 
 #endif

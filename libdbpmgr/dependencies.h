@@ -40,5 +40,6 @@ void dbpmgr_depend_cleanup();
 struct DBPDependDPackage *dbpmgr_depend_debian_next(const char *pkg_name, struct DBPDependDPackage *prev);
 
 void dbpmgr_depend_delete_list_ptr(struct DBPDependListList *list);
+int dbpmgr_depend_compare_version(char *ver1, char *ver2);
 
 #endif
