@@ -215,6 +215,9 @@ void dbpmgr_server_signal_listen(void (*signal_handler)(const char *signal, cons
 int dbpmgr_server_connect() {
 	GError *error = NULL;
 
+	if (conn)
+		return dbpmgr_server_ping();
+
 	if (!(conn = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error))) {
 		if (!conn) {
 			fprintf(stderr, "Unable to connect to DBus system bus: %s\n", error->message);

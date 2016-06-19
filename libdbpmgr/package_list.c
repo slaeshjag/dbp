@@ -38,6 +38,7 @@ freely, subject to the following restrictions:
 #include "dbpmgr.h"
 #include "categories.h"
 #include "package_list.h"
+#include "dbpd-dbus-client.h"
 
 static void _get_repo_line_info(const char *repoline, char **url, char **arch, char **branch, char **secret);
 
@@ -694,7 +695,7 @@ void dbp_pkglist_recommended_select(struct DBPPackageList ***rec_list, struct DB
 				int id;
 				if (_pkgid_in_lists(newlist, i + 1, list[i]->branch[j].id[k].pkg_id))
 					continue;
-				highest = _locate_newest_pkgid_in_list(list[i]->branch, list[i]->branch[j].id[k].pkg_id, k, list[i]->branches);
+				highest = _locate_newest_pkgid_in_list(list[i]->branch, list[i]->branch[j].id[k].pkg_id, j, list[i]->branches);
 				id = newlist[i]->branch[j].ids++;
 				newlist[i]->branch[j].id = realloc(newlist[i]->branch[j].id, sizeof(*newlist[i]->branch[j].id) * newlist[i]->branch[j].ids);
 				newlist[i]->branch[j].id[id].pkg_id = strdup(list[i]->branch[j].id[k].pkg_id);
@@ -707,3 +708,56 @@ void dbp_pkglist_recommended_select(struct DBPPackageList ***rec_list, struct DB
 	*rec_list = newlist;
 	return;
 }
+
+
+/* Note that this function will flatten the "branch" list into one entry. Use the sourece_id/feed_id to connect it back to the correct branch */
+/* Will use the same source_id numbers as the available packages */
+void dbp_pkglist_suggest_upgrades(struct DBPPackageList ***upd_list, struct DBPPackageList **list, struct DBPPackageList **installed, int lists) {
+	int i, j, k;
+	struct DBPPackageList **newlist;
+	struct DBPPackageVersion *highest;
+
+	newlist[i] = dbp_pkglist_duplicate_base(list[i]);
+
+	for (i = 0; i < lists; i++) {
+		newlist[i] = dbp_pkglist_duplicate_base(list[i]);
+
+		for (j = 0; j < installed[i]->branches; j++) {
+			for (k = 0; j < installed[i]->branch[j].ids; k++) {
+				int id;
+				highest = _locate_newest_pkgid_in_list(list[i]->branch, installed[i]->branch[j].id[k].pkg_id, 0, list[i]->branches);
+				/* TODO: Implement version dependency checks */
+				if (dbpmgr_depend_compare_version(installed[i]->branch[k].id[k].version->version, highest->version) >= 0)
+					continue;
+				id = newlist[i]->branch[j].ids++;
+				newlist[i]->branch[j].id = realloc(sizeof(*newlist[i]->branch[j].id) * newlist[i]->branch[j].ids);
+				newlist[i]->branch[j].id[id].pkg_id = strdup(installed[i]->branch[j].id[k].pkg_id);
+				newlist[i]->branch[j].id[id].version = dbp_pkglist_pkgentry_version_duplicate(highest);
+				newlist[i]->branch[j].id[id].versions = 1;
+			}
+		}
+	}
+
+	*upd_list = newlist;
+
+}
+
+#if 0
+void dbp_pkglist_installed_get(struct DBPPackageList ***installed_list, int *lists) {
+	struct DBPPackageList **newlist;
+	int newlists;
+	*installed_list = NULL;
+	*lists = 0;
+
+	if (dbpmgr_server_connect() < 0) {
+		fprintf(stderr, "dbpd does not seem to be running! Offline installed package listing is not yet implemented\n");
+		return;
+	}
+	
+	dbp_pkglist_arch_supported_load(&newlist, &newlists);
+
+	lists = 
+	list = malloc(sizeof(*list) * lists);
+
+}
+#endif
