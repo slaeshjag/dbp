@@ -42,7 +42,7 @@ static int package_filename_interesting(const char *path) {
 	for (i = 0; i < dbp_config_struct.file_extensions; i++) {
 		if (strlen(path) < strlen(dbp_config_struct.file_extension[i]))
 			continue;
-		if (!strcmp(&path[strlen(path) - strlen(dbp_config_struct.file_extension[i])],
+		if (!strncmp(&path[strlen(path) - strlen(dbp_config_struct.file_extension[i])],
 		    dbp_config_struct.file_extension[i]))
 			return 1;
 	}
