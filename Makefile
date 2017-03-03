@@ -99,7 +99,7 @@ install:
 	install -d "$(DESTDIR)/usr/share/applications"
 	install -m 644 -t "$(DESTDIR)/usr/share/applications" "$(TOPDIR)/conf/dbp-run-path.desktop"
 	install -d "$(DESTDIR)/usr/share/mime"
-	install -m 644 -t "$(DESTDIR)/usr/share/mime" "$(TOPDIR)/conf/mime/x-dbp.xml"
+	install -m 644 -t "$(DESTDIR)/usr/share/mime/packages" "$(TOPDIR)/conf/mime/x-dbp.xml"
 	install -d "$(DESTDIR)/usr/bin"
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-cfg" 
 	install -m 755 $(STRIP_FLAG) -t "$(DESTDIR)/usr/bin/" "$(TOPDIR)/build/bin/dbp-cmd" 
