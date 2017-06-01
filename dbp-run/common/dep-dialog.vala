@@ -99,13 +99,13 @@ public class DepListDialog {
 		dialog.get_content_area().pack_start(dbpex, true, true, 0);
 
 		install = new Gtk.Button.with_label(_("Install missing dependencies"));
-		install.always_show_image = true;
+		install.set_always_show_image(true);
 		install.set_image(new Gtk.Image.from_icon_name("gtk-floppy", Gtk.IconSize.BUTTON));
 		launch = new Gtk.Button.with_label(_("Launch anyway"));
-		launch.always_show_image = true;
+		launch.set_always_show_image(true);
 		launch.set_image(new Gtk.Image.from_icon_name("gtk-yes", Gtk.IconSize.BUTTON));
 		abort = new Gtk.Button.with_label(_("Abort launch"));
-		abort.always_show_image = true;
+		abort.set_always_show_image(true);
 		abort.set_image(new Gtk.Image.from_icon_name("gtk-no", Gtk.IconSize.BUTTON));
 		this.dialog.add_action_widget(install, Result.INSTALL);
 		this.dialog.add_action_widget(abort, Result.ABORT);
