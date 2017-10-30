@@ -13,8 +13,10 @@ Entries that can hold multiple values are ;-separated
 * Exec			(Optional) List of executables to export With enviroment override
 * NoEnvExec		(Optional) List of executables to export
 * Appdata		(Optional) appdata directory name
-* SysDependency		(Optional) System packages needed to run
-* PkgDependency		(Optional) DBP dependencies needed to run
+* Dependency[deb]	(Optional) System packages needed to run
+* Dependency[dbp]	(Optional) DBP dependencies needed to run
+* Dependency[pref\_deb]	(Optional) System packages needed to run, equivalent DBP can be used if not present
+* Dependency[prev\_dbp]	(Optional) DBP dependencies needed to run, equivalent system dependency can be used if not present
 
 ### DBus
 Dbus-signals that may be of use:

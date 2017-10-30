@@ -40,7 +40,7 @@ int dbp_desktop_entry_new(struct DBPDesktopFile *df, const char *key, const char
 			return i;	// Key/value collision, keep the old one
 	}
 
-	s = &df->section[df->sections - 1];
+	s = &df->section[section];
 	e = s->entries++;
 	s->entry = realloc(s->entry, sizeof(*s->entry) * s->entries);
 	s->entry[e].key = strdup(key), s->entry[e].locale = strdup(locale), s->entry[e].value = strdup(value);
